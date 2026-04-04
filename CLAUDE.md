@@ -59,13 +59,6 @@ Never agree by default. If the user's choice seems wrong or suboptimal:
 - Ask **one question per round** — never a list. Provide numbered options with trade-offs when the answer isn't obvious.
 - When presenting options: **recommended first** (marked, with reason), then alternatives with brief trade-offs.
 
-## Code Search
-
-Every project must have **ast-index initialized** before any code search. At the start of a project session, verify it is set up — if not, run the appropriate `ast-index:initialize-*` skill first.
-
-Prefer ast-index over Glob/Grep for any symbol search (classes, functions, usages, file by name).
-Use Glob/Grep only for plain-text patterns (strings, comments, config values).
-
 ## Web Search
 
 Always prefer Perplexity MCP over built-in tools for web search and URL fetching:
