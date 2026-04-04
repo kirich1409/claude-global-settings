@@ -29,12 +29,6 @@
 !plugins/blocklist.json
 !plugins/known_marketplaces.json
 
-# === PROJECT MEMORY ===
-!projects/
-!projects/*/
-!projects/*/memory/
-!projects/*/memory/**
-
 # === FORCE EXCLUDE (safety net) ===
 .credentials.json
 channels/
