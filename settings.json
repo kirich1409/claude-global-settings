@@ -184,7 +184,17 @@
       "WebFetch(domain:spring.io)",
       "WebFetch(domain:expressjs.com)",
       "mcp__google-dev-knowledge__search_documents",
-      "mcp__maven-tools__compare_dependency_versions"
+      "mcp__maven-tools__compare_dependency_versions",
+      "mcp__deepwiki__read_wiki_contents",
+      "mcp__deepwiki__read_wiki_structure",
+      "mcp__google-dev-knowledge__search_documents",
+      "mcp__google-dev-knowledge__get_document",
+      "mcp__plugin_context-mode_context-mode__execute",
+      "Bash(ast-index help:*)",
+      "Bash(ast-index rebuild:*)",
+      "Bash(python3:*)",
+      "Bash(gh api:*)",
+      "Bash(bash:*)"
     ],
     "deny": [
       "Read(./.env)",
