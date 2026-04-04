@@ -16,11 +16,23 @@ Shared [Claude Code](https://claude.ai/claude-code) configuration synced across 
 
 ## Setup
 
+### New machine (no `~/.claude`)
+
 ```bash
-bash <(curl -fsSL https://raw.githubusercontent.com/kirich1409/claude-global-settings/main/setup.sh)
+git clone https://github.com/kirich1409/claude-global-settings.git ~/.claude
 ```
 
-Works on any machine: clones if `~/.claude` doesn't exist, overlays shared settings if it does, pulls if already set up. Creates a full backup before any changes, adds `csync` alias, rolls back on failure.
+### Existing machine (already has `~/.claude`)
+
+```bash
+bash ~/.claude/setup.sh
+# or if ~/.claude is not yet a repo:
+git clone https://github.com/kirich1409/claude-global-settings.git /tmp/claude-settings \
+  && bash /tmp/claude-settings/setup.sh \
+  && rm -rf /tmp/claude-settings
+```
+
+The setup script creates a full backup before any changes, adds `csync` alias, and rolls back on failure.
 
 ## Sync
 
