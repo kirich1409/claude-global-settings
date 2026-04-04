@@ -8,6 +8,11 @@
 !settings.json
 !CLAUDE.md
 !RTK.md
+!statusline-command.sh
+
+# === RULES ===
+!rules/
+!rules/**
 
 # === HOOKS ===
 !hooks/
