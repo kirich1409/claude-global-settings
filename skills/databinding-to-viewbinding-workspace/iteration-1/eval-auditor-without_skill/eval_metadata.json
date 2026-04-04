@@ -1,0 +1,6 @@
+{
+  "eval_id": 3,
+  "eval_name": "auditor-without-skill",
+  "prompt": "Migrate RefRequestAuditorFragment from DataBinding to ViewBinding + StateFlow (no skill)",
+  "assertions": []
+}

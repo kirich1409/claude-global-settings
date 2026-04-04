@@ -1,0 +1,18 @@
+{
+  "eval_id": 1,
+  "config": "with_skill",
+  "expectations": [
+    {"text": "Layout XML root element is NOT <layout>", "passed": true, "evidence": "Root changed to <LinearLayout>"},
+    {"text": "Layout XML has no <data> section", "passed": true, "evidence": "<data> section with 3 variables removed"},
+    {"text": "Layout XML has no binding expressions", "passed": true, "evidence": "All @{} and @={} removed from XML"},
+    {"text": "Fragment uses ViewBinding delegate", "passed": true, "evidence": "private val viewBinding by viewBinding(FragmentReferenceCashFlowBinding::bind)"},
+    {"text": "Fragment no DataBinding patterns", "passed": true, "evidence": "No binding.viewModel, binding.lifecycleOwner, binding.dataModel"},
+    {"text": "Fragment uses repeatOnLifecycle", "passed": true, "evidence": "repeatOnLifecycle(Lifecycle.State.STARTED) with launch blocks for each flow"},
+    {"text": "DataModel uses MutableStateFlow", "passed": true, "evidence": "startDate/endDate/errors all MutableStateFlow, base fields left as ObservableField"},
+    {"text": "DataModel no databinding imports", "passed": true, "evidence": "Removed ObservableField/ObservableError imports, added kotlinx.coroutines.flow"},
+    {"text": "Two-way email binding correct", "passed": true, "evidence": "AlfaSwitchInputView listeners + addOnPropertyChangedCallback for base ObservableField email"},
+    {"text": "Error handling via extension", "passed": true, "evidence": "Private TwoLineChooseView.applyError(ErrorState) extension created"},
+    {"text": "All bindings replaced", "passed": true, "evidence": "All 13 binding expressions mapped to Fragment code: dates, errors, clicks, email, confirm button, list header"},
+    {"text": "LiveData observers preserved", "passed": true, "evidence": "showMessage, requestDateAction, requestAccountsAction, selectedAccounts, requestScrollDownAction, focusRequest, initInfoLink all preserved"}
+  ]
+}

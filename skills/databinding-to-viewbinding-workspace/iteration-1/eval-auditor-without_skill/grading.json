@@ -1,0 +1,16 @@
+{
+  "eval_id": 3,
+  "config": "without_skill",
+  "expectations": [
+    {"text": "Layout XML root element is NOT <layout>", "passed": true, "evidence": "Root changed to <LinearLayout>"},
+    {"text": "Layout XML has no binding expressions", "passed": true, "evidence": "All binding expressions removed"},
+    {"text": "Fragment uses ViewBinding delegate", "passed": false, "evidence": "Used local val binding in onCreateView, NOT the project's viewBinding delegate pattern"},
+    {"text": "Fragment no DataBinding patterns", "passed": true, "evidence": "No DataBinding assignments"},
+    {"text": "Fragment uses repeatOnLifecycle", "passed": true, "evidence": "repeatOnLifecycle(STARTED) with separate suspend functions per flow"},
+    {"text": "DataModel uses MutableStateFlow", "passed": true, "evidence": "All fields converted to MutableStateFlow"},
+    {"text": "attachmentError observed and applied", "passed": true, "evidence": "attachmentError collected in ViewModel via filter/onEach/launchIn"},
+    {"text": "AlfaInputView two-way binding replaced", "passed": true, "evidence": "textChanges + flow collection, but NO loop guard (missing if check)"},
+    {"text": "All bindings replaced", "passed": true, "evidence": "All bindings replaced"},
+    {"text": "BaseRefDataModel NOT broken", "passed": false, "evidence": "CRITICAL: Modified BaseRefDataModel directly — changed ObservableField to MutableStateFlow, breaking 5+ sibling screens (RefCashFlow, RefCardLoan, RefStatement, RefOther). Also modified BaseRefViewModel and BaseRefValidationHelper."}
+  ]
+}

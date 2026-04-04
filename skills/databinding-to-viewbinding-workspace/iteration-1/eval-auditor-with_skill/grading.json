@@ -1,0 +1,15 @@
+{
+  "eval_id": 3,
+  "config": "with_skill",
+  "expectations": [
+    {"text": "Layout XML root element is NOT <layout>", "passed": true, "evidence": "Root changed to <LinearLayout>"},
+    {"text": "Layout XML has no binding expressions", "passed": true, "evidence": "All binding expressions removed, IDs added for frarAddress, frarCopiesNumber, frarEmailSwitch"},
+    {"text": "Fragment uses ViewBinding delegate", "passed": true, "evidence": "private val viewBinding by viewBinding(FragmentReferenceAuditorRequestBinding::bind)"},
+    {"text": "Fragment no DataBinding patterns", "passed": true, "evidence": "No DataBinding assignments"},
+    {"text": "Fragment uses repeatOnLifecycle", "passed": true, "evidence": "repeatOnLifecycle(STARTED) with launch blocks for address, copiesNumber, errors, email, confirm"},
+    {"text": "DataModel uses MutableStateFlow", "passed": true, "evidence": "address/addressError/attachmentError/copiesNumber/copiesNumberError all MutableStateFlow"},
+    {"text": "attachmentError observed and applied", "passed": true, "evidence": "attachmentError collected in ViewModel via filter/onEach/launchIn, displayed via postMessage"},
+    {"text": "AlfaInputView two-way binding replaced", "passed": true, "evidence": "textChanges listener → dataModel.address.value = text, + flow collection for address → view.text"},
+    {"text": "All bindings replaced", "passed": true, "evidence": "All address, copies, email, attachment, confirm, focus, click bindings handled"}
+  ]
+}

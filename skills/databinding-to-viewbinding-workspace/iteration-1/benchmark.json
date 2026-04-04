@@ -1,0 +1,89 @@
+{
+  "skill_name": "databinding-to-viewbinding",
+  "iteration": 1,
+  "configs": [
+    {
+      "name": "with_skill",
+      "evals": [
+        {
+          "eval_name": "cashflow",
+          "pass_rate": 1.0,
+          "passed": 12,
+          "total": 12,
+          "tokens": 93859,
+          "duration_seconds": 485.0
+        },
+        {
+          "eval_name": "cardloan",
+          "pass_rate": 1.0,
+          "passed": 8,
+          "total": 8,
+          "tokens": 86065,
+          "duration_seconds": 301.7
+        },
+        {
+          "eval_name": "auditor",
+          "pass_rate": 1.0,
+          "passed": 9,
+          "total": 9,
+          "tokens": 101522,
+          "duration_seconds": 477.9
+        }
+      ],
+      "aggregate": {
+        "mean_pass_rate": 1.0,
+        "stddev_pass_rate": 0.0,
+        "mean_tokens": 93815,
+        "mean_duration_seconds": 421.5
+      }
+    },
+    {
+      "name": "without_skill",
+      "evals": [
+        {
+          "eval_name": "cashflow",
+          "pass_rate": 0.75,
+          "passed": 9,
+          "total": 12,
+          "tokens": 101942,
+          "duration_seconds": 426.8
+        },
+        {
+          "eval_name": "cardloan",
+          "pass_rate": 1.0,
+          "passed": 8,
+          "total": 8,
+          "tokens": 86030,
+          "duration_seconds": 466.5
+        },
+        {
+          "eval_name": "auditor",
+          "pass_rate": 0.8,
+          "passed": 8,
+          "total": 10,
+          "tokens": 125587,
+          "duration_seconds": 763.0
+        }
+      ],
+      "aggregate": {
+        "mean_pass_rate": 0.85,
+        "stddev_pass_rate": 0.13,
+        "mean_tokens": 104520,
+        "mean_duration_seconds": 552.1
+      }
+    }
+  ],
+  "delta": {
+    "pass_rate": "+15%",
+    "tokens": "-10%",
+    "duration": "-24%"
+  },
+  "analyst_observations": [
+    "CRITICAL: Without skill, auditor test modified BaseRefDataModel (shared by 5+ screens), introducing a breaking change. With skill, all 3 tests correctly left base class untouched.",
+    "Without skill, cashflow test used a bridge pattern (mirror StateFlows + sync callbacks) instead of directly replacing ObservableField — adds ~65 lines of unnecessary state duplication.",
+    "ViewBinding delegate pattern: with skill consistently used project's `by viewBinding()` delegate. Without skill, 2/3 tests used local val binding in onCreateView instead.",
+    "Code organization: with skill consistently structured Fragment into setupListeners/setupObservers/setupBaseModelObservers/observeLiveDataActions. Without skill had more variation.",
+    "ErrorState placement: with skill created a standalone ErrorState data class with factory methods. Without skill varied — one nested inside DataModel, one at base package level.",
+    "Time savings: with skill averaged 421s vs 552s without (24% faster), likely because the skill frontloaded design decisions."
+  ]
+}

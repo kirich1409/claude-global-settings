@@ -1,0 +1,23 @@
+{
+  "skill_name": "databinding-to-viewbinding",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Migrate RefCashFlowFragment from DataBinding to ViewBinding + StateFlow. The fragment is at reference/reference-impl/src/main/kotlin/by/st/alfa/ib2/reference_impl/internal/presentation/edit/cashflow/RefCashFlowFragment.kt, its layout is reference/reference-impl/src/main/res/layout/fragment_reference_cash_flow.xml, and the DataModel is RefCashFlowDataModel.kt in the same package. Don't compile — just produce the migrated code.",
+      "expected_output": "Migrated Fragment using ViewBinding delegate, layout without <layout> wrapper, DataModel with StateFlow instead of ObservableField, extension functions for error handling",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Migrate RefCardLoanFragment from DataBinding to ViewBinding + StateFlow. The fragment is at reference/reference-impl/src/main/kotlin/by/st/alfa/ib2/reference_impl/internal/presentation/edit/cardloan/RefCardLoanFragment.kt, its layout is reference/reference-impl/src/main/res/layout/fragment_reference_card_loan.xml, and the DataModel is RefCardLoanDataModel.kt in the same package. Don't compile — just produce the migrated code.",
+      "expected_output": "Migrated Fragment with ViewBinding, cleaned layout, StateFlow DataModel, correct handling of BaseRefDataModel inheritance",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Migrate RefRequestAuditorFragment from DataBinding to ViewBinding + StateFlow. The fragment is at reference/reference-impl/src/main/kotlin/by/st/alfa/ib2/reference_impl/internal/presentation/edit/requestauditor/RefRequestAuditorFragment.kt, its layout is reference/reference-impl/src/main/res/layout/fragment_reference_auditor_request.xml, and the DataModel is RefRequestAuditorDataModel.kt in the same package. Don't compile — just produce the migrated code.",
+      "expected_output": "Migrated Fragment with ViewBinding, cleaned layout, StateFlow DataModel with attachment error handling",
+      "files": []
+    }
+  ]
+}

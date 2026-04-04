@@ -1,0 +1,67 @@
+{
+  "eval_id": 1,
+  "eval_name": "cashflow-with-skill",
+  "prompt": "Migrate RefCashFlowFragment from DataBinding to ViewBinding + StateFlow",
+  "assertions": [
+    {
+      "id": "layout-no-layout-tag",
+      "text": "Layout XML root element is NOT <layout> (DataBinding wrapper removed)",
+      "type": "file_check"
+    },
+    {
+      "id": "layout-no-data-section",
+      "text": "Layout XML has no <data> section with <variable> declarations",
+      "type": "file_check"
+    },
+    {
+      "id": "layout-no-binding-expressions",
+      "text": "Layout XML has no @{...} or @={...} binding expressions",
+      "type": "file_check"
+    },
+    {
+      "id": "fragment-viewbinding-delegate",
+      "text": "Fragment uses ViewBinding delegate: by viewBinding(FragmentReferenceCashFlowBinding::bind)",
+      "type": "file_check"
+    },
+    {
+      "id": "fragment-no-databinding-util",
+      "text": "Fragment does NOT use DataBindingUtil or binding.lifecycleOwner or binding.viewModel or binding.dataModel",
+      "type": "file_check"
+    },
+    {
+      "id": "fragment-repeatonlifecycle",
+      "text": "Fragment uses repeatOnLifecycle(Lifecycle.State.STARTED) for StateFlow collection",
+      "type": "file_check"
+    },
+    {
+      "id": "datamodel-stateflow",
+      "text": "DataModel uses MutableStateFlow instead of ObservableField/ObservableBoolean/ObservableError",
+      "type": "file_check"
+    },
+    {
+      "id": "datamodel-no-databinding-import",
+      "text": "DataModel does NOT import androidx.databinding.*",
+      "type": "file_check"
+    },
+    {
+      "id": "two-way-email-binding",
+      "text": "Two-way binding for email (AlfaSwitchInputView) correctly replaced with listener + flow collection, including loop guard",
+      "type": "manual"
+    },
+    {
+      "id": "error-handling-extension",
+      "text": "Error display logic (ObservableError → ErrorState) handled via extension function or inline, not left as TODO",
+      "type": "manual"
+    },
+    {
+      "id": "all-bindings-replaced",
+      "text": "All binding expressions from original XML are handled in Fragment code (none dropped silently)",
+      "type": "manual"
+    },
+    {
+      "id": "livedata-observers-preserved",
+      "text": "Existing LiveData observers (showMessage, requestDateAction, requestAccountsAction, etc.) preserved unchanged",
+      "type": "manual"
+    }
+  ]
+}
