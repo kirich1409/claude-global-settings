@@ -226,6 +226,7 @@
     ],
     "defaultMode": "default"
   },
+  "model": "sonnet",
   "hooks": {
     "SessionStart": [
       {
