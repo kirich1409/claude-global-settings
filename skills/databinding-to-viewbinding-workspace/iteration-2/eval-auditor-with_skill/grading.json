@@ -1,0 +1,20 @@
+{
+  "eval_id": 3,
+  "config": "with_skill_v2",
+  "expectations": [
+    {"text": "Layout no <layout> tag", "passed": true, "evidence": "Root changed to LinearLayout"},
+    {"text": "Layout no binding expressions", "passed": true, "evidence": "All 16 expressions removed, 3 IDs added"},
+    {"text": "Fragment uses viewBinding delegate", "passed": true, "evidence": "viewBinding(FragmentReferenceAuditorRequestBinding::bind)"},
+    {"text": "Fragment no DataBinding patterns", "passed": true, "evidence": "No DataBinding assignments"},
+    {"text": "Fragment uses repeatOnLifecycle", "passed": true, "evidence": "repeatOnLifecycle(STARTED) for all StateFlow fields"},
+    {"text": "DataModel uses MutableStateFlow", "passed": true, "evidence": "address/addressError/copiesNumber/copiesNumberError converted. attachmentError kept as ObservableError (event-source pattern)"},
+    {"text": "ErrorState in document module (shared)", "passed": true, "evidence": "Created at documents-host/document/.../ErrorState.kt"},
+    {"text": "Shared ViewBindingExtensions", "passed": true, "evidence": "Created in document module, AlfaInputView.applyError + AlfaSwitchInputView.applyError + getFirstViewWithError"},
+    {"text": "Loop guards on two-way bindings", "passed": true, "evidence": "Guards on address, copiesNumber, email text, notifyEmail switch"},
+    {"text": "Initial value after addOnPropertyChangedCallback", "passed": true, "evidence": "Initial values set for base field callbacks"},
+    {"text": "onDestroyView cleanup", "passed": true, "evidence": "Callbacks removed in onDestroyView"},
+    {"text": "hasError tag in applyError", "passed": true, "evidence": "hasError set in all shared applyError extensions"},
+    {"text": "attachmentError handled correctly", "passed": true, "evidence": "Kept as ObservableError, observed in ViewModel via flow collection"},
+    {"text": "All bindings replaced", "passed": true, "evidence": "All bindings handled"}
+  ]
+}

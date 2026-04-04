@@ -1,0 +1,19 @@
+{
+  "eval_id": 2,
+  "config": "with_skill_v2",
+  "expectations": [
+    {"text": "Layout no <layout> tag", "passed": true, "evidence": "Root changed to LinearLayout"},
+    {"text": "Layout no binding expressions", "passed": true, "evidence": "All bindings removed"},
+    {"text": "Fragment uses viewBinding delegate", "passed": true, "evidence": "viewBinding(FragmentReferenceCardLoanBinding::bind)"},
+    {"text": "Fragment no DataBinding patterns", "passed": true, "evidence": "No DataBinding assignments"},
+    {"text": "Fragment uses repeatOnLifecycle", "passed": true, "evidence": "repeatOnLifecycle(STARTED) for dateOn/dateOnError"},
+    {"text": "DataModel uses MutableStateFlow", "passed": true, "evidence": "dateOn and dateOnError converted, base untouched"},
+    {"text": "ErrorState in document module (shared)", "passed": true, "evidence": "Created at documents-host/document/.../ErrorState.kt"},
+    {"text": "Shared ViewBindingExtensions", "passed": true, "evidence": "Created ViewBindingExtensions.kt with shared functions"},
+    {"text": "Loop guards on two-way bindings", "passed": true, "evidence": "Guards on email and notifyEmail"},
+    {"text": "Initial value after addOnPropertyChangedCallback", "passed": true, "evidence": "Initial values set for base field callbacks"},
+    {"text": "onDestroyView cleanup", "passed": true, "evidence": "Named callbacks removed in onDestroyView"},
+    {"text": "hasError tag in applyError", "passed": true, "evidence": "hasError set in shared applyError"},
+    {"text": "All bindings replaced", "passed": true, "evidence": "All bindings handled in Fragment"}
+  ]
+}

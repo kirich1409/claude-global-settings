@@ -1,0 +1,14 @@
+{
+  "eval_id": 2,
+  "config": "with_skill",
+  "expectations": [
+    {"text": "Layout XML root element is NOT <layout>", "passed": true, "evidence": "Root changed to <LinearLayout>"},
+    {"text": "Layout XML has no binding expressions", "passed": true, "evidence": "All binding expressions removed"},
+    {"text": "Fragment uses ViewBinding delegate", "passed": true, "evidence": "private val viewBinding by viewBinding(FragmentReferenceCardLoanBinding::bind)"},
+    {"text": "Fragment no DataBinding patterns", "passed": true, "evidence": "No DataBinding assignments"},
+    {"text": "Fragment uses repeatOnLifecycle", "passed": true, "evidence": "repeatOnLifecycle(Lifecycle.State.STARTED) for dateOn/dateOnError flows"},
+    {"text": "DataModel uses MutableStateFlow", "passed": true, "evidence": "dateOn=MutableStateFlow<Calendar?>, dateOnError=MutableStateFlow(ErrorState()), base fields left as ObservableField"},
+    {"text": "BaseRefDataModel handled correctly", "passed": true, "evidence": "Base class NOT modified. Used addOnPropertyChangedCallback for email/emailError/notifyEmail/confirmText"},
+    {"text": "All bindings replaced", "passed": true, "evidence": "Date picker, error, confirm button, email switch all handled in Fragment"}
+  ]
+}

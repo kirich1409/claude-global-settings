@@ -1,0 +1,50 @@
+{
+  "claude-plugins-official": {
+    "source": {
+      "source": "github",
+      "repo": "anthropics/claude-plugins-official"
+    },
+    "installLocation": "/Users/krozov/.claude/plugins/marketplaces/claude-plugins-official",
+    "lastUpdated": "2026-04-04T06:10:00.993Z"
+  },
+  "respawn-tools": {
+    "source": {
+      "source": "github",
+      "repo": "respawn-app/claude-plugin-marketplace"
+    },
+    "installLocation": "/Users/krozov/.claude/plugins/marketplaces/respawn-tools",
+    "lastUpdated": "2026-02-22T16:11:22.508Z"
+  },
+  "local": {
+    "source": {
+      "source": "directory",
+      "path": "/Users/krozov/.claude/plugins/marketplaces/local"
+    },
+    "installLocation": "/Users/krozov/.claude/plugins/marketplaces/local",
+    "lastUpdated": "2026-02-27T17:39:28.740Z"
+  },
+  "ast-index-marketplace": {
+    "source": {
+      "source": "github",
+      "repo": "defendend/Claude-ast-index-search"
+    },
+    "installLocation": "/Users/krozov/.claude/plugins/marketplaces/ast-index-marketplace",
+    "lastUpdated": "2026-03-27T14:48:05.166Z"
+  },
+  "krozov-ai-tools": {
+    "source": {
+      "source": "github",
+      "repo": "kirich1409/krozov-ai-tools"
+    },
+    "installLocation": "/Users/krozov/.claude/plugins/marketplaces/krozov-ai-tools",
+    "lastUpdated": "2026-03-28T07:24:30.748Z"
+  },
+  "firebase": {
+    "source": {
+      "source": "github",
+      "repo": "firebase/firebase-tools"
+    },
+    "installLocation": "/Users/krozov/.claude/plugins/marketplaces/firebase",
+    "lastUpdated": "2026-03-30T13:07:24.648Z"
+  }
+}

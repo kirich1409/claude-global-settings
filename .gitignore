@@ -1,0 +1,43 @@
+# Deny all by default
+*
+
+# === CONFIGURATION ===
+!.gitignore
+!settings.json
+!CLAUDE.md
+!RTK.md
+
+# === HOOKS ===
+!hooks/
+!hooks/**
+
+# === AGENTS ===
+!agents/
+!agents/**
+!agent-memory/
+!agent-memory/**
+
+# === SKILLS (local directories only, not symlinks) ===
+!skills/
+!skills/*/
+!skills/*/*
+!skills/*/**
+
+# === PLUGIN MANIFESTS ===
+!plugins/
+!plugins/installed_plugins.json
+!plugins/blocklist.json
+!plugins/known_marketplaces.json
+
+# === PROJECT MEMORY ===
+!projects/
+!projects/*/
+!projects/*/memory/
+!projects/*/memory/**
+
+# === FORCE EXCLUDE (safety net) ===
+.credentials.json
+channels/
+mcp-needs-auth-cache.json
+credentials.md
+*.jsonl

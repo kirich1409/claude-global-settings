@@ -1,0 +1,47 @@
+{
+  "eval_id": 2,
+  "eval_name": "cardloan-with-skill",
+  "prompt": "Migrate RefCardLoanFragment from DataBinding to ViewBinding + StateFlow",
+  "assertions": [
+    {
+      "id": "layout-no-layout-tag",
+      "text": "Layout XML root element is NOT <layout>",
+      "type": "file_check"
+    },
+    {
+      "id": "layout-no-binding-expressions",
+      "text": "Layout XML has no @{...} or @={...} binding expressions",
+      "type": "file_check"
+    },
+    {
+      "id": "fragment-viewbinding-delegate",
+      "text": "Fragment uses ViewBinding delegate pattern",
+      "type": "file_check"
+    },
+    {
+      "id": "fragment-no-databinding",
+      "text": "Fragment does NOT use DataBindingUtil/binding.lifecycleOwner/binding.viewModel/binding.dataModel",
+      "type": "file_check"
+    },
+    {
+      "id": "fragment-repeatonlifecycle",
+      "text": "Fragment uses repeatOnLifecycle for StateFlow collection",
+      "type": "file_check"
+    },
+    {
+      "id": "datamodel-stateflow",
+      "text": "DataModel uses MutableStateFlow instead of ObservableField",
+      "type": "file_check"
+    },
+    {
+      "id": "base-datamodel-handling",
+      "text": "BaseRefDataModel inheritance handled correctly (either base class also migrated or fields observed manually)",
+      "type": "manual"
+    },
+    {
+      "id": "all-bindings-replaced",
+      "text": "All binding expressions from original XML are handled in Fragment code",
+      "type": "manual"
+    }
+  ]
+}

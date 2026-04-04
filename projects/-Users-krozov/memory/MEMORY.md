@@ -1,0 +1,1 @@
+- [Branch workflow](feedback_branch_workflow.md) — Always confirm branch before editing; user works in separate branches/worktrees per task

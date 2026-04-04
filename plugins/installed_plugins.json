@@ -1,0 +1,208 @@
+{
+  "version": 2,
+  "plugins": {
+    "context7@claude-plugins-official": [
+      {
+        "scope": "user",
+        "installPath": "/Users/krozov/.claude/plugins/cache/claude-plugins-official/context7/unknown",
+        "version": "unknown",
+        "installedAt": "2026-02-16T07:43:23.247Z",
+        "lastUpdated": "2026-03-25T20:09:52.826Z",
+        "gitCommitSha": "2cd88e7947b7382e045666abee790c7f55f669f3"
+      }
+    ],
+    "figma@claude-plugins-official": [
+      {
+        "scope": "user",
+        "installPath": "/Users/krozov/.claude/plugins/cache/claude-plugins-official/figma/2.0.7",
+        "version": "2.0.7",
+        "installedAt": "2026-02-16T07:52:42.165Z",
+        "lastUpdated": "2026-03-31T09:39:50.593Z",
+        "gitCommitSha": "83b11c0bc199a3c6ee87df0a0bd460139fa72cdc"
+      }
+    ],
+    "ksrc@respawn-tools": [
+      {
+        "scope": "user",
+        "installPath": "/Users/krozov/.claude/plugins/cache/respawn-tools/ksrc/0.6.0",
+        "version": "0.6.0",
+        "installedAt": "2026-02-22T16:16:51.128Z",
+        "lastUpdated": "2026-02-22T16:16:51.128Z",
+        "gitCommitSha": "c12d802a627bb2453c5497be6b0d2425c731cb36"
+      }
+    ],
+    "frontend-design@claude-plugins-official": [
+      {
+        "scope": "project",
+        "projectPath": "/Users/krozov/dev/projects/ios-install",
+        "installPath": "/Users/krozov/.claude/plugins/cache/claude-plugins-official/frontend-design/b36fd4b75301",
+        "version": "b36fd4b75301",
+        "installedAt": "2026-03-11T12:53:13.945Z",
+        "lastUpdated": "2026-03-12T07:05:31.255Z",
+        "gitCommitSha": "bd041495bd2a1f3e21317f37277b2f5aa152b759"
+      }
+    ],
+    "maven-mcp@krozov-ai-tools": [
+      {
+        "scope": "user",
+        "installPath": "/Users/krozov/.claude/plugins/cache/krozov-ai-tools/maven-mcp/0.4.1",
+        "version": "0.4.1",
+        "installedAt": "2026-03-11T18:43:40.074Z",
+        "lastUpdated": "2026-03-27T14:33:40.810Z",
+        "gitCommitSha": "da39433d209daba27791bcf11311d2a09568b4d5"
+      }
+    ],
+    "firebase@claude-plugins-official": [
+      {
+        "scope": "user",
+        "installPath": "/Users/krozov/.claude/plugins/cache/claude-plugins-official/firebase/unknown",
+        "version": "unknown",
+        "installedAt": "2026-03-17T12:10:54.339Z",
+        "lastUpdated": "2026-03-25T20:09:52.825Z",
+        "gitCommitSha": "78497c524da3762865d47377357c30af5b50d522"
+      }
+    ],
+    "telegram@claude-plugins-official": [
+      {
+        "scope": "user",
+        "installPath": "/Users/krozov/.claude/plugins/cache/claude-plugins-official/telegram/0.0.4",
+        "version": "0.0.4",
+        "installedAt": "2026-03-20T08:52:38.428Z",
+        "lastUpdated": "2026-03-24T12:39:14.616Z",
+        "gitCommitSha": "b664e152af5742dd11b6a6e5d7a65848a8c5a261"
+      }
+    ],
+    "developer-workflow@krozov-ai-tools": [
+      {
+        "scope": "user",
+        "installPath": "/Users/krozov/.claude/plugins/cache/krozov-ai-tools/developer-workflow/0.4.1",
+        "version": "0.4.1",
+        "installedAt": "2026-03-27T14:33:44.898Z",
+        "lastUpdated": "2026-03-27T14:33:44.898Z",
+        "gitCommitSha": "a526ba39fcafafb9e3b0379fc434b94527dab75f"
+      }
+    ],
+    "kotlin-lsp@claude-plugins-official": [
+      {
+        "scope": "user",
+        "installPath": "/Users/krozov/.claude/plugins/cache/claude-plugins-official/kotlin-lsp/1.0.0",
+        "version": "1.0.0",
+        "installedAt": "2026-03-28T07:16:28.906Z",
+        "lastUpdated": "2026-03-28T07:16:28.906Z"
+      }
+    ],
+    "sensitive-guard@krozov-ai-tools": [
+      {
+        "scope": "project",
+        "projectPath": "/Users/krozov/dev/projects/insnc-android",
+        "installPath": "/Users/krozov/.claude/plugins/cache/krozov-ai-tools/sensitive-guard/0.4.1",
+        "version": "0.4.1",
+        "installedAt": "2026-03-28T07:25:06.086Z",
+        "lastUpdated": "2026-03-28T07:25:06.086Z",
+        "gitCommitSha": "c13ffea14081f7df6e749cdcd881008ace6587a3"
+      }
+    ],
+    "feature-dev@claude-plugins-official": [
+      {
+        "scope": "user",
+        "installPath": "/Users/krozov/.claude/plugins/cache/claude-plugins-official/feature-dev/unknown",
+        "version": "unknown",
+        "installedAt": "2026-03-28T07:26:19.470Z",
+        "lastUpdated": "2026-03-28T07:26:19.470Z"
+      }
+    ],
+    "security-guidance@claude-plugins-official": [
+      {
+        "scope": "user",
+        "installPath": "/Users/krozov/.claude/plugins/cache/claude-plugins-official/security-guidance/unknown",
+        "version": "unknown",
+        "installedAt": "2026-03-28T07:27:00.474Z",
+        "lastUpdated": "2026-03-28T07:27:00.474Z"
+      }
+    ],
+    "claude-code-setup@claude-plugins-official": [
+      {
+        "scope": "user",
+        "installPath": "/Users/krozov/.claude/plugins/cache/claude-plugins-official/claude-code-setup/1.0.0",
+        "version": "1.0.0",
+        "installedAt": "2026-03-28T07:31:38.054Z",
+        "lastUpdated": "2026-03-28T07:31:38.054Z"
+      }
+    ],
+    "pr-review-toolkit@claude-plugins-official": [
+      {
+        "scope": "user",
+        "installPath": "/Users/krozov/.claude/plugins/cache/claude-plugins-official/pr-review-toolkit/unknown",
+        "version": "unknown",
+        "installedAt": "2026-03-28T07:31:38.086Z",
+        "lastUpdated": "2026-03-28T07:31:38.086Z"
+      }
+    ],
+    "swift-lsp@claude-plugins-official": [
+      {
+        "scope": "user",
+        "installPath": "/Users/krozov/.claude/plugins/cache/claude-plugins-official/swift-lsp/1.0.0",
+        "version": "1.0.0",
+        "installedAt": "2026-03-28T07:31:38.096Z",
+        "lastUpdated": "2026-03-28T07:31:38.096Z"
+      }
+    ],
+    "remember@claude-plugins-official": [
+      {
+        "scope": "user",
+        "installPath": "/Users/krozov/.claude/plugins/cache/claude-plugins-official/remember/0.1.0",
+        "version": "0.1.0",
+        "installedAt": "2026-03-28T07:31:40.159Z",
+        "lastUpdated": "2026-03-28T07:31:40.159Z",
+        "gitCommitSha": "779ab61d8d412230eeec1840b8ca104bebea4358"
+      }
+    ],
+    "ast-index@ast-index-marketplace": [
+      {
+        "scope": "user",
+        "installPath": "/Users/krozov/.claude/plugins/cache/ast-index-marketplace/ast-index/3.33.0",
+        "version": "3.33.0",
+        "installedAt": "2026-03-28T14:51:31.980Z",
+        "lastUpdated": "2026-03-28T14:51:31.980Z",
+        "gitCommitSha": "a45a002a0cc5d253ef7dd8ea442018d96fc29e10"
+      }
+    ],
+    "code-simplifier@claude-plugins-official": [
+      {
+        "scope": "user",
+        "installPath": "/Users/krozov/.claude/plugins/cache/claude-plugins-official/code-simplifier/1.0.0",
+        "version": "1.0.0",
+        "installedAt": "2026-03-28T20:51:24.108Z",
+        "lastUpdated": "2026-03-28T20:51:24.108Z"
+      }
+    ],
+    "claude-md-management@claude-plugins-official": [
+      {
+        "scope": "user",
+        "installPath": "/Users/krozov/.claude/plugins/cache/claude-plugins-official/claude-md-management/1.0.0",
+        "version": "1.0.0",
+        "installedAt": "2026-03-29T18:52:10.894Z",
+        "lastUpdated": "2026-03-29T18:52:10.894Z"
+      }
+    ],
+    "firebase@firebase": [
+      {
+        "scope": "user",
+        "installPath": "/Users/krozov/.claude/plugins/cache/firebase/firebase/1.0.0",
+        "version": "1.0.0",
+        "installedAt": "2026-03-30T13:07:28.313Z",
+        "lastUpdated": "2026-03-30T13:07:28.313Z",
+        "gitCommitSha": "c84a5217250db20f312d8c9994d5030ba1c1609d"
+      }
+    ],
+    "skill-creator@claude-plugins-official": [
+      {
+        "scope": "user",
+        "installPath": "/Users/krozov/.claude/plugins/cache/claude-plugins-official/skill-creator/unknown",
+        "version": "unknown",
+        "installedAt": "2026-03-31T16:07:36.510Z",
+        "lastUpdated": "2026-03-31T16:07:36.510Z"
+      }
+    ]
+  }
+}
