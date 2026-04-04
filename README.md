@@ -9,7 +9,7 @@ Shared [Claude Code](https://claude.ai/claude-code) configuration synced across 
 - `hooks/` -- shell hooks (RTK rewrite, branch guard, auto-pull, sync)
 - `agents/`, `agent-memory/` -- custom agent definitions and their memory
 - `skills/` -- universal custom skills (not project-specific, not symlinks)
-- `plugins/blocklist.json`, `plugins/known_marketplaces.json` -- marketplace sources
+- `settings.json` → `extraKnownMarketplaces` -- custom plugin marketplace sources
 
 ## What stays local
 

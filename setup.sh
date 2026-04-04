@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-REPO="git@github.com:kirich1409/claude-global-settings.git"
+REPO="https://github.com/kirich1409/claude-global-settings.git"
 CLAUDE_DIR="$HOME/.claude"
 
 add_csync_alias() {

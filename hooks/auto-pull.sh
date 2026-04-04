@@ -21,13 +21,12 @@ fi
 git rebase --abort 2>/dev/null
 git fetch --quiet origin 2>/dev/null
 
+UPSTREAM=$(git rev-parse --abbrev-ref '@{upstream}' 2>/dev/null || echo "origin/main")
+
 HAS_CONFLICTS=false
-for file in $(git diff --name-only HEAD origin/main 2>/dev/null); do
-  # Only save .remote if file actually differs in content
-  if ! git diff --quiet HEAD origin/main -- "$file" 2>/dev/null; then
-    git show "origin/main:$file" > "$HOME/.claude/$file.remote" 2>/dev/null
-    HAS_CONFLICTS=true
-  fi
+for file in $(git diff --name-only HEAD "$UPSTREAM" 2>/dev/null); do
+  git show "$UPSTREAM:$file" > "$HOME/.claude/$file.remote" 2>/dev/null
+  HAS_CONFLICTS=true
 done
 
 if [ "$HAS_CONFLICTS" = true ]; then

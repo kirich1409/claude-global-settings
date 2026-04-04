@@ -25,10 +25,6 @@
 !skills/*/*
 !skills/*/**
 
-# === PLUGIN MANIFESTS (not installed_plugins.json — it's a local cache) ===
-!plugins/
-!plugins/blocklist.json
-!plugins/known_marketplaces.json
 
 # === FORCE EXCLUDE ===
 .credentials.json
