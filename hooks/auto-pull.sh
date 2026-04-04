@@ -1,28 +1,22 @@
 #!/bin/bash
 # Auto-pull ~/.claude settings on session start.
-# Handles conflicts gracefully: stash local changes, pull, restore.
+# Strategy: auto-commit local, pull preferring remote, auto-resolve conflicts.
 
 cd "$HOME/.claude" || exit 0
 git rev-parse --git-dir &>/dev/null || exit 0
+git remote get-url origin &>/dev/null || exit 0
 
-# Stash local changes to tracked files (if any)
-STASHED=false
-if ! git diff --quiet 2>/dev/null; then
-  git stash --quiet && STASHED=true
+# Auto-commit any uncommitted local changes (so nothing is lost)
+git add -A 2>/dev/null
+if ! git diff --cached --quiet 2>/dev/null; then
+  git commit --quiet -m "pre-pull auto-save $(hostname -s) $(date +%Y-%m-%d\ %H:%M)" 2>/dev/null
 fi
 
-# Pull remote
-if ! git pull --rebase --quiet 2>/dev/null; then
+# Pull with auto-resolve: prefer remote on conflicts
+# (rebase context: -X ours = prefer upstream = remote)
+if ! git pull --rebase -X ours --quiet 2>/dev/null; then
+  # Rebase failed — accept remote entirely, local commit stays in reflog
   git rebase --abort 2>/dev/null
-  [ "$STASHED" = true ] && git stash pop --quiet 2>/dev/null
-  echo "⚠ ~/.claude: conflict pulling remote changes. Run: cd ~/.claude && git pull --rebase" >&2
-  exit 0
-fi
-
-# Restore local changes
-if [ "$STASHED" = true ]; then
-  if ! git stash pop --quiet 2>/dev/null; then
-    echo "⚠ ~/.claude: conflict restoring local changes. Run: cd ~/.claude && git stash pop" >&2
-    exit 0
-  fi
+  git reset --hard origin/main 2>/dev/null
+  echo "~/.claude: synced from remote (local changes saved in git reflog)" >&2
 fi
