@@ -30,12 +30,11 @@
 !plugins/blocklist.json
 !plugins/known_marketplaces.json
 
-# === FORCE EXCLUDE (safety net) ===
+# === FORCE EXCLUDE ===
 .credentials.json
 channels/
 mcp-needs-auth-cache.json
 credentials.md
 *.jsonl
-
-# === PROJECT-SPECIFIC SKILLS (not portable) ===
+*.remote
 skills/databinding-to-viewbinding-workspace/
