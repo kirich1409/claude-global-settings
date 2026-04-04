@@ -225,7 +225,6 @@
     ],
     "defaultMode": "default"
   },
-  "model": "opus",
   "hooks": {
     "SessionStart": [
       {
@@ -409,11 +408,11 @@
     }
   },
   "alwaysThinkingEnabled": true,
+  "effortLevel": "high",
   "voiceEnabled": false,
   "channelsEnabled": true,
   "autoMemoryEnabled": true,
   "skipDangerousModePermissionPrompt": true,
-  "effortLevel": "high",
   "context_window": {
     "context_window_size": 100000
   },
