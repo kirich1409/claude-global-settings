@@ -6,16 +6,17 @@
     ]
   },
   "hooks": {
-    "PreToolUse": [
+    "SessionStart": [
       {
-        "matcher": "",
         "hooks": [
           {
             "type": "command",
             "command": "$HOME/.claude/hooks/auto-pull.sh"
           }
         ]
-      },
+      }
+    ],
+    "PreToolUse": [
       {
         "matcher": "Bash",
         "hooks": [
