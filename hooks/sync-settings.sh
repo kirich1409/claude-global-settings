@@ -1,6 +1,6 @@
 #!/bin/bash
-# Manual sync: commit local changes, pull remote, push.
-# Strategy: auto-resolve conflicts preferring local. Usage: csync
+# Manual sync: commit, pull, push. On conflict — show files and one-liner to finish.
+# Usage: csync
 
 set -euo pipefail
 
@@ -13,17 +13,22 @@ git add -A
 if ! git diff --cached --quiet; then
   git commit --quiet -m "sync $(hostname -s) $(date +%Y-%m-%d\ %H:%M)"
   echo "Committed local changes."
-else
-  echo "No local changes."
 fi
 
-# 2. Pull remote, auto-resolve preferring local
-# (rebase context: -X theirs = prefer commits being replayed = local)
-if ! git pull --rebase -X theirs --quiet 2>/dev/null; then
-  # Shouldn't happen with -X theirs, but just in case
-  git rebase --abort 2>/dev/null
-  echo "Could not auto-resolve. Run manually:"
-  echo "  cd ~/.claude && git pull --rebase"
+# 2. Pull remote — git auto-merges non-overlapping changes
+if ! git pull --rebase --quiet; then
+  echo ""
+  echo "Conflict in:"
+  git diff --name-only --diff-filter=U 2>/dev/null | sed 's/^/  /'
+  echo ""
+  echo "Edit the files above, then run:"
+  echo "  cd ~/.claude && git add -A && git rebase --continue && git push"
+  echo ""
+  echo "Or keep only your local version:"
+  echo "  cd ~/.claude && git checkout --theirs . && git add -A && git rebase --continue && git push"
+  echo ""
+  echo "Or keep only remote version:"
+  echo "  cd ~/.claude && git checkout --ours . && git add -A && git rebase --continue && git push"
   exit 1
 fi
 
