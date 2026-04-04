@@ -4,6 +4,7 @@
 # === CONFIGURATION ===
 !.gitignore
 !README.md
+!setup.sh
 !settings.json
 !CLAUDE.md
 !RTK.md

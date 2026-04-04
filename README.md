@@ -25,38 +25,24 @@ Shared [Claude Code](https://claude.ai/claude-code) configuration synced across 
 
 ## Setup
 
-### New machine (no `~/.claude` yet)
+One command for any machine -- the script handles all three cases automatically:
 
 ```bash
-git clone git@github.com:kirich1409/claude-global-settings.git ~/.claude
+bash <(curl -fsSL https://raw.githubusercontent.com/kirich1409/claude-global-settings/main/setup.sh)
 ```
 
-Claude Code will create all missing local files (`settings.local.json`, `installed_plugins.json`, etc.) on first run.
+| Scenario | What the script does |
+|----------|---------------------|
+| **No `~/.claude`** | Clones the repo. Claude Code creates local files on first run. |
+| **Has `~/.claude`, not a git repo** | Backs up local files, inits git, pulls shared settings, restores credentials and plugins. |
+| **Already set up** | Pulls latest changes. |
 
-### Existing machine (already has `~/.claude`)
+After setup, add the push alias to your shell:
 
 ```bash
-cd ~/.claude
-
-# Init repo and pull shared settings
-git init
-git remote add origin git@github.com:kirich1409/claude-global-settings.git
-git fetch origin
-
-# Backup local settings.json before overwriting
-cp settings.json settings.json.local-backup
-
-# Apply shared settings over local files
-git reset --hard origin/main
-git branch -M main
-git branch --set-upstream-to=origin/main main
-
-# Restore local-only files from backup if needed
-# (only if they were overwritten or lost)
-cp settings.json.local-backup settings.json.bak  # keep as reference
+echo 'alias csync="$HOME/.claude/hooks/sync-settings.sh"' >> ~/.zshrc
+source ~/.zshrc
 ```
-
-Review `settings.json` after setup -- merge any machine-specific permissions or plugins from `settings.json.local-backup` into `settings.local.json`.
 
 ## Sync
 
