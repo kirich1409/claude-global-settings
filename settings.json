@@ -12,7 +12,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "/Users/krozov/.claude/hooks/rtk-rewrite.sh"
+            "command": "$HOME/.claude/hooks/rtk-rewrite.sh"
           }
         ]
       },
@@ -21,7 +21,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "/Users/krozov/.claude/hooks/cross-repo-guard.sh"
+            "command": "$HOME/.claude/hooks/cross-repo-guard.sh"
           }
         ]
       },
@@ -30,7 +30,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "/Users/krozov/.claude/hooks/cross-repo-guard.sh"
+            "command": "$HOME/.claude/hooks/cross-repo-guard.sh"
           }
         ]
       }

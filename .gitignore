@@ -23,9 +23,8 @@
 !skills/*/*
 !skills/*/**
 
-# === PLUGIN MANIFESTS ===
+# === PLUGIN MANIFESTS (not installed_plugins.json — it's a local cache) ===
 !plugins/
-!plugins/installed_plugins.json
 !plugins/blocklist.json
 !plugins/known_marketplaces.json
 
