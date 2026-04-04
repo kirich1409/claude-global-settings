@@ -2,6 +2,12 @@
 # Commit and push ~/.claude settings. Usage: csync
 
 set -euo pipefail
+
+LOCK="/tmp/.claude-sync.lock"
+exec 9>"$LOCK"
+perl -e 'use Fcntl qw(:flock); open(F, ">&=9"); flock(F, LOCK_EX|LOCK_NB) or die' 2>/dev/null \
+  || { echo "Another csync is running."; exit 1; }
+
 cd "$HOME/.claude"
 
 # Commit local changes

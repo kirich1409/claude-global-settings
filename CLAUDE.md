@@ -12,7 +12,7 @@ If you see "SETTINGS CONFLICT" in the session start message, there are `*.remote
 2. Intelligently merge them — combine additions from both sides, keep the most complete version of each setting
 3. Write the merged result to the local file
 4. Delete the `.remote` file
-5. Run `$HOME/.claude/hooks/sync-settings.sh` to commit and push the merged result
+5. Run `csync` (or `$HOME/.claude/hooks/sync-settings.sh`) to commit and push the merged result
 
 ## Gradle / JVM Dependencies
 
