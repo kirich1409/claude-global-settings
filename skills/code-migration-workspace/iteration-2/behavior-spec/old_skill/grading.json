@@ -1,0 +1,35 @@
+{
+  "expectations": [
+    {
+      "text": "A behavior-spec.md is produced capturing method signatures, normal behaviors, edge cases, and quirks",
+      "passed": true,
+      "evidence": "behavior-spec.md contains a complete Public Interface table with all 8 method signatures, a 'Normal Behaviors' section, an 'Edge Cases' section with 10 specific cases, and a 'Quirks' section with 5 documented quirks."
+    },
+    {
+      "text": "Spec is explicitly presented to user for confirmation before Phase 3 begins",
+      "passed": false,
+      "evidence": "response.md transitions from Phase 2 directly to producing the outputs without any explicit user confirmation step or pause. The text says 'See behavior-spec.md and DateUtilsTest.kt for the full specification and test coverage' but does not present the spec to the user and ask for confirmation before proceeding. Phase 3 is never mentioned as requiring a gate."
+    },
+    {
+      "text": "Characterization tests are written to capture actual behavior before any migration code — this means actual Kotlin test code was written, not just described",
+      "passed": true,
+      "evidence": "DateUtilsTest.kt is a complete, compilable Kotlin test class with 40+ @Test methods using JUnit4 assertions (assertEquals, assertTrue, assertFalse, assertNotNull), covering all 8 methods with concrete inputs and expected outputs."
+    },
+    {
+      "text": "Timezone implicit dependency (using default timezone) is identified as a quirk that must be preserved",
+      "passed": true,
+      "evidence": "behavior-spec.md Quirk #2 states: 'Implicit default timezone — formatDate, parseDate, isToday, daysBetween, and getWeekday all depend on TimeZone.getDefault() implicitly via Calendar/SimpleDateFormat. This is replicated exactly in the new implementation using TimeZone.currentSystemDefault().' Also documented in the Public Interface table for each affected method."
+    },
+    {
+      "text": "SimpleDateFormat lenient parsing behavior is identified as a quirk to be documented",
+      "passed": true,
+      "evidence": "behavior-spec.md Quirk #1 explicitly states: 'parseDate lenient rollover — SimpleDateFormat in lenient mode silently accepts invalid dates and rolls them over.' Two characterization tests pin this behavior (parseDate_lenientRollover_invalidDay_rollsToNextMonth and parseDate_lenientRollover_invalidMonth_rollsToNextYear), both annotated with 'QUIRK: SimpleDateFormat in lenient mode rolls over out-of-range values.'"
+    }
+  ],
+  "summary": {
+    "passed": 4,
+    "failed": 1,
+    "total": 5,
+    "pass_rate": 0.8
+  }
+}

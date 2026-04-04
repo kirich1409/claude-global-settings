@@ -1,4 +1,4 @@
-@RTK.md
+# Global Claude Code Rules
 
 ## ~/.claude portability
 
@@ -14,6 +14,102 @@ If you see "SETTINGS CONFLICT" in the session start message, there are `*.remote
 4. Delete the `.remote` file
 5. Run `csync` (or `$HOME/.claude/hooks/sync-settings.sh`) to commit and push the merged result
 
+## Worktree Strategy
+
+At session start, read GIT STATE from the SessionStart hook output.
+If absent → run `git status && git worktree list` to reconstruct state.
+
+- No git repo → skip worktree strategy, proceed directly
+- Planning / reading → stay on current branch
+- Any code changes → MUST use a worktree:
+  1. Check GIT STATE for existing worktrees and feature branches
+  2. Branch clearly matches task → offer to continue it
+  3. Unclear match → ask before creating
+  4. No match → create a new worktree from main/master/develop
+  5. Multiple parallel agents → each gets its own worktree
+
+Never commit or push directly from main/master/develop.
+
+| Moment | Skill |
+|---|---|
+| Stale gone branches | `commit-commands:clean_gone` |
+
+## Ripple Awareness
+
+Before completing any change, always think about what else might be affected:
+- Related config files, settings, or manifests that reference the changed code
+- Other files in the same module/package that depend on the changed interface
+- Tests, fixtures, or snapshots that need to match the new behavior
+- Documentation or comments that describe the changed logic
+
+If a related file **must** be updated for things to work — update it without asking.
+If a related file **might** need updating but it's unclear — notify the user with a specific mention of what and why.
+
+Never silently make a change that leaves the codebase in a broken or inconsistent state.
+
+## Intellectual Honesty
+
+Never agree by default. If the user's choice seems wrong or suboptimal:
+- Challenge it directly with facts, code evidence, or reasoning
+- Suggest a better alternative even after a decision is made
+- Being right matters more than being agreeable
+
+## Communication Style
+
+- Ask **one question per round** — never a list. Provide numbered options with trade-offs when the answer isn't obvious.
+- When presenting options: **recommended first** (marked, with reason), then alternatives with brief trade-offs.
+
+## Code Search
+
+Every project must have **ast-index initialized** before any code search. At the start of a project session, verify it is set up — if not, run the appropriate `ast-index:initialize-*` skill first.
+
+Prefer ast-index over Glob/Grep for any symbol search (classes, functions, usages, file by name).
+Use Glob/Grep only for plain-text patterns (strings, comments, config values).
+
+## Web Search
+
+Always prefer Perplexity MCP over built-in tools for web search and URL fetching:
+- Use `mcp__perplexity__perplexity_ask` instead of `WebFetch`
+- Use `mcp__perplexity__perplexity_search` instead of `WebSearch`
+- Use `mcp__perplexity__perplexity_research` for deep multi-source research
+
+Only fall back to `WebFetch`/`WebSearch` if Perplexity MCP is unavailable.
+
+## Large Output Handling
+
+For any operation that may produce large output — test runs, git logs, build output, API responses, dependency trees — prefer context-mode over raw Bash. The PreToolUse hook handles Bash automatically; explicitly use `mcp__plugin_context-mode_context-mode__execute` for large MCP tool results.
+
 ## Gradle / JVM Dependencies
 
 Avoid directly accessing `.gradle` files or directories. Instead, proactively use the `ksrc` bash tool to inspect source code of dependencies and learn API shapes or implementations. Start with `ksrc --help`.
+
+## Testing
+
+Cover new code with unit tests when it makes sense — pure logic, mappers, use cases, formatters, and any non-trivial computation are good candidates. Skip tests for pure glue code, DI wiring, or trivial one-liners where the test would add no value.
+
+## Code Clarity and Documentation
+
+- Write code to be read first, executed second — choose clear names and obvious structure over cleverness
+- Document public API surface: classes, functions, and parameters that other modules consume must have KDoc explaining intent and non-obvious contracts
+- Inline comments only where the *why* isn't self-evident from the code; never restate what the code does
+- Pay extra attention to readability in shared/common code — it is read by more people and in more contexts than feature-specific code
+
+## Memory
+
+`autoMemoryEnabled` is on. Save to memory when you learn something non-obvious about the user or project:
+- **user** — role, preferences, domain knowledge
+- **feedback** — corrections or confirmed non-obvious approaches (include why + how to apply)
+- **project** — decisions, constraints, deadlines (convert relative dates to absolute)
+- **reference** — where to find things in external systems
+
+Do NOT save: code patterns, file paths, git history, anything already in CLAUDE.md.
+
+## Compact Instructions
+
+At session end or on `/compact`, always preserve:
+- **Current goal** — what the user is trying to achieve
+- **Open TODOs** — unfinished tasks, in order of priority
+- **Verification commands** — e.g. `./gradlew test`, `./gradlew build`
+- **Key architectural decisions** — choices made and why
+
+@RTK.md

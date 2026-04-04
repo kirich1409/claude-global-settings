@@ -1,0 +1,12 @@
+{
+  "eval_id": 2,
+  "eval_name": "behavior-spec",
+  "prompt": "Migrate DateUtils.java to use Kotlin's kotlin.time and kotlinx-datetime APIs instead of Java's java.util.Date and java.text.SimpleDateFormat. The file has no existing tests. It is a pure utility class with about 8 public static methods including: formatDate(Date), parseDate(String), daysBetween(Date, Date), isToday(Date), toTimestamp(Date), fromTimestamp(Long), formatRelative(Date), getWeekday(Date).",
+  "assertions": [
+    {"id": "creates_behavior_spec_doc", "text": "A behavior-spec.md document is produced as a distinct artifact (not just test code or inline notes)"},
+    {"id": "spec_has_quirks_section", "text": "Spec includes a section for Quirks or surprising behaviors (not only happy path)"},
+    {"id": "spec_presented_to_user", "text": "Spec is explicitly presented to user for confirmation before Phase 3 begins"},
+    {"id": "writes_characterization_tests", "text": "Characterization tests are written to capture actual behavior before any migration code"},
+    {"id": "stops_before_phase3", "text": "Agent stops before Phase 3 — no migration code is written in this response"}
+  ]
+}

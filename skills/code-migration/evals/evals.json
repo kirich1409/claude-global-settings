@@ -1,0 +1,29 @@
+{
+  "skill_name": "code-migration",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I need to migrate UserRepository.kt from RxJava to Kotlin coroutines. The repository implements a public interface UserRepository that is used by 6 ViewModels across 4 different feature modules (:feature-login, :feature-profile, :feature-settings, :feature-feed). The interface is defined in :core module. There are no existing unit tests. Please plan and start the migration.",
+      "expected_output": "Agent proposes 2-3 strategy options with effort/risk ratings before starting work. Does NOT just pick one and proceed. Recognizes the public interface and many callers as factors. Likely proposes both Parallel and Branch by Abstraction as viable options. Presents behavior spec plan.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Migrate DateUtils.java to use Kotlin's kotlin.time and kotlinx-datetime APIs instead of Java's java.util.Date and java.text.SimpleDateFormat. The file has no existing tests. It is a pure utility class with about 8 public static methods.",
+      "expected_output": "Agent writes characterization tests AND a behavior-spec.md capturing what each method actually does (including edge cases like null handling, timezone behavior, format strings). Does NOT skip behavior spec. Presents spec to user before proceeding to Phase 3.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "We want to migrate our networking layer from Retrofit+OkHttp to Ktor. It currently lives in :app module mixed in with UI fragments and ViewModels. There are 5 service files (UserService.kt, OrderService.kt, ProductService.kt, PaymentService.kt, AuthService.kt) plus a RetrofitClient.kt setup file. ProGuard rules reference some of these classes. Please analyze and recommend an approach.",
+      "expected_output": "Agent identifies: (1) module isolation as preparation since networking is mixed into :app, (2) ProGuard keep rules as hidden consumers that must be updated, (3) recommends extracting to :network module first. Strategy proposal includes module isolation as preparation step with effort/risk.",
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "The legacy analytics module is so tightly coupled with old Firebase Analytics SDK internals that an incremental migration to our new analytics abstraction layer is impossible — everything calls FirebaseAnalytics.getInstance() directly in 40+ places. Let's just do a big bang rewrite on a branch. Start migrating.",
+      "expected_output": "Agent agrees a big bang may be appropriate given the coupling but STOPS to require: (1) explicit rollback condition agreed with user, (2) who decides to roll back, (3) whether the rollback path is tested. Does NOT start migrating without this agreement. Also surfaces 40+ call sites as a risk that big bang makes harder to verify.",
+      "files": []
+    }
+  ]
+}

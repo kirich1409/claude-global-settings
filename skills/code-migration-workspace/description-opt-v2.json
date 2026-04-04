@@ -1,0 +1,333 @@
+Split: 13 train, 7 test (holdout=0.4)
+
+============================================================
+Iteration 1/1
+Description: Invoke whenever a user wants to replace, swap, migrate, modernize, or convert any technology in an existing Android/Kotlin project — even if they're just asking where to start, which approach to take, or whether it's feasible. Trigger when user says: "moving off [library]", "switch to Y", "replace X with Y", "migrate from X to Y", "modernize [component]", "convert to Compose", "upgrade from [old version]", "drop/ditch [library]", "finally leaving [technology]", "thinking about switching", "[library] is ancient/a pain/the worst offender", "heard Y is more idiomatic", "want to modernize it". Covers: async rewrites (RxJava → coroutines, AsyncTask → coroutines/executors, EventBus → StateFlow/SharedFlow), UI rewrites (XML/data binding/view binding → Compose or reverse), library swaps (Glide → Coil, Retrofit → Ktor, any library-for-library replacement), Java-to-Kotlin file conversion, and build tooling upgrades (Groovy DSL → Kotlin DSL, Gradle 6.x → 8.x). Also invoke when user asks which technology to use to modernize existing legacy code (e.g. AsyncTask — coroutines or executors?) — the question is about upgrading existing code, not choosing for a new project. Do NOT invoke for: KMP structural migration (adding commonMain/androidMain source sets, sharing modules with iOS — use kmp-migration instead), debugging broken code with no migration intent, adding new features, general "what's the difference" comparisons for new projects, Kotlin version bumps, or non-Android/Kotlin migrations (Spring Boot etc.).
+============================================================
+Train: 12/26 correct, precision=100% recall=0% accuracy=46% (121.3s)
+  [FAIL] rate=0/2 expected=True: we use Glide 4.x in the whole app but i heard coil is more i
+  [FAIL] rate=0/2 expected=True: trying to move our :domain module to KMP so ios can share it
+  [FAIL] rate=0/2 expected=True: our old java code uses AsyncTask in a few adapters and i wan
+  [FAIL] rate=0/2 expected=True: we're upgrading from view binding to data binding in the set
+  [FAIL] rate=0/2 expected=True: hey we're finally moving off RxJava in our android app — the
+  [FAIL] rate=0/2 expected=True: our build.gradle still pulls in retrofit 2.6 and we want to 
+  [FAIL] rate=0/2 expected=True: our gradle version is ancient (6.7) and i want to upgrade to
+  [PASS] rate=0/2 expected=False: we have a memory leak in our fragment — the adapter is holdi
+  [PASS] rate=0/2 expected=False: can you help me debug why my StateFlow isn't emitting in the
+  [PASS] rate=0/2 expected=False: our ios team wants to share business logic with android. the
+  [PASS] rate=0/2 expected=False: we're migrating our backend from Spring Boot 2 to 3. the mai
+  [PASS] rate=0/2 expected=False: what's the difference between coroutines and rxjava? which o
+  [PASS] rate=0/2 expected=False: need to refactor the PaymentService class — it's gotten too 
+Test : 6/14 correct, precision=100% recall=0% accuracy=43% (0.0s)
+  [FAIL] rate=0/2 expected=True: we have a DateUtils.java that uses java.util.Date everywhere
+  [FAIL] rate=0/2 expected=True: i want to replace our EventBus usage with StateFlow/SharedFl
+  [FAIL] rate=0/2 expected=True: i need to convert LoginFragment.xml to compose. it uses data
+  [FAIL] rate=0/2 expected=True: the ProfileActivity.java needs to become a kotlin file — it'
+  [PASS] rate=0/2 expected=False: how do i write a unit test for a suspend function that calls
+  [PASS] rate=0/2 expected=False: i want to upgrade the kotlin version from 1.8 to 2.0 in our 
+  [PASS] rate=0/2 expected=False: i want to add a new feature to the app — a dark mode toggle.
+
+Max iterations reached (1).
+
+Exit reason: max_iterations (1)
+Best score: 3/7 (iteration 1)
+
+Report: /var/folders/3n/lk984fkn71g40g8f21lyxn8w0000gn/T/skill_description_report_code-migration_20260326_131117.html
+{
+  "exit_reason": "max_iterations (1)",
+  "original_description": "Invoke whenever a user wants to replace, swap, migrate, modernize, or convert any technology in an existing Android/Kotlin project \u2014 even if they're just asking where to start, which approach to take, or whether it's feasible. Trigger when user says: \"moving off [library]\", \"switch to Y\", \"replace X with Y\", \"migrate from X to Y\", \"modernize [component]\", \"convert to Compose\", \"upgrade from [old version]\", \"drop/ditch [library]\", \"finally leaving [technology]\", \"thinking about switching\", \"[library] is ancient/a pain/the worst offender\", \"heard Y is more idiomatic\", \"want to modernize it\". Covers: async rewrites (RxJava \u2192 coroutines, AsyncTask \u2192 coroutines/executors, EventBus \u2192 StateFlow/SharedFlow), UI rewrites (XML/data binding/view binding \u2192 Compose or reverse), library swaps (Glide \u2192 Coil, Retrofit \u2192 Ktor, any library-for-library replacement), Java-to-Kotlin file conversion, and build tooling upgrades (Groovy DSL \u2192 Kotlin DSL, Gradle 6.x \u2192 8.x). Also invoke when user asks which technology to use to modernize existing legacy code (e.g. AsyncTask \u2014 coroutines or executors?) \u2014 the question is about upgrading existing code, not choosing for a new project. Do NOT invoke for: KMP structural migration (adding commonMain/androidMain source sets, sharing modules with iOS \u2014 use kmp-migration instead), debugging broken code with no migration intent, adding new features, general \"what's the difference\" comparisons for new projects, Kotlin version bumps, or non-Android/Kotlin migrations (Spring Boot etc.).",
+  "best_description": "Invoke whenever a user wants to replace, swap, migrate, modernize, or convert any technology in an existing Android/Kotlin project \u2014 even if they're just asking where to start, which approach to take, or whether it's feasible. Trigger when user says: \"moving off [library]\", \"switch to Y\", \"replace X with Y\", \"migrate from X to Y\", \"modernize [component]\", \"convert to Compose\", \"upgrade from [old version]\", \"drop/ditch [library]\", \"finally leaving [technology]\", \"thinking about switching\", \"[library] is ancient/a pain/the worst offender\", \"heard Y is more idiomatic\", \"want to modernize it\". Covers: async rewrites (RxJava \u2192 coroutines, AsyncTask \u2192 coroutines/executors, EventBus \u2192 StateFlow/SharedFlow), UI rewrites (XML/data binding/view binding \u2192 Compose or reverse), library swaps (Glide \u2192 Coil, Retrofit \u2192 Ktor, any library-for-library replacement), Java-to-Kotlin file conversion, and build tooling upgrades (Groovy DSL \u2192 Kotlin DSL, Gradle 6.x \u2192 8.x). Also invoke when user asks which technology to use to modernize existing legacy code (e.g. AsyncTask \u2014 coroutines or executors?) \u2014 the question is about upgrading existing code, not choosing for a new project. Do NOT invoke for: KMP structural migration (adding commonMain/androidMain source sets, sharing modules with iOS \u2014 use kmp-migration instead), debugging broken code with no migration intent, adding new features, general \"what's the difference\" comparisons for new projects, Kotlin version bumps, or non-Android/Kotlin migrations (Spring Boot etc.).",
+  "best_score": "3/7",
+  "best_train_score": "6/13",
+  "best_test_score": "3/7",
+  "final_description": "Invoke whenever a user wants to replace, swap, migrate, modernize, or convert any technology in an existing Android/Kotlin project \u2014 even if they're just asking where to start, which approach to take, or whether it's feasible. Trigger when user says: \"moving off [library]\", \"switch to Y\", \"replace X with Y\", \"migrate from X to Y\", \"modernize [component]\", \"convert to Compose\", \"upgrade from [old version]\", \"drop/ditch [library]\", \"finally leaving [technology]\", \"thinking about switching\", \"[library] is ancient/a pain/the worst offender\", \"heard Y is more idiomatic\", \"want to modernize it\". Covers: async rewrites (RxJava \u2192 coroutines, AsyncTask \u2192 coroutines/executors, EventBus \u2192 StateFlow/SharedFlow), UI rewrites (XML/data binding/view binding \u2192 Compose or reverse), library swaps (Glide \u2192 Coil, Retrofit \u2192 Ktor, any library-for-library replacement), Java-to-Kotlin file conversion, and build tooling upgrades (Groovy DSL \u2192 Kotlin DSL, Gradle 6.x \u2192 8.x). Also invoke when user asks which technology to use to modernize existing legacy code (e.g. AsyncTask \u2014 coroutines or executors?) \u2014 the question is about upgrading existing code, not choosing for a new project. Do NOT invoke for: KMP structural migration (adding commonMain/androidMain source sets, sharing modules with iOS \u2014 use kmp-migration instead), debugging broken code with no migration intent, adding new features, general \"what's the difference\" comparisons for new projects, Kotlin version bumps, or non-Android/Kotlin migrations (Spring Boot etc.).",
+  "iterations_run": 1,
+  "holdout": 0.4,
+  "train_size": 13,
+  "test_size": 7,
+  "history": [
+    {
+      "iteration": 1,
+      "description": "Invoke whenever a user wants to replace, swap, migrate, modernize, or convert any technology in an existing Android/Kotlin project \u2014 even if they're just asking where to start, which approach to take, or whether it's feasible. Trigger when user says: \"moving off [library]\", \"switch to Y\", \"replace X with Y\", \"migrate from X to Y\", \"modernize [component]\", \"convert to Compose\", \"upgrade from [old version]\", \"drop/ditch [library]\", \"finally leaving [technology]\", \"thinking about switching\", \"[library] is ancient/a pain/the worst offender\", \"heard Y is more idiomatic\", \"want to modernize it\". Covers: async rewrites (RxJava \u2192 coroutines, AsyncTask \u2192 coroutines/executors, EventBus \u2192 StateFlow/SharedFlow), UI rewrites (XML/data binding/view binding \u2192 Compose or reverse), library swaps (Glide \u2192 Coil, Retrofit \u2192 Ktor, any library-for-library replacement), Java-to-Kotlin file conversion, and build tooling upgrades (Groovy DSL \u2192 Kotlin DSL, Gradle 6.x \u2192 8.x). Also invoke when user asks which technology to use to modernize existing legacy code (e.g. AsyncTask \u2014 coroutines or executors?) \u2014 the question is about upgrading existing code, not choosing for a new project. Do NOT invoke for: KMP structural migration (adding commonMain/androidMain source sets, sharing modules with iOS \u2014 use kmp-migration instead), debugging broken code with no migration intent, adding new features, general \"what's the difference\" comparisons for new projects, Kotlin version bumps, or non-Android/Kotlin migrations (Spring Boot etc.).",
+      "train_passed": 6,
+      "train_failed": 7,
+      "train_total": 13,
+      "train_results": [
+        {
+          "query": "we use Glide 4.x in the whole app but i heard coil is more idiomatic kotlin. thinking about switching image loading library in our feed module",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 2,
+          "pass": false
+        },
+        {
+          "query": "trying to move our :domain module to KMP so ios can share it. the module uses hilt for DI and retrofit for network calls \u2014 is that even possible without a full rewrite",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 2,
+          "pass": false
+        },
+        {
+          "query": "our old java code uses AsyncTask in a few adapters and i want to modernize it \u2014 not sure if coroutines is the right call or if we should just use executors",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 2,
+          "pass": false
+        },
+        {
+          "query": "we're upgrading from view binding to data binding in the settings screen \u2014 or wait, actually the other way, from data binding to view binding. there's like 3 fragment files affected",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 2,
+          "pass": false
+        },
+        {
+          "query": "hey we're finally moving off RxJava in our android app \u2014 the UserRepository is the worst offender, it's got like 12 methods all returning Single or Observable and 8 viewmodels depend on it. where do i even start",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 2,
+          "pass": false
+        },
+        {
+          "query": "our build.gradle still pulls in retrofit 2.6 and we want to switch the whole networking layer to ktor. the :network module has about 15 service files. should we do it all at once or piece by piece",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 2,
+          "pass": false
+        },
+        {
+          "query": "our gradle version is ancient (6.7) and i want to upgrade to 8.x. we also need to migrate from groovy to kotlin dsl at some point",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 2,
+          "pass": false
+        },
+        {
+          "query": "we have a memory leak in our fragment \u2014 the adapter is holding a reference to the activity context. how do i fix this",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 2,
+          "pass": true
+        },
+        {
+          "query": "can you help me debug why my StateFlow isn't emitting in the viewmodel? i set the value but the collect in the fragment never fires",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 2,
+          "pass": true
+        },
+        {
+          "query": "our ios team wants to share business logic with android. they heard about KMP but i'm not sure what that even means for our existing android kotlin codebase",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 2,
+          "pass": true
+        },
+        {
+          "query": "we're migrating our backend from Spring Boot 2 to 3. the main change is jakarta namespace instead of javax. about 40 files affected",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 2,
+          "pass": true
+        },
+        {
+          "query": "what's the difference between coroutines and rxjava? which one should i use for a new android project",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 2,
+          "pass": true
+        },
+        {
+          "query": "need to refactor the PaymentService class \u2014 it's gotten too big and does too many things. want to split it into smaller classes following SRP",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 2,
+          "pass": true
+        }
+      ],
+      "test_passed": 3,
+      "test_failed": 4,
+      "test_total": 7,
+      "test_results": [
+        {
+          "query": "we have a DateUtils.java that uses java.util.Date everywhere and i want to replace it with kotlinx-datetime. it's a pure utility class, no DI, called from maybe 20 places across the app",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 2,
+          "pass": false
+        },
+        {
+          "query": "i want to replace our EventBus usage with StateFlow/SharedFlow throughout the app. EventBus is in maybe 30 places",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 2,
+          "pass": false
+        },
+        {
+          "query": "i need to convert LoginFragment.xml to compose. it uses data binding right now and the layout is pretty complex \u2014 nested ConstraintLayouts with a bunch of custom attributes",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 2,
+          "pass": false
+        },
+        {
+          "query": "the ProfileActivity.java needs to become a kotlin file \u2014 it's like 800 lines of pure java with no kotlin anywhere. what's the safest approach given it has zero tests",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 2,
+          "pass": false
+        },
+        {
+          "query": "how do i write a unit test for a suspend function that calls a repository? should i use runTest or runBlocking",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 2,
+          "pass": true
+        },
+        {
+          "query": "i want to upgrade the kotlin version from 1.8 to 2.0 in our build.gradle. are there any breaking changes i should know about",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 2,
+          "pass": true
+        },
+        {
+          "query": "i want to add a new feature to the app \u2014 a dark mode toggle. where should i put the preference storage logic in our MVVM setup",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 2,
+          "pass": true
+        }
+      ],
+      "passed": 6,
+      "failed": 7,
+      "total": 13,
+      "results": [
+        {
+          "query": "we use Glide 4.x in the whole app but i heard coil is more idiomatic kotlin. thinking about switching image loading library in our feed module",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 2,
+          "pass": false
+        },
+        {
+          "query": "trying to move our :domain module to KMP so ios can share it. the module uses hilt for DI and retrofit for network calls \u2014 is that even possible without a full rewrite",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 2,
+          "pass": false
+        },
+        {
+          "query": "our old java code uses AsyncTask in a few adapters and i want to modernize it \u2014 not sure if coroutines is the right call or if we should just use executors",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 2,
+          "pass": false
+        },
+        {
+          "query": "we're upgrading from view binding to data binding in the settings screen \u2014 or wait, actually the other way, from data binding to view binding. there's like 3 fragment files affected",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 2,
+          "pass": false
+        },
+        {
+          "query": "hey we're finally moving off RxJava in our android app \u2014 the UserRepository is the worst offender, it's got like 12 methods all returning Single or Observable and 8 viewmodels depend on it. where do i even start",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 2,
+          "pass": false
+        },
+        {
+          "query": "our build.gradle still pulls in retrofit 2.6 and we want to switch the whole networking layer to ktor. the :network module has about 15 service files. should we do it all at once or piece by piece",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 2,
+          "pass": false
+        },
+        {
+          "query": "our gradle version is ancient (6.7) and i want to upgrade to 8.x. we also need to migrate from groovy to kotlin dsl at some point",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 2,
+          "pass": false
+        },
+        {
+          "query": "we have a memory leak in our fragment \u2014 the adapter is holding a reference to the activity context. how do i fix this",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 2,
+          "pass": true
+        },
+        {
+          "query": "can you help me debug why my StateFlow isn't emitting in the viewmodel? i set the value but the collect in the fragment never fires",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 2,
+          "pass": true
+        },
+        {
+          "query": "our ios team wants to share business logic with android. they heard about KMP but i'm not sure what that even means for our existing android kotlin codebase",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 2,
+          "pass": true
+        },
+        {
+          "query": "we're migrating our backend from Spring Boot 2 to 3. the main change is jakarta namespace instead of javax. about 40 files affected",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 2,
+          "pass": true
+        },
+        {
+          "query": "what's the difference between coroutines and rxjava? which one should i use for a new android project",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 2,
+          "pass": true
+        },
+        {
+          "query": "need to refactor the PaymentService class \u2014 it's gotten too big and does too many things. want to split it into smaller classes following SRP",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 2,
+          "pass": true
+        }
+      ]
+    }
+  ]
+}

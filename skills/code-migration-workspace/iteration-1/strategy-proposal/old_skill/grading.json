@@ -1,0 +1,55 @@
+{
+  "expectations": [
+    {
+      "text": "Response presents 2 or more distinct named strategy options before proceeding",
+      "passed": true,
+      "evidence": "Three options: 'Option A — Parallel (Expand-Contract)', 'Option B — Branch by Abstraction', 'Option C — Big Bang'. Each is a named, distinct strategy."
+    },
+    {
+      "text": "Each strategy option includes explicit effort and risk ratings",
+      "passed": true,
+      "evidence": "Option A: 'Effort: medium / Risk: low'. Option B: 'Effort: medium-high / Risk: medium'. Option C: 'Effort: low (fastest calendar time...) / Risk: high'. All three include both ratings."
+    },
+    {
+      "text": "Branch by Abstraction is mentioned as a viable option given the stable public interface",
+      "passed": true,
+      "evidence": "Option B is Branch by Abstraction — presented with rationale: 'Keeps callers unchanged longest'. Described as coroutines wrapped behind existing interface via adapter layer. 'Only preferable if keeping the public API stable for an extended period is a hard requirement.'"
+    },
+    {
+      "text": "Agent stops and waits for user to choose a strategy before proceeding to Phase 2",
+      "passed": true,
+      "evidence": "'Which option do you want to proceed with?' — response ends there. No Phase 2 work is started."
+    },
+    {
+      "text": "Absence of existing unit tests is identified as a factor affecting snapshot cost",
+      "passed": true,
+      "evidence": "'Test coverage: None — no existing unit tests' in the impact table. Also: 'Zero tests means no automated regression detection' (Option C rationale) and Option A/B preparation includes 'Write characterization tests against the *current* RxJava implementation'."
+    }
+  ],
+  "summary": {
+    "passed": 5,
+    "failed": 0,
+    "total": 5,
+    "pass_rate": 1.0
+  },
+  "execution_metrics": {
+    "output_chars": 3650,
+    "transcript_chars": 3650
+  },
+  "timing": {
+    "executor_duration_seconds": 57.2,
+    "total_duration_seconds": 57.2
+  },
+  "claims": [
+    {
+      "claim": "Big Bang is presented as Option C in old_skill instead of the less risky In-place option",
+      "type": "quality",
+      "verified": true,
+      "evidence": "Old skill response includes Big Bang as a named strategy option. With-skill response includes In-place as Option C instead. This is a qualitative difference — old_skill's option set is arguably better calibrated to the scenario (no tests, 4 modules) since it includes Big Bang as a legitimate contrast case."
+    }
+  ],
+  "eval_feedback": {
+    "suggestions": [],
+    "overall": "Both runs pass all assertions. The two responses are high quality and nearly equivalent in thoroughness. Main difference: with_skill recommends In-place as a cautionary option C; old_skill recommends Big Bang as option C. Both valid choices for a comparison option."
+  }
+}

@@ -1,0 +1,82 @@
+[
+  {
+    "query": "hey we're finally moving off RxJava in our android app — the UserRepository is the worst offender, it's got like 12 methods all returning Single or Observable and 8 viewmodels depend on it. where do i even start",
+    "should_trigger": true
+  },
+  {
+    "query": "our build.gradle still pulls in retrofit 2.6 and we want to switch the whole networking layer to ktor. the :network module has about 15 service files. should we do it all at once or piece by piece",
+    "should_trigger": true
+  },
+  {
+    "query": "i need to convert LoginFragment.xml to compose. it uses data binding right now and the layout is pretty complex — nested ConstraintLayouts with a bunch of custom attributes",
+    "should_trigger": true
+  },
+  {
+    "query": "we have a DateUtils.java that uses java.util.Date everywhere and i want to replace it with kotlinx-datetime. it's a pure utility class, no DI, called from maybe 20 places across the app",
+    "should_trigger": true
+  },
+  {
+    "query": "trying to move our :domain module to KMP so ios can share it. the module uses hilt for DI and retrofit for network calls — is that even possible without a full rewrite",
+    "should_trigger": true
+  },
+  {
+    "query": "our old java code uses AsyncTask in a few adapters and i want to modernize it — not sure if coroutines is the right call or if we should just use executors",
+    "should_trigger": true
+  },
+  {
+    "query": "we're upgrading from view binding to data binding in the settings screen — or wait, actually the other way, from data binding to view binding. there's like 3 fragment files affected",
+    "should_trigger": true
+  },
+  {
+    "query": "i want to replace our EventBus usage with StateFlow/SharedFlow throughout the app. EventBus is in maybe 30 places",
+    "should_trigger": true
+  },
+  {
+    "query": "the ProfileActivity.java needs to become a kotlin file — it's like 800 lines of pure java with no kotlin anywhere. what's the safest approach given it has zero tests",
+    "should_trigger": true
+  },
+  {
+    "query": "we use Glide 4.x in the whole app but i heard coil is more idiomatic kotlin. thinking about switching image loading library in our feed module",
+    "should_trigger": true
+  },
+  {
+    "query": "our gradle version is ancient (6.7) and i want to upgrade to 8.x. we also need to migrate from groovy to kotlin dsl at some point",
+    "should_trigger": true
+  },
+  {
+    "query": "what's the difference between coroutines and rxjava? which one should i use for a new android project",
+    "should_trigger": false
+  },
+  {
+    "query": "can you help me debug why my StateFlow isn't emitting in the viewmodel? i set the value but the collect in the fragment never fires",
+    "should_trigger": false
+  },
+  {
+    "query": "i want to add a new feature to the app — a dark mode toggle. where should i put the preference storage logic in our MVVM setup",
+    "should_trigger": false
+  },
+  {
+    "query": "how do i write a unit test for a suspend function that calls a repository? should i use runTest or runBlocking",
+    "should_trigger": false
+  },
+  {
+    "query": "we have a memory leak in our fragment — the adapter is holding a reference to the activity context. how do i fix this",
+    "should_trigger": false
+  },
+  {
+    "query": "i want to upgrade the kotlin version from 1.8 to 2.0 in our build.gradle. are there any breaking changes i should know about",
+    "should_trigger": false
+  },
+  {
+    "query": "need to refactor the PaymentService class — it's gotten too big and does too many things. want to split it into smaller classes following SRP",
+    "should_trigger": false
+  },
+  {
+    "query": "we're migrating our backend from Spring Boot 2 to 3. the main change is jakarta namespace instead of javax. about 40 files affected",
+    "should_trigger": false
+  },
+  {
+    "query": "our ios team wants to share business logic with android. they heard about KMP but i'm not sure what that even means for our existing android kotlin codebase",
+    "should_trigger": false
+  }
+]

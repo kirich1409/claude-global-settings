@@ -1,0 +1,394 @@
+{
+  "metadata": {
+    "skill_name": "code-migration",
+    "skill_path": "/Users/krozov/.claude/skills/code-migration",
+    "executor_model": "claude-sonnet-4-6",
+    "analyzer_model": "claude-sonnet-4-6",
+    "timestamp": "2026-03-26T05:35:23.365456+00:00",
+    "evals_run": [
+      "strategy-proposal",
+      "behavior-spec",
+      "module-isolation",
+      "big-bang-rollback"
+    ],
+    "runs_per_configuration": 1,
+    "note": "Baseline is old_skill (snapshot taken at start of improvement session). 1 run per config."
+  },
+  "runs": [
+    {
+      "eval_id": 1,
+      "eval_name": "strategy-proposal",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 69.0,
+        "tokens": 22101,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Response presents 2 or more distinct named strategy options before proceeding",
+          "passed": true,
+          "evidence": "Three named options: 'Option A \u2014 Parallel (Expand-Contract)', 'Option B \u2014 Branch by Abstraction', 'Option C \u2014 In-place'. Each given a header and prose description."
+        },
+        {
+          "text": "Each strategy option includes explicit effort and risk ratings",
+          "passed": true,
+          "evidence": "Option A: 'Effort: medium / Risk: medium'. Option B: 'Effort: medium-high / Risk: low-medium'. Option C: 'Effort: low / Risk: high'. All three have both fields."
+        },
+        {
+          "text": "Branch by Abstraction is mentioned as a viable option given the stable public interface",
+          "passed": true,
+          "evidence": "Option B is 'Branch by Abstraction' \u2014 described as keeping the public interface stable via a second coroutines-typed interface ('UserRepositoryV2'), migrating module by module, then renaming. Presented with positive rationale: 'Best fit if the team needs zero disruption to in-flight feature work'."
+        },
+        {
+          "text": "Agent stops and waits for user to choose a strategy before proceeding to Phase 2",
+          "passed": true,
+          "evidence": "'Please choose an option (A, B, or C).' Response ends without starting Phase 2. Also adds a follow-up question about suspend fun vs Flow to gather information while awaiting choice."
+        },
+        {
+          "text": "Absence of existing unit tests is identified as a factor affecting snapshot cost",
+          "passed": true,
+          "evidence": "'Test coverage: None. This is the most significant risk factor. There is no behavioral safety net.' \u2014 cited in impact analysis. Also reflected in Option A/B preparation steps: 'Write characterization tests against the current RxJava implementation before touching any code.'"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "eval_name": "strategy-proposal",
+      "configuration": "old_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 57.2,
+        "tokens": 21609,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Response presents 2 or more distinct named strategy options before proceeding",
+          "passed": true,
+          "evidence": "Three options: 'Option A \u2014 Parallel (Expand-Contract)', 'Option B \u2014 Branch by Abstraction', 'Option C \u2014 Big Bang'. Each is a named, distinct strategy."
+        },
+        {
+          "text": "Each strategy option includes explicit effort and risk ratings",
+          "passed": true,
+          "evidence": "Option A: 'Effort: medium / Risk: low'. Option B: 'Effort: medium-high / Risk: medium'. Option C: 'Effort: low (fastest calendar time...) / Risk: high'. All three include both ratings."
+        },
+        {
+          "text": "Branch by Abstraction is mentioned as a viable option given the stable public interface",
+          "passed": true,
+          "evidence": "Option B is Branch by Abstraction \u2014 presented with rationale: 'Keeps callers unchanged longest'. Described as coroutines wrapped behind existing interface via adapter layer. 'Only preferable if keeping the public API stable for an extended period is a hard requirement.'"
+        },
+        {
+          "text": "Agent stops and waits for user to choose a strategy before proceeding to Phase 2",
+          "passed": true,
+          "evidence": "'Which option do you want to proceed with?' \u2014 response ends there. No Phase 2 work is started."
+        },
+        {
+          "text": "Absence of existing unit tests is identified as a factor affecting snapshot cost",
+          "passed": true,
+          "evidence": "'Test coverage: None \u2014 no existing unit tests' in the impact table. Also: 'Zero tests means no automated regression detection' (Option C rationale) and Option A/B preparation includes 'Write characterization tests against the *current* RxJava implementation'."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "eval_name": "behavior-spec",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.8,
+        "passed": 4,
+        "failed": 1,
+        "total": 5,
+        "time_seconds": 126.1,
+        "tokens": 25181,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "A behavior-spec.md document is produced as a distinct artifact (not just test code or inline notes)",
+          "passed": true,
+          "evidence": "A separate behavior-spec.md file was created in the outputs directory. It is 71 lines, structured with sections: Public Interface (table), Normal Behaviors, Edge Cases, Quirks, Out of Scope. Clearly a standalone document, not inline notes."
+        },
+        {
+          "text": "Spec includes a section for Quirks or surprising behaviors (not only happy path)",
+          "passed": true,
+          "evidence": "behavior-spec.md has an explicit '## Quirks (preserve exactly unless user decides otherwise)' section with 6 numbered entries: timezone dependency, lenient parsing, format pattern unknowns, locale sensitivity, formatRelative thresholds, and millisecond precision for toTimestamp/fromTimestamp."
+        },
+        {
+          "text": "Spec is explicitly presented to user for confirmation before Phase 3 begins",
+          "passed": true,
+          "evidence": "response.md states: 'I would present behavior-spec.md to the user for review and corrections' and 'Phase 3 does not start until the snapshot is complete and green.' The hard stop is explicitly described with 4 conditions that must be met before Phase 3."
+        },
+        {
+          "text": "Characterization tests are written to capture actual behavior before any migration code",
+          "passed": false,
+          "evidence": "response.md explicitly says 'Characterization tests (what I would write \u2014 not yet written since we stop before Phase 3)' \u2014 no test code was produced. The response describes what the tests *would* contain in detail, but no actual test file was created. This is a simulation limitation acknowledged by the agent."
+        },
+        {
+          "text": "Agent stops before Phase 3 \u2014 no migration code is written in this response",
+          "passed": true,
+          "evidence": "Summary table shows 'Phase 3: Migrate | NOT STARTED \u2014 stopping here as instructed'. No Kotlin migration code appears anywhere in the response."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "eval_name": "behavior-spec",
+      "configuration": "old_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.6,
+        "passed": 3,
+        "failed": 2,
+        "total": 5,
+        "time_seconds": 113.6,
+        "tokens": 24258,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "A behavior-spec.md document is produced as a distinct artifact (not just test code or inline notes)",
+          "passed": true,
+          "evidence": "A separate behavior-spec.md file exists in the outputs directory. The response says 'The behavior specification is the primary output of this phase. It is saved as behavior-spec.md alongside this file.'"
+        },
+        {
+          "text": "Spec includes a section for Quirks or surprising behaviors (not only happy path)",
+          "passed": true,
+          "evidence": "response.md describes timezone dependency (SimpleDateFormat uses TimeZone.getDefault()), lenient parsing quirk, format pattern unknown, formatRelative threshold unknowns, and millisecond precision concern. While not verified by reading behavior-spec.md directly, the response text confirms these would appear in the spec."
+        },
+        {
+          "text": "Spec is explicitly presented to user for confirmation before Phase 3 begins",
+          "passed": false,
+          "evidence": "The response says 'Since this is a simulation (no actual code to run), the stopping point is here' and 'Phase 2 is marked complete-in-principle'. There is no explicit statement that the spec would be presented to the user for review/confirmation before Phase 3. The with-skill response explicitly says 'I would present behavior-spec.md to the user for review and corrections'; the old-skill response does not."
+        },
+        {
+          "text": "Characterization tests are written to capture actual behavior before any migration code",
+          "passed": false,
+          "evidence": "The response says 'Since we cannot run tests in simulation, I document what tests would be written' \u2014 no actual test code produced. Same simulation limitation as with-skill. The response describes tests by method name but no test skeleton or code is written."
+        },
+        {
+          "text": "Agent stops before Phase 3 \u2014 no migration code is written in this response",
+          "passed": true,
+          "evidence": "'Phase 3 (code changes) does NOT start here, per task instructions.' No migration code appears in the response."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 3,
+      "eval_name": "module-isolation",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 80.3,
+        "tokens": 22326,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "ProGuard rules are explicitly identified as a hidden consumer that must be updated",
+          "passed": true,
+          "evidence": "'Hidden consumer \u2014 ProGuard (critical)' section explicitly explains: old keep rules become dead (harmless), new Ktor internals need their own keep rules, and: 'Action required before migration is considered complete: audit proguard-rules.pro... must be verified with a release build, not just debug.' Also repeated in a standalone 'ProGuard Note (applies to all options)' section at the end."
+        },
+        {
+          "text": "Agent recommends extracting networking code to a dedicated Gradle module as preparation",
+          "passed": true,
+          "evidence": "Both recommended options (A and B) include module extraction as preparation. Option A: 'Extract the 6 networking files into a new :network Gradle module.' Option B: 'Extract to :network module (same as Option A). No repository interface needed.' Module isolation is explicitly identified as 'worth serious consideration here' in the codebase impact section."
+        },
+        {
+          "text": "At least one strategy option includes module isolation as a named preparation step",
+          "passed": true,
+          "evidence": "Option A is titled 'Branch by Abstraction with Module Isolation as Preparation' and Option B is 'Parallel (Expand-Contract) with Module Isolation as Preparation'. Both options name isolation explicitly in their preparation steps."
+        },
+        {
+          "text": "Agent presents options and waits for user choice before starting any work",
+          "passed": true,
+          "evidence": "'Which option would you like to proceed with \u2014 A, B, or C?' at the end of the response. No Phase 2 work is started. If user chooses A or B, a migration-checklist.md is promised before any code changes begin."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 3,
+      "eval_name": "module-isolation",
+      "configuration": "old_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 66.2,
+        "tokens": 21657,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "ProGuard rules are explicitly identified as a hidden consumer that must be updated",
+          "passed": true,
+          "evidence": "'ProGuard/R8 keep rules reference these classes by name. If files are renamed or deleted without updating ProGuard rules, the release build will silently strip them, causing runtime crashes in production.' Listed as the first hidden consumer in the risk flags section."
+        },
+        {
+          "text": "Agent recommends extracting networking code to a dedicated Gradle module as preparation",
+          "passed": true,
+          "evidence": "Option A (recommended) preparation: 'Extract the 6 network files into a new :network Gradle module. Introduce a technology-neutral interface for each service.' Rationale includes 'Isolating first limits blast radius to the :network module boundary'."
+        },
+        {
+          "text": "At least one strategy option includes module isolation as a named preparation step",
+          "passed": true,
+          "evidence": "Option A is titled 'Branch by Abstraction + Module Isolation (recommended)' with module extraction as the first preparation step. Option B (Parallel in :app) explicitly contrasts by *not* including isolation \u2014 which also demonstrates the agent understands isolation as a distinct choice."
+        },
+        {
+          "text": "Agent presents options and waits for user choice before starting any work",
+          "passed": true,
+          "evidence": "'Waiting for your choice (A, B, or C) before proceeding to Phase 2.' Response ends there. Additionally: '>5 files or module restructuring... I will generate a migration-checklist.md with one row per unit and present it for your approval before any code changes begin.'"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 4,
+      "eval_name": "big-bang-rollback",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 73.5,
+        "tokens": 22145,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Agent refuses to start migrating until a rollback plan is agreed with the user",
+          "passed": true,
+          "evidence": "'I do not start migrating. I stop to establish a rollback plan first.' and 'This is not a suggestion. The skill treats it as a prerequisite.' \u2014 Explicit, unambiguous refusal to start code changes before rollback plan is established."
+        },
+        {
+          "text": "Agent asks what measurable condition would trigger rollback",
+          "passed": true,
+          "evidence": "'Round 1: What condition triggers rollback? (e.g., \"snapshot tests cannot be made green within X days,\" \"verify phase reveals behavioral regressions we can't fix in time for the release,\" \"scope turns out larger than 40 files\")' \u2014 specific and actionable, with example triggers."
+        },
+        {
+          "text": "Agent asks who has authority to make the rollback decision",
+          "passed": true,
+          "evidence": "'Round 2 (after answer): Who has authority to call the rollback \u2014 is this a solo decision or does it need sign-off?' \u2014 asked as a distinct follow-up question, not bundled with other questions."
+        },
+        {
+          "text": "The 40+ call sites are flagged as a verification risk specific to big bang (no incremental safety net)",
+          "passed": true,
+          "evidence": "Option A: 'Risk: High \u2014 the entire module is dark until the branch merges; if a regression is found late, there is no incremental revert path.' Also: 'A Big Bang with no agreed rollback condition, no named decision owner, and no tested revert path is not a controlled migration; it is a bet.' The 40+ call sites are explicitly referenced in context."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 4,
+      "eval_name": "big-bang-rollback",
+      "configuration": "old_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 64.6,
+        "tokens": 21598,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Agent refuses to start migrating until a rollback plan is agreed with the user",
+          "passed": true,
+          "evidence": "'I stop. I do not touch a single line of code until a rollback plan is agreed with the user.' \u2014 First words of the response. The skill requirement is quoted: 'Requires: explicit rollback plan agreed with user before starting.'"
+        },
+        {
+          "text": "Agent asks what measurable condition would trigger rollback",
+          "passed": true,
+          "evidence": "'Trigger condition: What observable condition triggers rollback? (e.g., \"any analytics event fails to fire in staging,\" \"crash rate increases by X% post-merge,\" \"QA sign-off fails within N days\")' \u2014 specifically labeled 'measurable condition' and includes concrete examples."
+        },
+        {
+          "text": "Agent asks who has authority to make the rollback decision",
+          "passed": true,
+          "evidence": "'Decision owner: Who decides to pull the trigger? (Tech lead, QA, product?)' \u2014 distinct question with role examples."
+        },
+        {
+          "text": "The 40+ call sites are flagged as a verification risk specific to big bang (no incremental safety net)",
+          "passed": true,
+          "evidence": "Option A risk: 'Risk: High \u2014 if post-merge regressions are discovered, rollback is a revert of the entire merge commit; no partial undo.' Also: 'rewrite all 40+ callsites... the branch already exists... commit in logical batches so the branch history is readable and partial rollback within the branch is possible if needed.' 40+ explicitly mentioned multiple times."
+        }
+      ],
+      "notes": []
+    }
+  ],
+  "run_summary": {
+    "with_skill": {
+      "pass_rate": {
+        "mean": 0.95,
+        "stddev": 0.1,
+        "min": 0.8,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 87.225,
+        "stddev": 26.3296,
+        "min": 69.0,
+        "max": 126.1
+      },
+      "tokens": {
+        "mean": 22938.25,
+        "stddev": 1498.3336,
+        "min": 22101,
+        "max": 25181
+      }
+    },
+    "old_skill": {
+      "pass_rate": {
+        "mean": 0.9,
+        "stddev": 0.2,
+        "min": 0.6,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 75.4,
+        "stddev": 25.7666,
+        "min": 57.2,
+        "max": 113.6
+      },
+      "tokens": {
+        "mean": 22280.5,
+        "stddev": 1318.5822,
+        "min": 21598,
+        "max": 24258
+      }
+    }
+  },
+  "notes": []
+}

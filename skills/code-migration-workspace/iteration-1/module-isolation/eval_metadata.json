@@ -1,0 +1,11 @@
+{
+  "eval_id": 3,
+  "eval_name": "module-isolation",
+  "prompt": "We want to migrate our networking layer from Retrofit+OkHttp to Ktor. It currently lives in :app module mixed in with UI fragments and ViewModels. There are 5 service files (UserService.kt, OrderService.kt, ProductService.kt, PaymentService.kt, AuthService.kt) plus a RetrofitClient.kt setup file. ProGuard rules reference some of these classes. Please analyze and recommend an approach.",
+  "assertions": [
+    {"id": "identifies_proguard_hidden_consumer", "text": "ProGuard rules are explicitly identified as a hidden consumer that must be updated"},
+    {"id": "recommends_module_isolation", "text": "Agent recommends extracting networking code to a dedicated Gradle module as preparation"},
+    {"id": "isolation_in_strategy_options", "text": "At least one strategy option includes module isolation as a named preparation step"},
+    {"id": "stops_for_user_choice", "text": "Agent presents options and waits for user choice before starting any work"}
+  ]
+}

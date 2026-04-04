@@ -1,0 +1,35 @@
+{
+  "expectations": [
+    {
+      "text": "A behavior-spec.md is produced capturing method signatures, normal behaviors, edge cases, and quirks",
+      "passed": true,
+      "evidence": "behavior-spec.md contains a full 'Public Interface' table with all 8 method signatures, a 'Normal Behaviors' section with 7 bullet points, an 'Edge Cases' section with 11 cases, and a 'Quirks' section with 5 named quirks."
+    },
+    {
+      "text": "Spec is explicitly presented to user for confirmation before Phase 3 begins",
+      "passed": true,
+      "evidence": "response.md states 'Phase 3 does not start until snapshot tests are confirmed green against the existing DateUtils.java' and 'Next Steps (awaiting user decisions)' lists 3 explicit questions the user must confirm, including which quirks to preserve vs. fix."
+    },
+    {
+      "text": "Characterization tests are written to capture actual behavior before any migration code",
+      "passed": true,
+      "evidence": "DateUtilsTest.kt contains 35 concrete Kotlin test cases using JUnit4 (@Test annotations, assertEquals, assertTrue, etc.) against DateUtils methods. The file header explicitly states: 'These tests pin the *current* behavior of DateUtils — including quirks — so that the migration to kotlinx-datetime can be verified against this baseline.' No production migration code is included in the outputs."
+    },
+    {
+      "text": "Timezone implicit dependency (using default timezone) is identified as a quirk that must be preserved",
+      "passed": true,
+      "evidence": "behavior-spec.md Quirks section item 4: '**`isToday` uses system default timezone** — behavior changes if the user changes their device timezone mid-session. kotlinx-datetime uses `TimeZone.currentSystemDefault()` which behaves identically, so this quirk is naturally preserved.' The Public Interface table also notes for isToday: 'Uses device default timezone (Calendar.getInstance()). A timestamp at 23:59 in one timezone may not be \"today\" in another.'"
+    },
+    {
+      "text": "SimpleDateFormat lenient parsing behavior is identified as a quirk to be documented",
+      "passed": true,
+      "evidence": "behavior-spec.md Quirks section item 1: '**Lenient parsing in `parseDate`** — `SimpleDateFormat` in lenient mode silently accepts invalid dates like \"2024-01-32\" and rolls them over... **Must be discussed with user before migration**'. Three test cases in DateUtilsTest.kt pin this behavior concretely: day 32 rollover, month 13 rollover, and Feb 29 in non-leap year rollover."
+    }
+  ],
+  "summary": {
+    "passed": 5,
+    "failed": 0,
+    "total": 5,
+    "pass_rate": 1.0
+  }
+}

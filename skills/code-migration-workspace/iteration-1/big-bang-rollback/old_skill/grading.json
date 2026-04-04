@@ -1,0 +1,56 @@
+{
+  "expectations": [
+    {
+      "text": "Agent refuses to start migrating until a rollback plan is agreed with the user",
+      "passed": true,
+      "evidence": "'I stop. I do not touch a single line of code until a rollback plan is agreed with the user.' — First words of the response. The skill requirement is quoted: 'Requires: explicit rollback plan agreed with user before starting.'"
+    },
+    {
+      "text": "Agent asks what measurable condition would trigger rollback",
+      "passed": true,
+      "evidence": "'Trigger condition: What observable condition triggers rollback? (e.g., \"any analytics event fails to fire in staging,\" \"crash rate increases by X% post-merge,\" \"QA sign-off fails within N days\")' — specifically labeled 'measurable condition' and includes concrete examples."
+    },
+    {
+      "text": "Agent asks who has authority to make the rollback decision",
+      "passed": true,
+      "evidence": "'Decision owner: Who decides to pull the trigger? (Tech lead, QA, product?)' — distinct question with role examples."
+    },
+    {
+      "text": "The 40+ call sites are flagged as a verification risk specific to big bang (no incremental safety net)",
+      "passed": true,
+      "evidence": "Option A risk: 'Risk: High — if post-merge regressions are discovered, rollback is a revert of the entire merge commit; no partial undo.' Also: 'rewrite all 40+ callsites... the branch already exists... commit in logical batches so the branch history is readable and partial rollback within the branch is possible if needed.' 40+ explicitly mentioned multiple times."
+    }
+  ],
+  "summary": {
+    "passed": 4,
+    "failed": 0,
+    "total": 4,
+    "pass_rate": 1.0
+  },
+  "execution_metrics": {
+    "output_chars": 5200,
+    "transcript_chars": 5200
+  },
+  "timing": {
+    "executor_duration_seconds": 64.6,
+    "total_duration_seconds": 64.6
+  },
+  "claims": [
+    {
+      "claim": "Agent adds a third rollback-plan question about whether the rollback path is tested",
+      "type": "quality",
+      "verified": true,
+      "evidence": "'Rollback path: Is rollback a git revert of the merge commit? Has anyone verified that path works on this repo (no rebase-squash history that would make revert painful)?' — goes beyond asking for a plan to asking if the plan is validated. Strong."
+    },
+    {
+      "claim": "Agent notes that vague answers to rollback questions are not acceptable",
+      "type": "quality",
+      "verified": true,
+      "evidence": "'I do not accept vague answers like \"we'll figure it out if needed.\" A rollback plan that hasn't been thought through is not a rollback plan.' — Direct and enforceable position."
+    }
+  ],
+  "eval_feedback": {
+    "suggestions": [],
+    "overall": "All four assertions pass. Old-skill adds a valuable third rollback question (is the rollback path actually tested?) and explicitly refuses vague answers. Comparable to with-skill in quality. The two runs are very close — main stylistic difference is old-skill uses numbered steps while with-skill uses 'Round N' framing."
+  }
+}

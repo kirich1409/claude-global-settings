@@ -1,0 +1,81 @@
+Split: 13 train, 7 test (holdout=0.4)
+
+============================================================
+Iteration 1/5
+Description: Use for in-project Android/Kotlin technology migrations — swapping one library, API, or language for another within an existing Android project structure. Invoke proactively even when the user is just asking where to start or how to approach a switch. Covers async library swaps (RxJava/AsyncTask → coroutines, EventBus → StateFlow/SharedFlow), UI migration (XML layouts/data binding/view binding → Compose or vice versa), library replacement (Glide → Coil, Retrofit → Ktor), Java-to-Kotlin file conversion, and build tooling upgrades (Groovy DSL → Kotlin DSL, Gradle 6.x → 8.x). Trigger on: "moving off X", "switch to Y", "replace X with Y", "convert to Compose", "modernize", "upgrade to", "thinking about switching". Do NOT use for: Kotlin Multiplatform / KMP module migrations (use kmp-migration instead), debugging existing code, new feature additions, general comparison questions ("what's the difference between X and Y"), Kotlin version bumps, or backend migrations outside Android/Kotlin (e.g. Spring Boot).
+============================================================
+Train: 12/26 correct, precision=100% recall=0% accuracy=46% (121.2s)
+  [FAIL] rate=0/2 expected=True: our old java code uses AsyncTask in a few adapters and i wan
+  [FAIL] rate=0/2 expected=True: we're upgrading from view binding to data binding in the set
+  [FAIL] rate=0/2 expected=True: we use Glide 4.x in the whole app but i heard coil is more i
+  [FAIL] rate=0/2 expected=True: trying to move our :domain module to KMP so ios can share it
+  [FAIL] rate=0/2 expected=True: hey we're finally moving off RxJava in our android app — the
+  [FAIL] rate=0/2 expected=True: our gradle version is ancient (6.7) and i want to upgrade to
+  [PASS] rate=0/2 expected=False: we have a memory leak in our fragment — the adapter is holdi
+  [PASS] rate=0/2 expected=False: our ios team wants to share business logic with android. the
+  [PASS] rate=0/2 expected=False: can you help me debug why my StateFlow isn't emitting in the
+  [FAIL] rate=0/2 expected=True: our build.gradle still pulls in retrofit 2.6 and we want to 
+  [PASS] rate=0/2 expected=False: we're migrating our backend from Spring Boot 2 to 3. the mai
+  [PASS] rate=0/2 expected=False: what's the difference between coroutines and rxjava? which o
+  [PASS] rate=0/2 expected=False: need to refactor the PaymentService class — it's gotten too 
+Test : 6/14 correct, precision=100% recall=0% accuracy=43% (0.0s)
+  [FAIL] rate=0/2 expected=True: i want to replace our EventBus usage with StateFlow/SharedFl
+  [FAIL] rate=0/2 expected=True: we have a DateUtils.java that uses java.util.Date everywhere
+  [FAIL] rate=0/2 expected=True: i need to convert LoginFragment.xml to compose. it uses data
+  [PASS] rate=0/2 expected=False: how do i write a unit test for a suspend function that calls
+  [PASS] rate=0/2 expected=False: i want to upgrade the kotlin version from 1.8 to 2.0 in our 
+  [FAIL] rate=0/2 expected=True: the ProfileActivity.java needs to become a kotlin file — it'
+  [PASS] rate=0/2 expected=False: i want to add a new feature to the app — a dark mode toggle.
+
+Improving description...
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/Users/krozov/.claude/plugins/cache/claude-plugins-official/skill-creator/b10b583de281/skills/skill-creator/scripts/run_loop.py", line 332, in <module>
+    main()
+    ~~~~^^
+  File "/Users/krozov/.claude/plugins/cache/claude-plugins-official/skill-creator/b10b583de281/skills/skill-creator/scripts/run_loop.py", line 297, in main
+    output = run_loop(
+        eval_set=eval_set,
+    ...<11 lines>...
+        log_dir=log_dir,
+    )
+  File "/Users/krozov/.claude/plugins/cache/claude-plugins-official/skill-creator/b10b583de281/skills/skill-creator/scripts/run_loop.py", line 202, in run_loop
+    new_description = improve_description(
+        client=client,
+    ...<7 lines>...
+        iteration=iteration,
+    )
+  File "/Users/krozov/.claude/plugins/cache/claude-plugins-official/skill-creator/b10b583de281/skills/skill-creator/scripts/improve_description.py", line 114, in improve_description
+    response = client.messages.create(
+        model=model,
+    ...<5 lines>...
+        messages=[{"role": "user", "content": prompt}],
+    )
+  File "/opt/homebrew/lib/python3.14/site-packages/anthropic/_utils/_utils.py", line 282, in wrapper
+    return func(*args, **kwargs)
+  File "/opt/homebrew/lib/python3.14/site-packages/anthropic/resources/messages/messages.py", line 996, in create
+    return self._post(
+           ~~~~~~~~~~^
+        "/v1/messages",
+        ^^^^^^^^^^^^^^^
+    ...<30 lines>...
+        stream_cls=Stream[RawMessageStreamEvent],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/opt/homebrew/lib/python3.14/site-packages/anthropic/_base_client.py", line 1364, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/lib/python3.14/site-packages/anthropic/_base_client.py", line 1058, in request
+    request = self._build_request(options, retries_taken=retries_taken)
+  File "/opt/homebrew/lib/python3.14/site-packages/anthropic/_base_client.py", line 521, in _build_request
+    headers = self._build_headers(options, retries_taken=retries_taken)
+  File "/opt/homebrew/lib/python3.14/site-packages/anthropic/_base_client.py", line 451, in _build_headers
+    self._validate_headers(headers_dict, custom_headers)
+    ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/lib/python3.14/site-packages/anthropic/_client.py", line 196, in _validate_headers
+    raise TypeError(
+        '"Could not resolve authentication method. Expected either api_key or auth_token to be set. Or for one of the `X-Api-Key` or `Authorization` headers to be explicitly omitted"'
+    )
+TypeError: "Could not resolve authentication method. Expected either api_key or auth_token to be set. Or for one of the `X-Api-Key` or `Authorization` headers to be explicitly omitted"

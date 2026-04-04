@@ -1,0 +1,26 @@
+{
+  "eval_id": 3,
+  "configuration": "old_skill",
+  "assertions": [
+    {
+      "text": "Agent requires explicit rollback condition to be agreed with user before starting",
+      "passed": true,
+      "evidence": "'Agree on a rollback plan — for Big Bang: what condition triggers rollback, who decides, and is the rollback path tested?' Listed under 'What Must Happen Before Migration Can Start'."
+    },
+    {
+      "text": "Agent asks who decides to trigger a rollback",
+      "passed": true,
+      "evidence": "'what condition triggers rollback, who decides, and is the rollback path tested?' — explicitly asks who decides."
+    },
+    {
+      "text": "40+ call sites are flagged as a specific risk factor that makes big bang harder to verify",
+      "passed": true,
+      "evidence": "'With 40+ call sites and no snapshot in place, a Big Bang rewrite carries high regression risk.' Also: discovery phase lists '40+ call sites are confirmed by the user' as a known factor."
+    },
+    {
+      "text": "Agent does NOT start the actual migration code — stops to establish the rollback agreement first",
+      "passed": true,
+      "evidence": "Output is purely analysis with no migration code. 'Big Bang is not dismissed — it may well be the right call here. But it cannot start without a snapshot and an agreed rollback plan.'"
+    }
+  ]
+}

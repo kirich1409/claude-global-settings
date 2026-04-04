@@ -1,0 +1,40 @@
+{
+  "expectations": [
+    {
+      "text": "Response presents 2 or more distinct named strategy options before proceeding",
+      "passed": true,
+      "evidence": "Two named options are presented: 'Option A — Parallel (Expand-Contract) with Extension Function Bridge' and 'Option B — Branch by Abstraction (introduce new coroutine interface alongside old)'. Both are distinct and named."
+    },
+    {
+      "text": "Each strategy option includes explicit effort and risk ratings",
+      "passed": true,
+      "evidence": "Option A has 'Effort: Medium' and 'Risk: Low–Medium'. Option B has 'Effort: Medium–High' and 'Risk: Low'. Both options include explicit effort and risk labels."
+    },
+    {
+      "text": "Branch by Abstraction is mentioned as a viable option given the stable public interface",
+      "passed": true,
+      "evidence": "Option B is titled 'Branch by Abstraction (introduce new coroutine interface alongside old)' and is presented as a viable option. The rationale references the stable interface: 'Keeps both interfaces alive simultaneously — zero risk of breaking a caller during migration.' The interface living in a dedicated ':core' module is also noted as favorable context."
+    },
+    {
+      "text": "Agent stops and waits for user to choose a strategy before proceeding to Phase 2",
+      "passed": true,
+      "evidence": "The response ends with the explicit statement: 'Waiting for user to choose a strategy option (A or B) before proceeding to Phase 2.' No Phase 2 content is presented."
+    },
+    {
+      "text": "Absence of existing unit tests is identified as a factor affecting snapshot cost",
+      "passed": true,
+      "evidence": "Under 'Test coverage': 'None. No existing unit tests. This is the highest-risk factor in the entire scope... Snapshot (Phase 2) must write characterization tests from scratch before any code moves.' Option A also states 'PR 1 (Snapshot): Characterization tests only — no production code changes. Must be green before PR 2 merges.'"
+    },
+    {
+      "text": "Agent identifies RxJava-specific library integrations (e.g., room-rxjava2, retrofit adapter-rxjava2, rxandroid) as dependencies that need to be swapped out as part of the migration",
+      "passed": false,
+      "evidence": "The response mentions removing 'RxJava dependencies' in Option A's PR 5 ('Remove RxJava Gradle deps') and flags 'Any RxJava schedulers set up in Application or DI graph (e.g., RxAndroidSchedulers.mainThread())' as a hidden consumer. However, it never explicitly names specific library artifacts such as room-rxjava2, retrofit adapter-rxjava2, or rxandroid as dependencies that need to be swapped out."
+    }
+  ],
+  "summary": {
+    "passed": 5,
+    "failed": 1,
+    "total": 6,
+    "pass_rate": 0.833
+  }
+}

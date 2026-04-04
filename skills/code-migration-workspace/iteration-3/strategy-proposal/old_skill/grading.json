@@ -1,0 +1,36 @@
+{
+  "eval_id": 0,
+  "configuration": "old_skill",
+  "assertions": [
+    {
+      "text": "Response presents 2 or more distinct named strategy options before proceeding",
+      "passed": true,
+      "evidence": "Option A (Parallel with Extension Function Bridge) and Option B (Branch by Abstraction) are clearly named."
+    },
+    {
+      "text": "Each strategy option includes explicit effort and risk ratings",
+      "passed": true,
+      "evidence": "Option A: Effort: Medium, Risk: Low. Option B: Effort: Medium-high, Risk: Low-medium. Both explicitly stated."
+    },
+    {
+      "text": "Branch by Abstraction is mentioned as a viable option given the stable public interface",
+      "passed": true,
+      "evidence": "Option B is Branch by Abstraction, presented as a named alternative with 'Recommended only if: There are callers outside the 4 listed modules'."
+    },
+    {
+      "text": "Agent stops and waits for user to choose a strategy before proceeding to Phase 2",
+      "passed": true,
+      "evidence": "Output ends with a draft migration checklist '(draft — to be filled out after user approves strategy)' — no Phase 2 work was performed."
+    },
+    {
+      "text": "Absence of existing unit tests is identified as a factor affecting snapshot cost",
+      "passed": true,
+      "evidence": "'Test coverage: None — no existing characterization tests' in impact analysis table. Snapshot requires manual behavior-spec since no tests exist."
+    },
+    {
+      "text": "Agent identifies RxJava-specific library integrations (e.g., room-rxjava2, adapter-rxjava2, rxandroid) as dependencies that need to be swapped out as part of the migration",
+      "passed": true,
+      "evidence": "Dependency table lists rxandroid (Remove), adapter-rxjava2 (swap to built-in suspend), room-rxjava2 (swap to room-ktx) as explicit artifacts."
+    }
+  ]
+}

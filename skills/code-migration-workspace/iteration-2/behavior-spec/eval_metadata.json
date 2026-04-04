@@ -1,0 +1,12 @@
+{
+  "eval_id": 2,
+  "eval_name": "behavior-spec",
+  "prompt": "Migrate DateUtils.java to use Kotlin's kotlin.time and kotlinx-datetime APIs instead of Java's java.util.Date and java.text.SimpleDateFormat. The file has no existing tests. It is a pure utility class with about 8 public static methods.",
+  "assertions": [
+    {"id": "produces_behavior_spec", "text": "A behavior-spec.md is produced capturing method signatures, normal behaviors, edge cases, and quirks"},
+    {"id": "spec_presented_to_user", "text": "Spec is explicitly presented to user for confirmation before Phase 3 begins"},
+    {"id": "characterization_tests_written", "text": "Characterization tests are written to capture actual behavior before any migration code"},
+    {"id": "identifies_timezone_quirk", "text": "Timezone implicit dependency (using default timezone) is identified as a quirk that must be preserved"},
+    {"id": "identifies_lenient_parsing", "text": "SimpleDateFormat lenient parsing behavior is identified as a quirk to be documented"}
+  ]
+}

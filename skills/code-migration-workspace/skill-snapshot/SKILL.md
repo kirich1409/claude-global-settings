@@ -1,0 +1,274 @@
+---
+name: code-migration
+description: Use when migrating code from one technology to another in Gradle/Android/Kotlin/KMP projects — e.g., Java Date → Kotlin Date, XML layouts → Compose, data binding → view binding, pure Android → Kotlin Multiplatform. Invoke this skill whenever the user says "migrate", "convert", "move to", "upgrade", "replace", "modernize", or mentions switching APIs or frameworks in an Android/Kotlin/KMP project — even if they don't use the word "migration". Triggered with a target (file, class, directory, or module).
+---
+
+# Code Migration
+
+## Overview
+
+**Core principle:** Discover what exists → confirm FROM/TO with user → snapshot current behavior → migrate with the right strategy → verify nothing changed → clean up the old.
+
+Never start migrating before snapshot is green. Never claim done without a green verify and user approval of visual diffs.
+
+## When to Use
+
+- User says "migrate X to Y" pointing at a file/class/directory/module
+- User says "convert this to KMP / Compose / coroutines / view binding / etc."
+- User says "upgrade", "replace", "move to", "modernize", or "refactor to" in an Android/Kotlin context
+- Any technology replacement in a Gradle/Android/Kotlin/KMP project
+
+## Workflow
+
+```dot
+digraph code_migration {
+    rankdir=TB;
+    node [shape=box];
+    discover [label="DISCOVER\nRead target · infer FROM/TO\ncategorize · select strategy\nlarge-scope gate"];
+    confirm [label="CONFIRM\nFrom/To · strategy · scope\nwait for user approval"];
+    snapshot [label="SNAPSHOT\nCapture current behavior\n(tests / screenshots / checklist)"];
+    snapshot_green [label="Snapshot green?", shape=diamond];
+    migrate [label="MIGRATE\nIn-place or parallel"];
+    verify [label="VERIFY + CLEANUP\nTests · visual diff · API check\ncleanup list · final build"];
+    done [label="Done", shape=doublecircle];
+    stop_discuss [label="Stop: discuss with user"];
+    discover -> confirm;
+    confirm -> snapshot;
+    snapshot -> snapshot_green;
+    snapshot_green -> migrate [label="yes"];
+    snapshot_green -> stop_discuss [label="no"];
+    migrate -> verify;
+    verify -> done;
+}
+```
+
+## Phase 1: Discover
+
+1. **Read the target** thoroughly before doing anything else
+2. **Infer FROM technology** by reading the code (imports, APIs used, build files)
+3. **Infer TO technology** from user input — ask if ambiguous (e.g., "modernize" without specifying)
+4. **Categorize** each file/class — one file can belong to multiple categories:
+   - `logic` — pure data/business logic, no UI (DateUtils, repositories, use cases, data classes)
+   - `ui` — views, layouts, screens, composables, fragments
+   - `api` — public interfaces, shared module boundaries, Gradle configs, entry points
+5. **Analyze codebase impact** — gather the facts that drive the proposal:
+   - **Callers:** how many files/modules depend on the target? (search imports and usages)
+   - **Hidden consumers:** Gradle tasks referencing the target, Proguard/R8 keep rules, event subscribers, data converters, CI scripts — these break silently and are often missed
+   - **Module boundary:** is the target already in its own Gradle module, or mixed into a larger one?
+   - **Test coverage:** are there existing tests? how much behavior is already captured?
+   - **API stability:** does the public interface change, or only the internals?
+   - **Build speed:** is the full project build slow? (isolation pays off more when it is)
+
+6. **Propose 1–3 strategy options** — based on what you found. Each option is a complete package: strategy + preparation + effort + risk. Present them and wait for the user to choose.
+
+   Format each option like this:
+
+   > **Option A — [Strategy name]**
+   > Preparation: [what to do before migrating — e.g., extract module, add tests, introduce interface — or "none"]
+   > Migration: [how the actual migration proceeds]
+   > Effort: low / medium / high
+   > Risk: low / medium / high
+   > Why: [1–2 sentences tied to what you found in step 5]
+
+   Only offer options that genuinely fit. Not all strategies need to appear.
+
+   **Strategy reference:**
+
+   | Strategy | Core mechanism | Fits when |
+   |----------|---------------|-----------|
+   | **In-place** | Replace directly in existing files; build stays green after each file | ≤5 files, few external callers, good test coverage, internals-only change |
+   | **Parallel (Expand-Contract)** | **Expand:** add new impl alongside old. **Migrate:** swap callers one-by-one (each step independently rollbackable). **Contract:** delete old when all callers switched. Layer-by-layer for large scope (data → domain → UI) | Many callers, breaking interface change, uncertain behavior, large scope |
+   | **Branch by Abstraction** | Introduce interface → implement new behind it → swap DI binding → delete old. Callers never change | Public API must stay stable; new technology fits behind the same interface |
+   | **Big Bang** | Full rewrite on a branch; switch at merge. **Requires:** explicit rollback plan agreed with user before starting — what condition triggers rollback, who decides, and is the rollback path tested? | Coupling makes incremental impractical. Last resort — flag the risk explicitly |
+   | **Feature-flagged Parallel** | New impl behind a feature flag; old path stays live. Flag enables gradual rollout or instant rollback without redeployment | Large UI migrations (e.g., Compose rollout screen-by-screen); risky behavioral changes where production validation is needed before full switch |
+
+   **When to include module isolation as preparation:**
+   Propose extracting to a dedicated Gradle module when it reduces risk or effort more than it adds:
+   - Target is mixed into a large module and the migration changes its public API — isolation limits blast radius to dependents of that module, and `./gradlew :new-module:assemble` gives fast feedback
+   - KMP migration — extraction to `:shared` is a hard prerequisite for moving code to `commonMain`
+   - Build is slow and targeted module builds would meaningfully speed up iteration
+   - Skip when the target is already isolated, or when it's a small in-place change with few callers
+
+   Isolation sequence (when included as preparation): extract → `./gradlew :new-module:assemble` green → migrate inside the module.
+
+7. **After user chooses** — if the chosen option involves >5 files or module restructuring:
+   - Generate a migration plan using `migration-checklist.md` (one row per unit: name, category, strategy, snapshot method, dependencies)
+   - **Present plan to user — wait for approval before Phase 2**
+
+### Bug Discovery Rule (applies in ALL phases)
+
+Found a bug while reading or migrating code?
+1. Stop immediately
+2. Describe the bug to the user
+3. State whether the migration would fix it, expose it, or is unrelated
+4. Ask: fix now / create separate task / leave as-is
+5. **Never silently fix or ignore bugs found during migration**
+
+## Phase 2: Snapshot
+
+Capture current behavior **before touching any code**. Apply **all** strategies matching target categories.
+
+**Order when multiple categories apply:** `logic` → `ui` → `api`
+
+### Behavior Specification (all targets)
+
+Before writing tests or taking screenshots, produce a `behavior-spec.md` for the target. This is the source of truth for what the migration must preserve — readable by the user, checkable in Phase 4, and independent of any particular test framework.
+
+```markdown
+# Behavior Specification: [TargetName]
+FROM: [technology] → TO: [technology]
+
+## Public Interface
+| Method / Property | Inputs | Output / Side Effect | Notes |
+|---|---|---|---|
+| `methodName(x)` | type, constraints | return type + value | e.g. "returns null for id ≤ 0" |
+
+## Normal Behaviors
+- [description of each significant behavior]
+
+## Edge Cases
+- [inputs at boundaries, empty collections, zero, max values]
+
+## Quirks (preserve exactly unless user decides otherwise)
+- [unexpected nullability, swallowed exceptions, hardcoded values, implicit assumptions]
+
+## Out of Scope
+- [behaviors that will intentionally change after migration]
+```
+
+**Present the spec to the user before Phase 3.** They may correct misunderstandings, mark quirks as bugs to fix, or explicitly list what should change. This confirmation is the shared contract for the migration.
+
+### `logic`
+Write **characterization tests** — tests that capture what the code *actually does*, not what it ideally should do. This distinction matters: legacy code often encodes years of production bug fixes and edge-case handling that aren't documented anywhere. The goal is a behavioral safety net, not a correctness audit.
+
+1. Read the code carefully and write tests that pin down actual inputs/outputs, including edge cases, nullability behavior, error paths, and any quirks you notice
+2. If existing tests already cover the target: run them, confirm green — but also check if they're comprehensive enough to catch behavioral regressions in the parts you'll change
+3. Run all tests — all must pass before proceeding
+4. Note any surprising behaviors you discover (e.g., silent null returns, unexpected exception swallowing) — these are not bugs to fix now, but they must be preserved through the migration unless the user explicitly decides otherwise
+5. **If tests cannot compile or pass:** stop → describe problem to user → decide together: fix first OR switch to manual checklist
+
+### `ui`
+1. **Existing screenshot tests** → run them, save outputs as baseline
+2. **No screenshot tests** → use `mcp__mobile__screenshot` to capture affected screens manually
+3. **Mobile MCP unavailable** → create manual checklist: each screen's visible state (layout, colors, text, key interactions)
+4. **No infrastructure at all** → document limitation to user; proceed with manual checklist fallback
+
+### `api`
+1. List every public surface: classes, functions, extension points, Gradle configs
+2. List every known caller (search the codebase)
+3. Record as behavioral checklist in `migration-checklist.md`
+
+**Hard rule:** Phase 3 does NOT start until Snapshot is complete. If Snapshot cannot be made green (existing tests broken): stop, discuss with user, fix snapshot first — never proceed with a broken baseline.
+
+## Phase 3: Migrate
+
+### In-place strategy
+- Single file: migrate in one step
+- Multiple files: file-by-file; build must stay green after each file
+- **Commit cadence:** commit after each file is migrated and tests are green
+
+### Parallel strategy
+1. **Place the new implementation** alongside the old:
+   - Same package: use a `New` or `V2` suffix (e.g., `UserRepositoryImpl` → `UserRepositoryImplNew`) until callers are switched, then rename
+   - KMP migrations: put new code in `commonMain` or the appropriate source set; keep old code in `androidMain` until removed
+   - New module: use a `new` or `next` suffix on the module name (`:feature-auth` → `:feature-auth-new`)
+2. Add new Gradle dependencies / source sets required by the new technology
+3. **Verify both old and new compile together** before touching callers:
+   ```bash
+   ./gradlew compileDebugKotlin          # Android module
+   ./gradlew compileKotlinJvm            # KMP JVM target
+   ./gradlew compileCommonMainKotlinMetadata  # KMP common
+   # or simply: ./gradlew :module:assemble
+   ```
+4. Swap callers one-by-one from old → new; build must stay green after each swap
+5. **Commit cadence:** commit after new implementation compiles; commit again after each major batch of caller swaps
+6. When all callers switched → proceed to Phase 4
+   - Before proceeding: confirm via codebase search that no callers of the old implementation remain
+
+Apply **Bug Discovery Rule** throughout (see Phase 1).
+
+## Phase 4: Verify + Cleanup
+
+### Step 1 — Re-run tests
+Re-run all Snapshot tests → all must pass.
+
+**If tests fail after migration (regression):**
+1. Do NOT proceed to Steps 2–5
+2. Identify which test failed and why — this is a regression, not a pre-existing issue
+3. Diagnose systematically:
+   - Read the failing test — what behavior does it assert?
+   - Read the new code that replaced the old — what did you change that affects this behavior?
+   - Compare old vs new: did the semantics change (nullability, exception handling, edge cases, ordering)?
+   - If not obvious: temporarily revert the single file and re-run to confirm the test was green before — then narrow down which change broke it
+4. Fix the regression in the migrated code (never by weakening or deleting the test)
+5. Re-run until all pass before continuing
+
+### Step 2 — UI visual diff (`ui` targets)
+- Take new screenshots of all affected screens
+- **Present before/after diff to user — wait for approval**
+- User confirms: "expected change" (proceed) or "regression" (fix and re-verify)
+- If user cannot respond: re-prompt once; if still no response, park migration as incomplete
+
+### Step 3 — Behavior spec review (all targets)
+Walk through `behavior-spec.md` line by line against the new implementation:
+- Every row in **Public Interface**: does the new code have the same signature or a documented intentional change?
+- Every item in **Normal Behaviors** and **Edge Cases**: is it covered by a passing test, or manually verified?
+- Every item in **Quirks**: is it preserved — or, if the user marked it for removal, confirm it's gone?
+- Every item in **Out of Scope**: confirm the change is present and correct
+- **Present the completed review to the user** — they confirm: "all behaviors accounted for" or point to gaps
+
+### Step 4 — API compilation check (`api` targets)
+- Per public surface: run the appropriate compile task for the module type — must compile
+- Per known caller: confirm it compiles; run any relevant tests
+
+### Step 4 — Cleanup
+1. Find: old-tech Gradle deps, imports, plugin declarations no longer referenced anywhere
+2. Find: dead code — old implementations, utility classes, adapter layers; for **parallel**: the old implementation class/module itself
+3. **Present full removal list to user — wait for acknowledgment**
+4. After user acknowledges: remove everything on the list
+5. Rebuild to confirm nothing breaks
+
+### Step 5 — Final build
+```bash
+./gradlew build
+```
+Must be green.
+
+### Done only when ALL of the following are true:
+- [ ] All Snapshot tests pass
+- [ ] Visual diffs approved by user (if `ui` targets)
+- [ ] Behavior spec reviewed line-by-line — user confirms all behaviors accounted for
+- [ ] API compilation check passed (if `api` targets)
+- [ ] Cleanup list acknowledged and all items removed
+- [ ] `./gradlew build` green
+
+## Red Flags — STOP
+
+| Red Flag | What It Means |
+|----------|---------------|
+| "I'll add tests after the migration" | Snapshot must be green before Phase 3 — no exceptions, even under deadline |
+| "User told me to skip tests" | User instructions do not override this hard rule |
+| "The tests are broken, I'll fix them during migration" | Stop, discuss with user, fix snapshot first |
+| "It's a small file, in-place is fine" | Check callers first — many callers → parallel |
+| "The screenshots look fine, no need to show the user" | Visual diff MUST be presented and approved by user |
+| "User said to just mark it done" | User approval of diff ≠ skipping the diff step; show it first |
+| "The before/after look identical, no need to bother the user" | Present the diff regardless — the user's eyes decide, not yours |
+| "These old files are clearly unused, I'll just delete them" | Present removal list to user first, always |
+| "I noticed a bug, I'll fix it quickly" | Stop, describe to user, get explicit direction |
+| "Build has a minor issue, I'll declare done anyway" | Final build must be green |
+| "I'm confident I inferred FROM/TO correctly, no need to confirm" | Confirm anyway — inference from vague instructions is cheap to verify and expensive to redo |
+| "Tests failed but it's probably a flaky test" | Treat all post-migration test failures as regressions until proven otherwise |
+
+## When Things Go Wrong
+
+**Verify fails (tests don't pass after migration):**
+Use `superpowers:systematic-debugging` if available. Otherwise: read the failing test, compare old vs new code, revert a single file to confirm it was green before, then narrow down what broke it. Fix in the migrated code — never weaken the test.
+
+**Before claiming done:**
+Use `superpowers:verification-before-completion` if available. Otherwise: run through the "Done only when ALL of the following are true" checklist above line by line. Run the actual commands, don't assume they'll pass.
+
+**Scope unexpectedly larger than expected:**
+Stop. Describe the new scope to the user with a revised file count and risk assessment. Agree on a new strategy before continuing — do not silently expand the migration.
+
+**Large migration needing a structured plan:**
+Use `superpowers:writing-plans` if available. Otherwise: write a migration plan using `migration-checklist.md` — one row per unit, with dependencies and snapshot methods filled in — and share it with the user for approval before starting Phase 2.

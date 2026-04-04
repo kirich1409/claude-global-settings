@@ -1,0 +1,26 @@
+{
+  "eval_id": 2,
+  "configuration": "with_skill",
+  "assertions": [
+    {
+      "text": "Agent recommends extracting networking code to a dedicated Gradle module as preparation step",
+      "passed": true,
+      "evidence": "Option A (Recommended) has PR 1 as 'Module isolation: Extract 6 files to :core:network. No behavior change.' Module extraction is the first step before any Ktor work."
+    },
+    {
+      "text": "ProGuard/R8 keep rules referencing service classes are flagged as hidden consumers",
+      "passed": true,
+      "evidence": "Dedicated 'ProGuard Audit (Required Before Any Migration)' section. Hidden consumers list includes 'ProGuard/R8 rules — the user confirmed ProGuard rules reference some of the service classes... Stale ProGuard rules left after migration cause silent bloat and can mask R8 optimization failures.'"
+    },
+    {
+      "text": "Agent identifies Retrofit/OkHttp-specific artifacts (converters, interceptors, authenticators) that need to be replaced with Ktor equivalents",
+      "passed": true,
+      "evidence": "Full Dependency Compatibility Matrix with: converter-gson, adapter-rxjava2, okhttp, logging-interceptor, mockwebserver — all mapped to Ktor equivalents."
+    },
+    {
+      "text": "Migration plan includes a PR breakdown (e.g., PR 1: module extraction, PR 2: Ktor implementation, PR 3: cleanup)",
+      "passed": true,
+      "evidence": "5-PR breakdown: PR 1 Module isolation, PR 2 Snapshot, PR 3 Ktor implementation, PR 4 Caller migration, PR 5 Bridge cleanup. Each with scope and risk assessment."
+    }
+  ]
+}

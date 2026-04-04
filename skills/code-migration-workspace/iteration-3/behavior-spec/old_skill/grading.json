@@ -1,0 +1,31 @@
+{
+  "eval_id": 1,
+  "configuration": "old_skill",
+  "assertions": [
+    {
+      "text": "A behavior-spec.md is produced capturing method signatures, normal behaviors, edge cases, and quirks",
+      "passed": true,
+      "evidence": "behavior-spec.md produced with Public Interface table, Normal Behaviors, Edge Cases, and Quirks sections (verified in output)."
+    },
+    {
+      "text": "Spec is explicitly presented to user for confirmation before Phase 3 begins",
+      "passed": false,
+      "evidence": "Same issue as with_skill — the spec file is produced but no explicit user confirmation request is present in the output. Phase 3 was not started, which is correct, but the explicit confirmation step was not verbalized."
+    },
+    {
+      "text": "Characterization tests are written to capture actual behavior before any migration code",
+      "passed": true,
+      "evidence": "DateUtilsCharacterizationTest.kt produced (verified by output listing). Tests against existing Java behavior, no migration code written."
+    },
+    {
+      "text": "Timezone implicit dependency (using default timezone) is identified as a quirk that must be preserved",
+      "passed": true,
+      "evidence": "Public interface table documents timezone sensitivity for isToday, startOfDay. Normal behaviors section: 'isToday compares... both in the default system timezone.' Multiple timezone references throughout."
+    },
+    {
+      "text": "SimpleDateFormat lenient parsing behavior is identified as a quirk to be documented",
+      "passed": true,
+      "evidence": "Quirks section: 'Lenient parsing by default. SimpleDateFormat is lenient: invalid dates like month 13 or day 32 silently overflow.' Edge cases include parseDate with lenient mode example producing 2025-01-01 from month 13."
+    }
+  ]
+}

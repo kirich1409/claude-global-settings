@@ -1,0 +1,19 @@
+{
+  "eval_id": 3,
+  "eval_name": "big-bang-rollback",
+  "prompt": "The legacy analytics module is so tightly coupled with old Firebase Analytics SDK internals that an incremental migration to our new analytics abstraction layer is impossible \u2014 everything calls FirebaseAnalytics.getInstance() directly in 40+ places. Let's just do a big bang rewrite on a branch. Start migrating.",
+  "assertions": [
+    {
+      "text": "Agent requires explicit rollback condition to be agreed with user before starting"
+    },
+    {
+      "text": "Agent asks who decides to trigger a rollback"
+    },
+    {
+      "text": "40+ call sites are flagged as a specific risk factor that makes big bang harder to verify"
+    },
+    {
+      "text": "Agent does NOT start the actual migration code \u2014 stops to establish the rollback agreement first"
+    }
+  ]
+}

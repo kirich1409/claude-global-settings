@@ -1,0 +1,30 @@
+{
+  "expectations": [
+    {
+      "text": "Agent requires explicit rollback condition to be agreed with user before starting",
+      "passed": true,
+      "evidence": "\"Stopping here — Big Bang rollback plan required before proceeding\" and \"Question 1 (blocking): What is the rollback condition?\" — the agent explicitly gates proceeding on an agreed rollback condition, listing 4 specific options for what that condition could be."
+    },
+    {
+      "text": "Agent asks who decides to trigger a rollback",
+      "passed": true,
+      "evidence": "The agent quotes the skill requirement verbatim: \"who decides\" and states it will ask this as Question 2 after the first is answered: \"Once all three are answered and agreed, I can proceed\" — the three questions referenced are what triggers rollback, who decides, and whether the rollback path is tested."
+    },
+    {
+      "text": "40+ call sites are flagged as a specific risk factor that makes big bang harder to verify",
+      "passed": true,
+      "evidence": "\"Big Bang on a 40+ call site rewrite means: ... If a regression appears post-merge, the diff to bisect is enormous\" and \"A Big Bang rewrite on a 40+ file scope that merges without a defined rollback trigger means there is no agreed stopping condition if something goes wrong post-merge.\""
+    },
+    {
+      "text": "Agent does NOT start the actual migration code — stops to establish the rollback agreement first",
+      "passed": true,
+      "evidence": "The response contains no migration code whatsoever. It ends explicitly with \"answer the rollback question above, then I will ask about who decides and whether the rollback path is tested. Once all three are answered and agreed, I can proceed to Phase 2 (Snapshot) on the branch.\""
+    }
+  ],
+  "summary": {
+    "passed": 4,
+    "failed": 0,
+    "total": 4,
+    "pass_rate": 1.0
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "expectations": [
+    {
+      "text": "Agent recommends extracting networking code to a dedicated Gradle module as preparation step",
+      "passed": true,
+      "evidence": "Section 5 (Module Boundary Assessment): 'Module isolation is strongly recommended as a preparation step because...' and Section 6 Option A PR breakdown: 'PR 1: Extract :network module, wire DI — no behavior change'"
+    },
+    {
+      "text": "ProGuard/R8 keep rules referencing service classes are flagged as hidden consumers",
+      "passed": true,
+      "evidence": "Section 2 (Hidden Consumers): 'ProGuard/R8 rules — explicitly called out in the task description. Rules reference these classes by name. If class names change (they will when moving away from Retrofit interfaces), keep rules will produce silent dead code rather than runtime crashes.' Section 4 (ProGuard Impact) expands on this further."
+    },
+    {
+      "text": "Agent identifies Retrofit/OkHttp-specific artifacts (converters, interceptors, authenticators) that need to be replaced with Ktor equivalents — specifically: the response should list specific artifacts like converter-gson, adapter-rxjava2, logging-interceptor and say they need to be removed/replaced",
+      "passed": true,
+      "evidence": "Section 3 dependency table explicitly lists 'com.squareup.retrofit2:converter-gson' (action: remove, 'Gson serialization replaced by ktor-client-content-negotiation'), 'com.squareup.retrofit2:adapter-rxjava2' (action: remove, 'Ktor has no RxJava adapter'), and 'com.squareup.okhttp3:logging-interceptor' (action: remove, 'Replaced by io.ktor:ktor-client-logging:3.4.1')"
+    },
+    {
+      "text": "Migration plan includes a PR breakdown (e.g., PR 1: module extraction, PR 2: Ktor implementation, PR 3: cleanup)",
+      "passed": true,
+      "evidence": "Section 6 Option A lists 6 PRs: PR 1 (Extract :network module), PR 2 (Characterization tests), PR 3 (Add Ktor deps + KtorClient + 5 Ktor service implementations), PR 4 (Migrate ViewModels batch 1), PR 5 (Migrate ViewModels batch 2), PR 6 (Remove Retrofit/OkHttp/Gson/RxJava; update ProGuard). Option B also provides a 4-PR breakdown."
+    }
+  ],
+  "summary": {
+    "passed": 4,
+    "failed": 0,
+    "total": 4,
+    "pass_rate": 1.0
+  }
+}
