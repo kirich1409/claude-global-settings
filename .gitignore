@@ -34,3 +34,6 @@ channels/
 mcp-needs-auth-cache.json
 credentials.md
 *.jsonl
+
+# === PROJECT-SPECIFIC SKILLS (not portable) ===
+skills/databinding-to-viewbinding-workspace/

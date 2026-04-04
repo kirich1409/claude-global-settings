@@ -1,6 +1,0 @@
-{
-  "eval_id": 2,
-  "eval_name": "cardloan-without-skill",
-  "prompt": "Migrate RefCardLoanFragment from DataBinding to ViewBinding + StateFlow (no skill)",
-  "assertions": []
-}
