@@ -167,6 +167,11 @@ If a task turns out significantly more complex than it appeared — stop, report
 
 Show a step list with checkmarks as work progresses. Update it at each meaningful stage so the user can see where things stand without asking.
 
+## Feature Flags and Configuration
+
+- **Feature flags:** never add them proactively — that is a product/team decision. If the task clearly implies a flag, ask first.
+- **Configuration:** follow the pattern already used in the project. If no pattern exists — put config in a dedicated config layer, no hardcoded values anywhere.
+
 ## Breaking Changes
 
 Make the change directly. Backward compatibility and migration are the user's responsibility unless explicitly asked to handle them.
