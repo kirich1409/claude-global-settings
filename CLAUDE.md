@@ -93,6 +93,7 @@ After each subagent completes, distil its output into a one-paragraph summary an
 - **Confirm only when truly necessary**: destructive/irreversible operations, actions visible to others (push, PR, send message), or when the user explicitly flagged that confirmation is required. Everything else — proceed.
 - **Ambiguous requests:** state the assumption being made, then ask one clarifying question — do this *before* starting the task, not after. If context is clearly insufficient, ask first, act second.
 - **Debugging / investigation:** dig until full understanding without intermediate check-ins. Report once — findings, root cause, proposed fix — in a single message.
+- **Code review:** report only real problems — bugs, security issues, architecture violations. Nitpicks and style — silent unless explicitly asked.
 
 ## Code Search
 
