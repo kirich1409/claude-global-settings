@@ -159,6 +159,12 @@ Write tests only when explicitly asked. Do not add tests proactively or offer to
 
 Do NOT save: code patterns, file paths, git history, anything already in CLAUDE.md.
 
+## Git Workflow
+
+- **Commits:** one atomic commit per logical unit. For large tasks — one commit per meaningful stage (e.g. model, repository, UI).
+- **Commit messages:** imperative mood, English, max 72 chars in the subject. No type prefixes (`feat:`, `fix:`). Add body only when context is non-obvious.
+- **Branch naming:** `feature/short-description`, `fix/short-description`, `chore/short-description` — kebab-case, English.
+
 ## Compact Instructions
 
 At session end or on `/compact`, always preserve:
