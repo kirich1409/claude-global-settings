@@ -159,6 +159,15 @@ Write tests only when explicitly asked. Do not add tests proactively or offer to
 
 Do NOT save: code patterns, file paths, git history, anything already in CLAUDE.md.
 
+## Architectural Decisions
+
+When a task allows multiple approaches:
+1. Check existing project patterns — match them if clear
+2. If no clear pattern: present the options with trade-offs, give a recommendation with reasoning, then proceed with it
+3. If the codebase gives no signal at all — apply best practices and project settings as the default
+
+Never silently pick an approach without surfacing the reasoning when alternatives exist.
+
 ## Git Workflow
 
 - **Commits:** one atomic commit per logical unit. For large tasks — one commit per meaningful stage (e.g. model, repository, UI).
