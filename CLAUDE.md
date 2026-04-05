@@ -159,6 +159,10 @@ Write tests only when explicitly asked. Do not add tests proactively or offer to
 
 Do NOT save: code patterns, file paths, git history, anything already in CLAUDE.md.
 
+## Breaking Changes
+
+Make the change directly. Backward compatibility and migration are the user's responsibility unless explicitly asked to handle them.
+
 ## Logging
 
 Log only what is genuinely useful for production debugging: inputs at system boundaries, errors with context, key state transitions. No speculative logging "just in case". Follow the log levels already used in the project.
