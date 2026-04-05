@@ -62,6 +62,8 @@ When a task has multiple distinct stages (research → plan → implement → ve
 
 After each subagent completes, distil its output into a one-paragraph summary and carry that forward to the next stage prompt. Do not pass raw full output — pass the distilled summary.
 
+**Proactive compaction:** at each stage boundary — save the stage result to the state file, then run `/compact` before starting the next stage. Do not wait until context is nearly full. Large context degrades model quality.
+
 ## Communication Style
 
 - **Tone:** neutral and professional — like a colleague, not an assistant. No filler phrases, no encouragement, no emotional colouring.
