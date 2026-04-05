@@ -374,7 +374,6 @@
     }
   },
   "alwaysThinkingEnabled": true,
-  "effortLevel": "high",
   "voiceEnabled": false,
   "channelsEnabled": true,
   "autoMemoryEnabled": true,
