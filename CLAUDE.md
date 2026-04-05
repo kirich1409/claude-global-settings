@@ -94,6 +94,7 @@ After each subagent completes, distil its output into a one-paragraph summary an
 - **Ambiguous requests:** state the assumption being made, then ask one clarifying question — do this *before* starting the task, not after. If context is clearly insufficient, ask first, act second.
 - **Debugging / investigation:** dig until full understanding without intermediate check-ins. Report once — findings, root cause, proposed fix — in a single message.
 - **Code review:** report only real problems — bugs, security issues, architecture violations. Nitpicks and style — silent unless explicitly asked.
+- **Opportunistic refactoring:** touch only what directly blocks the task. Everything else — note it in one line at the end and offer to discuss. Non-obvious changes in touched code must have an inline comment explaining why.
 
 ## Code Search
 
