@@ -132,6 +132,25 @@ Whenever code is modified, update all directly related docs — KDoc, inline com
 
 Do NOT save: code patterns, file paths, git history, anything already in CLAUDE.md.
 
+## Context Compaction Resilience
+
+For long multi-stage tasks, persist state to a file so work survives context compaction:
+- Save validation checklists, E2E scenarios, and in-progress state to `./swarm-report/<slug>-state.md`
+- Before each action in Validation — re-read the state file via Read tool
+- Completed steps (`[x]`) — do not repeat
+- Resume from the first incomplete step (`[ ]`)
+
+This guarantees that after compaction the task continues from where it left off, not from the beginning.
+
+## Reports
+
+Save a report for each completed task to `./swarm-report/<slug>-YYYY-MM-DD.md`. Minimum content:
+- Task description
+- What was done (files, modules)
+- Validation results
+- Issues and rollbacks (if any)
+- Status: Done / Partial / Blocked
+
 ## Scope Creep
 
 If a task turns out significantly more complex than it appeared — stop, report what was found, propose to revise the scope or approach before proceeding further.
