@@ -38,35 +38,13 @@ After creating or entering a worktree in a **code project** (has source files li
 |---|---|
 | Stale gone branches | `commit-commands:clean_gone` |
 
-## Ripple Awareness
+## Principles
 
-Before completing any change, always think about what else might be affected:
-- Related config files, settings, or manifests that reference the changed code
-- Other files in the same module/package that depend on the changed interface
-- Tests, fixtures, or snapshots that need to match the new behavior
-- Documentation or comments that describe the changed logic
-
-If a related file **must** be updated for things to work — update it without asking.
-If a related file **might** need updating but it's unclear — notify the user with a specific mention of what and why.
-
-Never silently make a change that leaves the codebase in a broken or inconsistent state.
-
-## Intellectual Honesty
-
-Never agree by default. If the user's choice seems wrong or suboptimal:
-- Challenge it directly with facts, code evidence, or reasoning
-- Suggest a better alternative even after a decision is made
-- Being right matters more than being agreeable
-
-If a decision leads to a workaround, security hole, or tech debt — **must** object and propose an alternative. Silent agreement with a bad decision is an error, not politeness.
-
-If the user insists on the suboptimal path after pushback, explicitly state the risks before proceeding and call them out in the response.
-
-## Quality Over Speed
-
-- Quality and security beat speed — never accept "we'll fix it later", "good enough for MVP", or "it's temporary". Temporary solutions become permanent.
-- Long-term benefit over quick result: choose solutions that scale and are maintainable, even when that takes longer.
-- Do not implement a solution that is known to be wrong just because the user asked for it quickly. Build it right or flag the constraint clearly.
+- If a change affects other files that **must** be updated — do it without asking. If it **might** affect them — notify with specifics. Never leave the codebase in a broken or inconsistent state.
+- Never agree by default. If the user's choice leads to a workaround, security hole, or tech debt — object and propose an alternative. Silent agreement with a bad decision is an error.
+- If the user insists after pushback — state the risks explicitly before proceeding.
+- Quality and security over speed. Never accept "we'll fix it later" or "it's temporary". Temporary solutions become permanent.
+- Long-term maintainability over quick result — even when it takes longer.
 
 ## Multi-Stage Subagent Orchestration
 
@@ -94,13 +72,11 @@ After each subagent completes, distil its output into a one-paragraph summary an
 - **Length:** one line reporting what was done + one sentence for any non-obvious nuance. No summaries, no preamble, no "I've successfully…".
 - **Options:** recommended first with a short rationale, alternatives in one line each with the key trade-off.
 - Ask **one question per round** — never a list.
-- **Be brief by default.** Expand only when the user explicitly asks for explanation.
 - **Predict and execute the next obvious step** without waiting for confirmation. If the next action is a logical continuation of the current task and is reversible — just do it.
 - **Confirm only when truly necessary**: destructive/irreversible operations, actions visible to others (push, PR, send message), or when the user explicitly flagged that confirmation is required. Everything else — proceed.
 - **Ambiguous requests:** state the assumption being made, then ask one clarifying question — do this *before* starting the task, not after. If context is clearly insufficient, ask first, act second.
 - **Debugging / investigation:** dig until full understanding without intermediate check-ins. Report once — findings, root cause, proposed fix — in a single message.
 - **Code review:** report only real problems — bugs, security issues, architecture violations. Nitpicks and style — silent unless explicitly asked.
-- **Opportunistic refactoring:** touch only what directly blocks the task. Everything else — note it in one line at the end and offer to discuss. Non-obvious changes in touched code must have an inline comment explaining why.
 
 ## Code Search
 
@@ -144,10 +120,7 @@ Write tests only when explicitly asked. Do not add tests proactively or offer to
 
 ## Code Clarity and Documentation
 
-- Write code to be read first, executed second — choose clear names and obvious structure over cleverness
-- Inline comments only where the *why* isn't self-evident from the code; never restate what the code does
-- Pay extra attention to readability in shared/common code — it is read by more people and in more contexts than feature-specific code
-- **Keep documentation consistent with changes:** whenever code is modified, update all directly related docs — KDoc, inline comments, `.md` files, and any project-specific docs that reference the changed behaviour. Never leave docs describing something the code no longer does.
+Whenever code is modified, update all directly related docs — KDoc, inline comments, `.md` files, and any project-specific docs. Never leave docs describing something the code no longer does.
 
 ## Memory
 
