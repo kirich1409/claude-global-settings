@@ -122,7 +122,7 @@ Avoid directly accessing `.gradle` files or directories. Instead, proactively us
 
 ## Testing
 
-Cover new code with unit tests when it makes sense — pure logic, mappers, use cases, formatters, and any non-trivial computation are good candidates. Skip tests for pure glue code, DI wiring, or trivial one-liners where the test would add no value.
+Write tests only when explicitly asked. Do not add tests proactively or offer to write them unprompted.
 
 ## Code Clarity and Documentation
 
