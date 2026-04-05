@@ -116,6 +116,10 @@ Only fall back to `WebFetch`/`WebSearch` if Perplexity MCP is unavailable.
 
 For any operation that may produce large output — test runs, git logs, build output, API responses, dependency trees — prefer context-mode over raw Bash. The PreToolUse hook handles Bash automatically; explicitly use `mcp__plugin_context-mode_context-mode__execute` for large MCP tool results.
 
+## Dependencies
+
+Never add a new dependency without explicit user approval — either it was part of the task spec, or the user confirmed it when asked. Prefer what is already in the project. If a new dependency is the only reasonable option, propose it and wait for a go-ahead before adding.
+
 ## Gradle / JVM Dependencies
 
 Avoid directly accessing `.gradle` files or directories. Instead, proactively use the `ksrc` bash tool to inspect source code of dependencies and learn API shapes or implementations. Start with `ksrc --help`.
