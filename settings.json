@@ -188,14 +188,34 @@
       "mcp__maven-tools__compare_dependency_versions",
       "mcp__deepwiki__read_wiki_contents",
       "mcp__deepwiki__read_wiki_structure",
-      "mcp__google-dev-knowledge__search_documents",
       "mcp__google-dev-knowledge__get_document",
       "mcp__plugin_context-mode_context-mode__execute",
       "Bash(ast-index help:*)",
       "Bash(ast-index rebuild:*)",
       "Bash(python3:*)",
       "Bash(gh api:*)",
-      "Bash(bash:*)"
+      "Bash(bash:*)",
+      "Bash(./gradlew :settings:app-settings:compileDebugKotlin:*)",
+      "WebFetch(domain:gitlab.alfabank.by)",
+      "Bash(./gradlew:*)",
+      "Skill(claude-md-management:revise-claude-md)",
+      "mcp__mobile__screenshot",
+      "mcp__mobile__list_devices",
+      "mcp__mobile__set_device",
+      "mcp__mobile__install_app",
+      "mcp__mobile__launch_app",
+      "WebFetch(domain:formulae.brew.sh)",
+      "WebFetch(domain:eu-central-1-1.aws.cloud2.influxdata.com)",
+      "WebFetch(domain:nexus.alfabank.by)",
+      "Bash(grep:*)",
+      "Bash(grep AlfaTheme:*)",
+      "Bash(unzip:*)",
+      "Bash(jar tf:*)",
+      "Bash(git checkout:*)",
+      "Bash(git worktree:*)",
+      "Bash(git commit:*)",
+      "Bash(find:*)",
+      "mcp__plugin_greptile_greptile__list_merge_requests"
     ],
     "deny": [
       "Read(./.env)",
@@ -224,7 +244,7 @@
       "Bash(fastlane *)",
       "Bash(firebase deploy *)"
     ],
-    "defaultMode": "default"
+    "defaultMode": "acceptEdits"
   },
   "hooks": {
     "SessionStart": [
@@ -371,7 +391,7 @@
       }
     }
   },
-  "language": "English",
+  "language": "Russian",
   "sandbox": {
     "network": {
       "allowedDomains": [
