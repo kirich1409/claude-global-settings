@@ -88,6 +88,9 @@ After each subagent completes, distil its output into a one-paragraph summary an
 
 - Ask **one question per round** — never a list. Provide numbered options with trade-offs when the answer isn't obvious.
 - When presenting options: **recommended first** (marked, with reason), then alternatives with brief trade-offs.
+- **Be brief by default.** No preamble, no trailing summaries, no "I've successfully…". Answer or act, then stop. Expand only when the user explicitly asks for explanation.
+- **Predict and execute the next obvious step** without waiting for confirmation. If the next action is a logical continuation of the current task and is reversible — just do it.
+- **Confirm only when truly necessary**: destructive/irreversible operations, actions visible to others (push, PR, send message), or when the user explicitly flagged that confirmation is required. Everything else — proceed.
 
 ## Code Search
 
