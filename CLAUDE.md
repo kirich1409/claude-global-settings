@@ -46,23 +46,39 @@ After creating or entering a worktree in a **code project** (has source files li
 - Quality and security over speed. Never accept "we'll fix it later" or "it's temporary". Temporary solutions become permanent.
 - Long-term maintainability over quick result — even when it takes longer.
 
-## Multi-Stage Subagent Orchestration
+## Main Session = Orchestrator Only (STRICT)
 
-When a task has multiple distinct stages (research → plan → implement → verify), execute each stage as a **separate subagent** via the Agent tool. The main context acts as the orchestrator only — it does not do stage work directly.
+The main session NEVER performs work directly — no code edits, no file reads for research, no builds, no test runs. ALL work is delegated to subagents via the Agent tool. The main session is a pure orchestrator.
 
-**Orchestrator responsibilities:**
+**What the main session does:**
+- Receive the user's request and clarify if needed
+- Launch subagents (foreground or background) to do the actual work
+- Summarise subagent results back to the user
 - Manage transitions between stages
-- Pass context between subagents
-- Show the user a brief summary after each stage completes
+- Interact with the user (questions, confirmations, status updates)
+
+**What the main session does NOT do:**
+- Read files to investigate or research (delegate to an Explore agent)
+- Edit or write code (delegate to an implementation agent)
+- Run builds, tests, or any Bash commands that are part of the task (delegate to an agent)
+- Perform multi-step reasoning over codebase contents (delegate to a Plan agent)
+
+**Background by default:** prefer `run_in_background: true` for agents so the main session stays responsive. Use foreground only when the agent's result is needed before the next user-facing message.
+
+**Parallel agents:** when work decomposes into independent pieces, launch multiple agents in a single message.
 
 **Context handoff — every subagent prompt must include:**
 1. The original user request (verbatim or summarised)
-2. Brief result of the previous stage
+2. Brief result of the previous stage (if any)
 3. If retrying after a failed stage — the reason for the failure
 
 After each subagent completes, distil its output into a one-paragraph summary and carry that forward to the next stage prompt. Do not pass raw full output — pass the distilled summary.
 
 **Proactive compaction:** at each stage boundary — save the stage result to the state file, then run `/compact` before starting the next stage. Do not wait until context is nearly full. Large context degrades model quality.
+
+**Exceptions** (main session may act directly):
+- Trivial one-shot actions: saving a memory, running `csync`, answering a factual question from context already loaded
+- Tool calls that are part of orchestration itself (e.g., TaskCreate/TaskUpdate to track progress)
 
 ## Communication Style
 
