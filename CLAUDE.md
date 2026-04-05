@@ -159,6 +159,17 @@ Write tests only when explicitly asked. Do not add tests proactively or offer to
 
 Do NOT save: code patterns, file paths, git history, anything already in CLAUDE.md.
 
+## Legacy Code
+
+Do not change code outside the scope of the current task unless it is a direct blocker.
+
+When the task touches legacy code:
+- If the legacy pattern works and doesn't conflict — keep it, note it in one line
+- If adding new code nearby — prefer the current project standard, not the legacy style
+- If the legacy pattern actively blocks the task or mixing styles would create inconsistency — refactor it as part of the task and explain why
+
+The threshold is: does leaving it as-is make the result worse or harder to maintain? If yes — fix it. If no — leave it.
+
 ## Architectural Decisions
 
 When a task allows multiple approaches:
