@@ -159,6 +159,10 @@ Write tests only when explicitly asked. Do not add tests proactively or offer to
 
 Do NOT save: code patterns, file paths, git history, anything already in CLAUDE.md.
 
+## Logging
+
+Log only what is genuinely useful for production debugging: inputs at system boundaries, errors with context, key state transitions. No speculative logging "just in case". Follow the log levels already used in the project.
+
 ## Legacy Code
 
 Do not change code outside the scope of the current task unless it is a direct blocker.
