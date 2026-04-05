@@ -87,7 +87,7 @@ memory: project
 ## Эскалация
 
 - Технические trade-offs (выбор технологии, архитектуры) → рекомендуй запуск **architecture-expert**
-- UX/UI вопросы в требованиях → рекомендуй запуск **ux-reviewer**
+- UX/UI вопросы в требованиях → рекомендуй запуск **ux-expert**
 - Security/compliance requirements → рекомендуй запуск **security-expert**
 
 ## Agent Memory
