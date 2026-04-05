@@ -159,6 +159,10 @@ Write tests only when explicitly asked. Do not add tests proactively or offer to
 
 Do NOT save: code patterns, file paths, git history, anything already in CLAUDE.md.
 
+## Scope Creep
+
+If a task turns out significantly more complex than it appeared — stop, report what was found, propose to revise the scope or approach before proceeding further.
+
 ## Progress on Long Tasks
 
 Show a step list with checkmarks as work progresses. Update it at each meaningful stage so the user can see where things stand without asking.
