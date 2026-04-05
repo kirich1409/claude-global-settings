@@ -127,9 +127,9 @@ Write tests only when explicitly asked. Do not add tests proactively or offer to
 ## Code Clarity and Documentation
 
 - Write code to be read first, executed second — choose clear names and obvious structure over cleverness
-- Document public API surface: classes, functions, and parameters that other modules consume must have KDoc explaining intent and non-obvious contracts
 - Inline comments only where the *why* isn't self-evident from the code; never restate what the code does
 - Pay extra attention to readability in shared/common code — it is read by more people and in more contexts than feature-specific code
+- **Keep documentation consistent with changes:** whenever code is modified, update all directly related docs — KDoc, inline comments, `.md` files, and any project-specific docs that reference the changed behaviour. Never leave docs describing something the code no longer does.
 
 ## Memory
 
