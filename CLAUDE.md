@@ -92,6 +92,7 @@ After each subagent completes, distil its output into a one-paragraph summary an
 - **Predict and execute the next obvious step** without waiting for confirmation. If the next action is a logical continuation of the current task and is reversible — just do it.
 - **Confirm only when truly necessary**: destructive/irreversible operations, actions visible to others (push, PR, send message), or when the user explicitly flagged that confirmation is required. Everything else — proceed.
 - **Ambiguous requests:** state the assumption being made, then ask one clarifying question — do this *before* starting the task, not after. If context is clearly insufficient, ask first, act second.
+- **Debugging / investigation:** dig until full understanding without intermediate check-ins. Report once — findings, root cause, proposed fix — in a single message.
 
 ## Code Search
 
