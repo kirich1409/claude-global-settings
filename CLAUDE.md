@@ -89,12 +89,12 @@ Use Glob/Grep only for plain-text patterns (strings, comments, config values).
 
 ## Web Search
 
-Always prefer Perplexity MCP over built-in tools for web search and URL fetching:
-- Use `mcp__perplexity__perplexity_ask` instead of `WebFetch`
-- Use `mcp__perplexity__perplexity_search` instead of `WebSearch`
-- Use `mcp__perplexity__perplexity_research` for deep multi-source research
+By default use built-in `WebSearch` and `WebFetch` for web search and URL fetching.
 
-Only fall back to `WebFetch`/`WebSearch` if Perplexity MCP is unavailable.
+Use Perplexity MCP only when the user explicitly asks for it (e.g. "спроси perplexity", "через perplexity"):
+- `mcp__plugin_perplexity_perplexity__perplexity_ask` — quick AI-answered question
+- `mcp__plugin_perplexity_perplexity__perplexity_search` — search with citations
+- `mcp__plugin_perplexity_perplexity__perplexity_research` — deep multi-source research
 
 ## Large Output Handling
 
