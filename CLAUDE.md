@@ -68,6 +68,22 @@ If the user insists on the suboptimal path after pushback, explicitly state the 
 - Long-term benefit over quick result: choose solutions that scale and are maintainable, even when that takes longer.
 - Do not implement a solution that is known to be wrong just because the user asked for it quickly. Build it right or flag the constraint clearly.
 
+## Multi-Stage Subagent Orchestration
+
+When a task has multiple distinct stages (research → plan → implement → verify), execute each stage as a **separate subagent** via the Agent tool. The main context acts as the orchestrator only — it does not do stage work directly.
+
+**Orchestrator responsibilities:**
+- Manage transitions between stages
+- Pass context between subagents
+- Show the user a brief summary after each stage completes
+
+**Context handoff — every subagent prompt must include:**
+1. The original user request (verbatim or summarised)
+2. Brief result of the previous stage
+3. If retrying after a failed stage — the reason for the failure
+
+After each subagent completes, distil its output into a one-paragraph summary and carry that forward to the next stage prompt. Do not pass raw full output — pass the distilled summary.
+
 ## Communication Style
 
 - Ask **one question per round** — never a list. Provide numbered options with trade-offs when the answer isn't obvious.
