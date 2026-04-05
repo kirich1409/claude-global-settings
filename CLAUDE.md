@@ -4,6 +4,8 @@
 
 This directory is a git repo synced across machines. When editing `settings.json`, hooks, or any config here, use `$HOME/.claude/...` instead of absolute paths like `/Users/<username>/...`. Never hardcode the home directory path.
 
+After editing any git-tracked file in `~/.claude/` (CLAUDE.md, rules, settings, hooks, etc.), **always run `csync`** to commit and push changes to the remote. This keeps all machines in sync. Do not leave local-only uncommitted changes in this repo.
+
 ## ~/.claude settings conflict resolution
 
 If you see "SETTINGS CONFLICT" in the session start message, there are `*.remote` files in `~/.claude/` containing the remote version of conflicting config files. You must:
@@ -29,6 +31,8 @@ If absent → run `git status && git worktree list` to reconstruct state.
   5. Multiple parallel agents → each gets its own worktree
 
 Never commit or push directly from main/master/develop.
+
+After creating or entering a worktree, **always initialize ast-index** — it is per-worktree and does not carry over from the main repository. Run the appropriate `ast-index:initialize-*` skill before any code search in the new worktree.
 
 | Moment | Skill |
 |---|---|
@@ -58,6 +62,13 @@ Never agree by default. If the user's choice seems wrong or suboptimal:
 
 - Ask **one question per round** — never a list. Provide numbered options with trade-offs when the answer isn't obvious.
 - When presenting options: **recommended first** (marked, with reason), then alternatives with brief trade-offs.
+
+## Code Search
+
+Every project must have **ast-index initialized** before any code search. At the start of a project session, verify it is set up — if not, run the appropriate `ast-index:initialize-*` skill first.
+
+Prefer ast-index over Glob/Grep for any symbol search (classes, functions, usages, file by name).
+Use Glob/Grep only for plain-text patterns (strings, comments, config values).
 
 ## Web Search
 
