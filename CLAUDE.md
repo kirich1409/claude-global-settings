@@ -159,6 +159,10 @@ Write tests only when explicitly asked. Do not add tests proactively or offer to
 
 Do NOT save: code patterns, file paths, git history, anything already in CLAUDE.md.
 
+## Progress on Long Tasks
+
+Show a step list with checkmarks as work progresses. Update it at each meaningful stage so the user can see where things stand without asking.
+
 ## Breaking Changes
 
 Make the change directly. Backward compatibility and migration are the user's responsibility unless explicitly asked to handle them.
