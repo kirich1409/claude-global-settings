@@ -146,7 +146,7 @@ This guarantees that after compaction the task continues from where it left off,
 
 ## Reports
 
-Save a report for each completed task to `./swarm-report/<slug>-YYYY-MM-DD.md`. Minimum content:
+Save a report for each completed task to `./swarm-report/<slug>-YYYY-MM-DD.md`. The `swarm-report/` directory must be in the project's `.gitignore` — add it if missing before writing the first report. Minimum content:
 - Task description
 - What was done (files, modules)
 - Validation results
