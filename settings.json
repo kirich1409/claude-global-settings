@@ -330,7 +330,8 @@
     "ralph-loop@claude-plugins-official": true,
     "plugin-dev@claude-plugins-official": true,
     "hookify@claude-plugins-official": true,
-    "mcp-server-dev@claude-plugins-official": true
+    "mcp-server-dev@claude-plugins-official": true,
+    "perplexity@perplexity-mcp-server": true
   },
   "extraKnownMarketplaces": {
     "ast-index-marketplace": {
@@ -361,6 +362,12 @@
       "source": {
         "source": "github",
         "repo": "anthropics/skills"
+      }
+    },
+    "perplexity-mcp-server": {
+      "source": {
+        "source": "github",
+        "repo": "perplexityai/modelcontextprotocol"
       }
     }
   },
