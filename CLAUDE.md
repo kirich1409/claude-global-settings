@@ -32,7 +32,7 @@ If absent → run `git status && git worktree list` to reconstruct state.
 
 Never commit or push directly from main/master/develop.
 
-After creating or entering a worktree, **always initialize ast-index** — it is per-worktree and does not carry over from the main repository. Run the appropriate `ast-index:initialize-*` skill before any code search in the new worktree.
+After creating or entering a worktree in a **code project** (has source files like `*.kt`, `*.java`, `*.ts`, etc.), **initialize ast-index** — it is per-worktree and does not carry over. Run the appropriate `ast-index:initialize-*` skill before any code search. Skip for config-only repos (e.g. `~/.claude`).
 
 | Moment | Skill |
 |---|---|
@@ -65,7 +65,7 @@ Never agree by default. If the user's choice seems wrong or suboptimal:
 
 ## Code Search
 
-Every project must have **ast-index initialized** before any code search. At the start of a project session, verify it is set up — if not, run the appropriate `ast-index:initialize-*` skill first.
+Code projects (with source files) must have **ast-index initialized** before any code search. At the start of a project session, verify it is set up — if not, run the appropriate `ast-index:initialize-*` skill first. Skip for config-only repos without source code.
 
 Prefer ast-index over Glob/Grep for any symbol search (classes, functions, usages, file by name).
 Use Glob/Grep only for plain-text patterns (strings, comments, config values).
