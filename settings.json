@@ -394,5 +394,6 @@
         "mcp-maven-deps"
       ]
     }
-  }
+  },
+  "model": "opus"
 }
