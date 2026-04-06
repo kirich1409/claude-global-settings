@@ -72,14 +72,38 @@ The main session NEVER performs work directly — no code edits, no file reads f
 - When the agent completes → update the Task with final status and a one-line result summary
 - For foreground agents that complete quickly — TaskCreate is optional
 
-**Parallel agents:** when work decomposes into independent pieces, launch multiple agents in a single message.
+**Agent report format:**
+Every agent must end with a structured result in its final `TaskUpdate`:
+- **Status:** done / partial / blocked
+- **Summary:** one sentence — what was done
+- **Next:** what needs to happen next (if anything)
+- **Questions:** anything that needs user decision (if any)
+
+**Result validation:**
+Before passing an agent's result to the next stage, the main session validates:
+- Does the result address the original task (not a tangent)?
+- Is it specific (file paths, code, concrete findings) — not generic filler?
+If validation fails → one automatic retry with a clarified/narrowed prompt. If retry also fails → stop and ask the user.
+
+**Escalation — agent must stop and return to main session when:**
+- Task scope is larger than originally expected
+- A new dependency is needed
+- Multiple valid architectural approaches exist and the choice is non-obvious
+- Found a conflict with existing code/patterns that requires a decision
+- Needs access, credentials, or information it cannot obtain
+
+**Parallel agents:** when work decomposes into independent pieces, launch multiple agents in a single message. Maximum 5 background agents simultaneously.
+
+**Stage handoff and persistence:**
+- Each agent writes its result to `./swarm-report/<task-slug>-stage-<N>.md` before finishing
+- The next agent's prompt includes the path to the previous stage file — agent reads it at start
+- This guarantees context survives compaction and agent boundaries
+- The main session's context handoff prompt must reference the file path, not inline the content
 
 **Context handoff — every subagent prompt must include:**
 1. The original user request (verbatim or summarised)
-2. Brief result of the previous stage (if any)
+2. Path to the previous stage result file (if any) — agent reads it itself
 3. If retrying after a failed stage — the reason for the failure
-
-After each subagent completes, distil its output into a one-paragraph summary and carry that forward to the next stage prompt. Do not pass raw full output — pass the distilled summary.
 
 **Proactive compaction:** at each stage boundary — save the stage result to the state file, then run `/compact` before starting the next stage. Do not wait until context is nearly full. Large context degrades model quality.
 
