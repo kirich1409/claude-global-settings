@@ -33,3 +33,17 @@ Three tools cover all code navigation. Pick the right one — run `ast-index --h
 2. **LSP** when semantic type-resolution is needed (hover, exact definition, generics)
 3. **Grep** ONLY for regex patterns, string literals, comments, or when ast-index returns empty
 4. **NEVER** run Grep "for completeness" after ast-index returned results
+
+## Hard Rules — No Exceptions
+
+- **NEVER use Grep to search for a class, function, interface, variable, or any code symbol by name.** This is always ast-index territory.
+- **NEVER use Glob to find a source file by class/module name.** Use `ast-index search` or `ast-index class`.
+- If ast-index reports "Index not found" — stop, run the appropriate `ast-index:initialize-*` skill for the project type, then retry. Do NOT fall back to Grep.
+- Grep is permitted ONLY for: string literals in code, regex patterns, comment text, config values, log messages.
+
+## Session Start Check
+
+If the session reminder contains `⚠ AST INDEX NOT AVAILABLE` — the index is not initialized for this project. Before any code search:
+1. Identify the project type (Android/iOS/Web/Rust/etc.)
+2. Run the matching `ast-index:initialize-*` skill
+3. Only then proceed with code navigation

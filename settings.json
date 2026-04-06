@@ -257,7 +257,7 @@
           },
           {
             "type": "command",
-            "command": "ast-index update 2>/dev/null || ast-index rebuild 2>/dev/null || true"
+            "command": "ast-index update 2>/dev/null || ast-index rebuild 2>/dev/null || echo '⚠ AST INDEX NOT AVAILABLE — run the matching ast-index:initialize-* skill before any code search'"
           },
           {
             "type": "command",
