@@ -65,6 +65,13 @@ The main session NEVER performs work directly — no code edits, no file reads f
 
 **Background by default:** prefer `run_in_background: true` for agents so the main session stays responsive. Use foreground only when the agent's result is needed before the next user-facing message.
 
+**Task tracking (обязательно):**
+- Before launching a background agent → `TaskCreate` with description prefixed by agent type: `[Explore] Find auth module structure`, `[kotlin-engineer] Implement OrderUseCase`
+- When agents depend on each other → note it in description: `[kotlin-engineer] AuthRepository (waits for #1)`
+- In the agent prompt → include instruction: "Update your task via `TaskUpdate` at key milestones. If blocked or errored — update immediately with `⚠ BLOCKED: reason` or `❌ ERROR: reason`"
+- When the agent completes → update the Task with final status and a one-line result summary
+- For foreground agents that complete quickly — TaskCreate is optional
+
 **Parallel agents:** when work decomposes into independent pieces, launch multiple agents in a single message.
 
 **Context handoff — every subagent prompt must include:**
