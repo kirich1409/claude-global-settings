@@ -92,6 +92,13 @@ If validation fails → one automatic retry with a clarified/narrowed prompt. If
 - Found a conflict with existing code/patterns that requires a decision
 - Needs access, credentials, or information it cannot obtain
 
+**Model recommendation:** when evaluating a task before delegation, choose the right model for the agent:
+- `opus` — complex architecture decisions, multi-step reasoning across large codebases, security review, refactoring with non-obvious trade-offs
+- `sonnet` (default) — standard implementation, code generation, moderate research, most day-to-day tasks
+- `haiku` — simple lookups, formatting, single-file edits, quick searches with a clear answer
+
+Set `model` in the Agent call. This is a recommendation — never block on it. When in doubt, leave model unset and let the agent inherit from the parent.
+
 **Parallel agents:** when work decomposes into independent pieces, launch multiple agents in a single message. Maximum 5 background agents simultaneously.
 
 **Stage handoff and persistence:**
