@@ -257,4 +257,4 @@ At session end or on `/compact`, always preserve:
 - **Key architectural decisions** — choices made and why
 
 @RTK.md
-@rules/task-decomposition.md
+@task-decomposition.md
