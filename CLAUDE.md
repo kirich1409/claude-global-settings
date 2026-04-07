@@ -27,7 +27,7 @@ If absent → run `git status && git worktree list` to reconstruct state.
   1. Check GIT STATE for existing worktrees and feature branches
   2. Branch clearly matches task → offer to continue it
   3. Unclear match → ask before creating
-  4. No match → create a new worktree from main/master/develop
+  4. No match → create a new worktree from main/master/develop from `.worktree/<branch-name>` directory (always create worktrees in `.worktree/` folder at project root)
   5. Multiple parallel agents → each gets its own worktree
 
 Never commit or push directly from main/master/develop.
