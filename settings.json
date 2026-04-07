@@ -405,9 +405,7 @@
   "channelsEnabled": true,
   "autoMemoryEnabled": true,
   "skipDangerousModePermissionPrompt": true,
-  "context_window": {
-    "context_window_size": 100000
-  },
+  "showClearContextOnPlanAccept": true,
   "mcpServers": {
     "maven-deps-server": {
       "command": "npx",
