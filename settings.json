@@ -246,7 +246,7 @@
     ],
     "defaultMode": "acceptEdits"
   },
-  "model": "sonnet",
+  "model": "haiku",
   "hooks": {
     "SessionStart": [
       {
@@ -401,11 +401,11 @@
     }
   },
   "alwaysThinkingEnabled": true,
+  "showClearContextOnPlanAccept": true,
   "voiceEnabled": false,
   "channelsEnabled": true,
   "autoMemoryEnabled": true,
   "skipDangerousModePermissionPrompt": true,
-  "showClearContextOnPlanAccept": true,
   "mcpServers": {
     "maven-deps-server": {
       "command": "npx",
