@@ -246,7 +246,7 @@
     ],
     "defaultMode": "acceptEdits"
   },
-  "model": "haiku",
+  "model": "sonnet",
   "hooks": {
     "SessionStart": [
       {
