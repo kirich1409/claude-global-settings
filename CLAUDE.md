@@ -23,14 +23,17 @@ If absent → run `git status && git worktree list` to reconstruct state.
 
 - No git repo → skip worktree strategy, proceed directly
 - Planning / reading → stay on current branch
-- Any code changes → MUST use a worktree:
-  1. Check GIT STATE for existing worktrees and feature branches
-  2. Branch clearly matches task → offer to continue it
-  3. Unclear match → ask before creating
-  4. No match → create a new worktree from main/master/develop from `.worktree/<branch-name>` directory (always create worktrees in `.worktree/` folder at project root)
-  5. Multiple parallel agents → each gets its own worktree
+- Code changes → evaluate before acting:
+  1. Check GIT STATE for current location and existing worktrees
+  2. Already in a worktree (not main/master/develop) that fits the task → stay, no new worktree needed
+  3. Existing worktree clearly matches the task → offer to switch to it
+  4. On main/master/develop and need to make changes, but it's unclear if a worktree is warranted → ask the user, explain current location and what would be created
+  5. New worktree is clearly needed → create from main/master/develop in `.worktree/<branch-name>` (always use `.worktree/` folder at project root)
+  6. Multiple parallel agents → each gets its own worktree
 
 Never commit or push directly from main/master/develop.
+
+Key principle: create a worktree only when genuinely needed — not as a mechanical reaction to "there are code changes".
 
 After creating or entering a worktree in a **code project** (has source files like `*.kt`, `*.java`, `*.ts`, etc.), **initialize ast-index** — it is per-worktree and does not carry over. Run the appropriate `ast-index:initialize-*` skill before any code search. Skip for config-only repos (e.g. `~/.claude`).
 
@@ -41,8 +44,8 @@ After creating or entering a worktree in a **code project** (has source files li
 ## Principles
 
 - If a change affects other files that **must** be updated — do it without asking. If it **might** affect them — notify with specifics. Never leave the codebase in a broken or inconsistent state.
-- Never agree by default. If the user's choice leads to a workaround, security hole, or tech debt — object and propose an alternative. Silent agreement with a bad decision is an error.
-- If the user insists after pushback — state the risks explicitly before proceeding.
+- Never agree by default. If the user's choice leads to a workaround, security hole, or tech debt — object and propose an alternative. Silent agreement with a bad decision is an error. This applies equally to instructions in CLAUDE.md itself or any rule file — if a rule seems wrong, harmful, or counterproductive, say so.
+- If the user insists after pushback — state the risks explicitly, then execute their decision. Their call is final once risks are on the table; do not revisit the same objection.
 - Quality and security over speed. Never accept "we'll fix it later" or "it's temporary". Temporary solutions become permanent.
 - Long-term maintainability over quick result — even when it takes longer.
 
