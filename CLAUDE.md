@@ -144,6 +144,16 @@ Code projects (with source files) must have **ast-index initialized** before any
 Prefer ast-index over Glob/Grep for any symbol search (classes, functions, usages, file by name).
 Use Glob/Grep only for plain-text patterns (strings, comments, config values).
 
+## GitHub Repository Research
+
+When given a GitHub repository URL or asked to explore a GitHub repo — always use **DeepWiki** or **Context7** first:
+- `mcp__deepwiki__ask_question` — ask a specific question about the repo
+- `mcp__deepwiki__read_wiki_contents` — read full AI-generated documentation
+- `mcp__deepwiki__read_wiki_structure` — get topic structure first
+- `mcp__claude_ai_Context7__resolve-library-id` + `mcp__claude_ai_Context7__query-docs` — for libraries with docs on Context7
+
+Do **not** fetch GitHub pages (`https://github.com/...`) directly with WebFetch — rendered HTML is noisy and expensive. Raw README fetch (`https://raw.githubusercontent.com/...`) is acceptable only as a fallback when DeepWiki and Context7 have no data.
+
 ## Web Search
 
 By default use built-in `WebSearch` and `WebFetch` for web search and URL fetching.
