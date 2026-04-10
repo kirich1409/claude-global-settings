@@ -246,7 +246,7 @@
     ],
     "defaultMode": "acceptEdits"
   },
-  "model": "sonnet",
+  "model": "Opus",
   "hooks": {
     "SessionStart": [
       {
