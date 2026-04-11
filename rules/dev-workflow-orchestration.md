@@ -91,6 +91,65 @@ Each stage produces an artifact in `swarm-report/`. The next stage reads it befo
 
 If a stage artifact is missing — the previous stage did not complete. Do not skip ahead.
 
+## Quality Loop
+
+After implementation completes and before PR creation, run a mandatory quality loop. Each gate runs in order; a failure triggers a fix cycle before advancing.
+
+### Gates (sequential)
+
+| # | Gate | Action | Agent |
+|---|------|--------|-------|
+| 1 | Build | Compile the project, resolve all errors | Implementation agent |
+| 2 | Static analysis | Lint, formatting, unused imports — fix violations | Implementation agent |
+| 3 | Tests | Run unit + integration tests, fix failures | Implementation agent |
+| 4 | Semantic self-review | Compare original intent ↔ actual `git diff` | **Fresh agent** (not the author) |
+| 5 | Expert reviews | Parallel domain-specific reviews (only when triggered) | Specialist agents |
+| 6 | Intent check | Re-read original task + plan, verify the diff addresses them | Orchestrator |
+
+### Separation of author and reviewer
+
+The agent that wrote the code must NOT perform the semantic self-review (gate 4). Launch a fresh agent that receives only:
+
+1. The original task description (verbatim)
+2. The plan artifact (`swarm-report/<slug>-plan.md`) — if exists
+3. The `git diff` of all changes
+
+Nothing else. No implementation context, no conversation history. This prevents the author's assumptions from leaking into the review.
+
+Questions the reviewer must answer:
+- Does the code solve the original problem?
+- Is there scope creep beyond the plan?
+- Are acceptance criteria from the plan met?
+
+### Expert review triggers
+
+Not every change needs all expert reviews. Launch only the relevant ones, in parallel.
+
+| Expert | Trigger — files touch any of: |
+|--------|-------------------------------|
+| `security-expert` | Auth, encryption, token/secret storage, network requests, permissions, user data handling |
+| `performance-expert` | RecyclerView/LazyColumn adapters, database queries, image loading, coroutine dispatchers, hot loops, large collections |
+| `architecture-expert` | New modules created, dependency direction changed, public API modified, new abstractions introduced |
+
+If no trigger matches — skip expert reviews entirely.
+
+### Iteration cap
+
+- **Per gate:** max 3 fix attempts. If still failing after 3 — stop and escalate to user with the failure details and what was tried.
+- **Total quality loop:** max 5 full iterations (gate 1–6 cycles). If the loop does not converge — escalate. This prevents infinite fix-break-fix loops.
+
+### Quality report artifact
+
+After the loop completes (pass or escalation), save `swarm-report/<slug>-quality.md` with:
+
+- Gates passed / failed (with attempt counts)
+- Issues found and fixes applied
+- Expert review findings (per expert, if any ran)
+- Semantic self-review verdict
+- Intent check result: PASS or DRIFT (with explanation)
+
+This artifact is the receipt for the Verify stage — Verify must not start without it.
+
 ## Testing Strategy in Planning
 
 The Plan stage MUST include these sections:
