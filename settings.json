@@ -430,7 +430,8 @@
     "plugin-dev@claude-plugins-official": true,
     "hookify@claude-plugins-official": true,
     "mcp-server-dev@claude-plugins-official": true,
-    "perplexity@perplexity-mcp-server": true
+    "perplexity@perplexity-mcp-server": true,
+    "caveman@caveman": true
   },
   "extraKnownMarketplaces": {
     "ast-index-marketplace": {
@@ -467,6 +468,12 @@
       "source": {
         "source": "github",
         "repo": "perplexityai/modelcontextprotocol"
+      }
+    },
+    "caveman": {
+      "source": {
+        "source": "github",
+        "repo": "JuliusBrussee/caveman"
       }
     }
   },
