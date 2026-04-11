@@ -431,7 +431,8 @@
     "hookify@claude-plugins-official": true,
     "mcp-server-dev@claude-plugins-official": true,
     "perplexity@perplexity-mcp-server": true,
-    "caveman@caveman": true
+    "caveman@caveman": true,
+    "rust-analyzer-lsp@claude-plugins-official": true
   },
   "extraKnownMarketplaces": {
     "ast-index-marketplace": {
