@@ -93,7 +93,34 @@ If a stage artifact is missing — the previous stage did not complete. Do not s
 
 ## Quality Loop
 
+When the user asks to "prepare for PR", "quality check the branch", "run the quality loop", or "make it PR-ready" — run these gates on the current branch.
+
 After implementation completes and before PR creation, run a mandatory quality loop. Each gate runs in order; a failure triggers a fix cycle before advancing.
+
+### Build system detection
+
+Use the highest-priority match when multiple build files are present:
+
+| Priority | File present | Build | Lint | Test |
+|----------|---|---|---|---|
+| 1 | `Makefile` (with targets) | `make build` | `make lint` | `make test` |
+| 2 | `package.json` | `npm run build` | `npm run lint` | `npm test` |
+| 3 | `Cargo.toml` | `cargo build` | `cargo clippy` | `cargo test` |
+| 4 | `build.gradle(.kts)` | `./gradlew build` | `./gradlew lint` | `./gradlew test` |
+| 5 | `pom.xml` | `mvn package -q` | `mvn checkstyle:check` | `mvn test` |
+| 6 | `go.mod` | `go build ./...` | `golangci-lint run` | `go test ./...` |
+| 7 | `pyproject.toml` / `setup.py` | `pip install -e .` | `ruff check .` | `pytest` |
+
+Monorepo: if all changed files are under a single subdirectory with its own build file, use that subdirectory's build system.
+
+### Scope decision
+
+- **In current changes** (`git diff $BASE...HEAD`) — fix autonomously
+- **Out of scope, obvious fix** (missing import, typo in new string) — fix autonomously
+- **Out of scope, non-obvious** (pre-existing failures, unrelated deps) — note for user, don't fix; include what the issue is, why it's unrelated, and options (fix / skip / separate issue)
+
+**Minor (exit loop):** style preferences, cosmetic suggestions with no correctness impact.
+**Non-minor (keep looping):** bugs, broken tests, lint errors, security issues, incorrect logic.
 
 ### Gates (sequential)
 
@@ -172,7 +199,7 @@ Route implementation to the right specialist:
 | Library / technology swap | `code-migration` skill |
 | Module → KMP | `kmp-migration` skill |
 | Full autonomous cycle | `implement-task` skill (explicit-only) |
-| Quality check before PR | `prepare-for-pr` skill |
+| Quality check before PR | Quality Loop gates (this section) |
 | PR creation | `create-pr` skill |
 | PR monitoring and merge | `pr-drive-to-merge` skill |
 | Test plan creation | `generate-test-plan` skill |
