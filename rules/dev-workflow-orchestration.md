@@ -129,13 +129,13 @@ Monorepo: if all changed files are under a single subdirectory with its own buil
 | 1 | Build | Compile the project, resolve all errors | Implementation agent |
 | 2 | Static analysis | Lint, formatting, unused imports — fix violations | Implementation agent |
 | 3 | Tests | Run unit + integration tests, fix failures | Implementation agent |
-| 4 | Semantic self-review | Compare original intent ↔ actual `git diff` | **Fresh agent** (not the author) |
+| 4 | Semantic self-review | Compare original intent ↔ actual `git diff` | `code-reviewer` agent |
 | 5 | Expert reviews | Parallel domain-specific reviews (only when triggered) | Specialist agents |
 | 6 | Intent check | Re-read original task + plan, verify the diff addresses them | Orchestrator |
 
 ### Separation of author and reviewer
 
-The agent that wrote the code must NOT perform the semantic self-review (gate 4). Launch a fresh agent that receives only:
+The agent that wrote the code must NOT perform the semantic self-review (gate 4). Launch the `code-reviewer` agent that receives only:
 
 1. The original task description (verbatim)
 2. The plan artifact (`swarm-report/<slug>-plan.md`) — if exists
