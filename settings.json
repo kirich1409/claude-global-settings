@@ -246,7 +246,6 @@
     ],
     "defaultMode": "acceptEdits"
   },
-  "model": "Opus",
   "hooks": {
     "SessionStart": [
       {
