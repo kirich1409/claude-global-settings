@@ -220,6 +220,7 @@ Route implementation to the right specialist:
 
 | Task type | Skill / Agent |
 |-----------|--------------|
+| Feature decomposition | `decompose-feature` skill |
 | Compose UI from design/spec | `compose-developer` agent |
 | Kotlin business logic, data layer | `kotlin-engineer` agent |
 | View → Compose migration | `migrate-to-compose` skill |
@@ -231,6 +232,7 @@ Route implementation to the right specialist:
 | PR monitoring and merge | `pr-drive-to-merge` skill |
 | Test plan creation | `generate-test-plan` skill |
 | Feature verification on device | `test-feature` skill |
+| Retroactive test writing | `write-tests` skill |
 | Undirected QA / bug hunting | `exploratory-test` skill |
 
 ## Stage Boundary Protocol
