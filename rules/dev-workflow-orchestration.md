@@ -220,6 +220,7 @@ Route implementation to the right specialist:
 
 | Task type | Skill / Agent |
 |-----------|--------------|
+| Research / investigation | `research` skill |
 | Feature decomposition | `decompose-feature` skill |
 | Compose UI from design/spec | `compose-developer` agent |
 | Kotlin business logic, data layer | `kotlin-engineer` agent |
@@ -229,7 +230,9 @@ Route implementation to the right specialist:
 | Full autonomous cycle | `implement-task` skill (explicit-only) |
 | Quality check before PR | Quality Loop gates (this section) |
 | PR creation | `create-pr` skill |
+| Address review feedback | `address-review-feedback` skill |
 | PR monitoring and merge | `pr-drive-to-merge` skill |
+| Plan review (PoLL) | `plan-review` skill |
 | Test plan creation | `generate-test-plan` skill |
 | Feature verification on device | `test-feature` skill |
 | Retroactive test writing | `write-tests` skill |
@@ -243,3 +246,4 @@ At every stage boundary:
 2. Run `/compact` to free context before starting the next stage
 3. Include the artifact path in the next agent's prompt — the agent reads it itself
 4. Validate the artifact before advancing: does it address the original task? Is it concrete (file paths, findings, code), not generic filler?
+
