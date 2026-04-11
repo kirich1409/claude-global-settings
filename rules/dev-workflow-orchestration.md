@@ -21,13 +21,13 @@ Migration tasks use the `code-migration` skill. Feature tasks with explicit `/de
 
 On the Research stage, launch parallel experts (up to 5 agents simultaneously):
 
-| Agent | Responsibility |
-|-------|---------------|
-| Explore | Codebase analysis: existing code, patterns, dependencies, call sites |
-| Web search | Approaches, best practices, recent changes (use available web search tools) |
-| Docs | Library documentation for involved dependencies (use available documentation tools) |
-| Deps | Compatibility, versions, vulnerabilities (maven-mcp tools) |
-| Architecture | How the change fits into the project structure (`architecture-expert` agent) |
+| Agent | Responsibility | Tool |
+|-------|---------------|------|
+| Explore | Codebase analysis: existing code, patterns, dependencies, call sites | ast-index, Read, Grep |
+| Web search | Approaches, best practices, recent changes | Perplexity (`perplexity_search`, `perplexity_research`) or WebSearch |
+| Docs | Library documentation for involved dependencies | DeepWiki / Context7 |
+| Deps | Compatibility, versions, vulnerabilities | maven-mcp tools |
+| Architecture | How the change fits into the project structure | `architecture-expert` agent |
 
 Not every task needs all five. Launch only what the task demands — a simple bug fix may need only Explore + Docs; a large feature or migration needs the full consortium.
 
@@ -39,9 +39,9 @@ Artifact: `swarm-report/<slug>-research.md`
 
 Internet access during Research is **mandatory**, not optional:
 
-- Search the web for approaches, best practices, common pitfalls
-- Look up library docs and API reference using available documentation tools
-- Search for recent releases, breaking changes, migration guides
+- Use Perplexity for approaches, best practices, common pitfalls
+- Use DeepWiki / Context7 for library docs and API reference
+- Use WebSearch for recent releases, breaking changes, migration guides
 - Use maven-mcp for dependency compatibility and vulnerability data
 
 Never rely solely on codebase analysis and training data. The Research stage must produce at least one web-sourced insight.
