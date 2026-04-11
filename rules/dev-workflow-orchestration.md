@@ -148,6 +148,25 @@ Questions the reviewer must answer:
 - Is there scope creep beyond the plan?
 - Are acceptance criteria from the plan met?
 
+### Invocation template for gate 4
+
+The orchestrator prepares the diff before launching the agent:
+1. `git diff $(git merge-base origin/main HEAD)..HEAD > swarm-report/<slug>-diff.txt`
+2. Launch `code-reviewer` agent with this prompt structure:
+
+```
+## Task description
+{original task description verbatim}
+
+## Plan
+Read the plan at: {path to swarm-report/<slug>-plan.md, or "No plan for this task"}
+
+## Changes to review
+Read the diff at: {path to swarm-report/<slug>-diff.txt}
+
+Review these changes and produce a structured verdict.
+```
+
 ### Expert review triggers
 
 Not every change needs all expert reviews. Launch only the relevant ones, in parallel.
@@ -176,6 +195,14 @@ After the loop completes (pass or escalation), save `swarm-report/<slug>-quality
 - Intent check result: PASS or DRIFT (with explanation)
 
 This artifact is the receipt for the Verify stage — Verify must not start without it.
+
+### Verdict handling (gate 4)
+
+| Verdict | Orchestrator action |
+|---------|---------------------|
+| PASS | Proceed to gate 5 (expert reviews) |
+| WARN | Proceed, but include major issues in `swarm-report/<slug>-quality.md` under "Acknowledged risks". If creating a PR, add these to the PR description. |
+| FAIL | Backward transition → Implement. Fix critical issues, re-run gate 4 (max 3 cycles). |
 
 ## Testing Strategy in Planning
 
