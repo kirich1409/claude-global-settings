@@ -266,6 +266,7 @@ Never silently pick an approach without surfacing the reasoning when alternative
 - **Commits:** one atomic commit per logical unit. For large tasks — one commit per meaningful stage (e.g. model, repository, UI).
 - **Commit messages:** imperative mood, English, max 72 chars in the subject. No type prefixes (`feat:`, `fix:`). Add body only when context is non-obvious.
 - **Branch naming:** `feature/short-description`, `fix/short-description`, `chore/short-description` — kebab-case, English.
+- **Force push:** `git push --force` запрещён. Использовать `--force-with-lease` или `--force-if-includes` — они проверяют, что remote ref не изменился.
 - **Git hooks:** never bypass hooks (`--no-verify`, `--no-gpg-sign`, `-c commit.gpgsign=false`, etc.) unless the user explicitly requests it. If a hook fails — investigate and fix the root cause; bypassing is not an option without explicit user instruction.
 
 ## Compact Instructions
