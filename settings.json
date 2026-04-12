@@ -248,7 +248,6 @@
       "Bash(brew remove *)",
       "Bash(git push --force *)",
       "Bash(git push -f *)",
-      "Bash(git push --force-with-lease *)",
       "Bash(git reset --hard *)",
       "Bash(git clean -f *)",
       "Bash(git clean -fd *)",
@@ -264,6 +263,8 @@
     ],
     "ask": [
       "Bash(git push *)",
+      "Bash(git push --force-with-lease *)",
+      "Bash(git push --force-if-includes *)",
       "Bash(git commit *)",
       "Bash(npm publish *)",
       "Bash(yarn publish *)",
@@ -347,6 +348,10 @@
           {
             "type": "command",
             "command": "$HOME/.claude/hooks/cross-repo-guard.sh"
+          },
+          {
+            "type": "command",
+            "command": "$HOME/.claude/hooks/branch-guard.sh"
           }
         ]
       },
@@ -356,6 +361,19 @@
           {
             "type": "command",
             "command": "$HOME/.claude/hooks/cross-repo-guard.sh"
+          },
+          {
+            "type": "command",
+            "command": "$HOME/.claude/hooks/branch-guard.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$HOME/.claude/hooks/stash-reminder.sh"
           }
         ]
       }

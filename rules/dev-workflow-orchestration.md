@@ -4,16 +4,19 @@ Rules for routing developer tasks through the correct pipeline and managing stag
 
 ## Task Profiling
 
-When receiving a task, classify it before acting:
+When receiving a task, classify it by **size and complexity**, then pick the appropriate pipeline:
 
-| Profile | Pipeline | Key signal |
-|---------|----------|------------|
-| Feature | Research → Plan → Implement → Quality → Verify → PR → Merge | "add", "implement", "build", "create" |
-| Bug Fix | Reproduce → Diagnose → Fix → Verify → PR → Merge | "fix", "broken", "crash", "regression", error report |
-| Migration | Research → Snapshot → Migrate → Verify → PR → Merge | "migrate", "replace", "switch to", "move off" |
-| Research | Research → Report (no implementation) | "investigate", "compare", "evaluate", "how does X work" |
+| Size | Criteria | Pipeline |
+|------|----------|----------|
+| Small | 1-3 files, clear change, no new APIs | Implement → Quality (build+test only) → done |
+| Medium | Multiple files, one module, known patterns | Plan → Implement → Quality → PR |
+| Large | Cross-module, new APIs, unfamiliar libraries | Research → Plan → Implement → Quality → Verify → PR |
+| Migration | Library/technology swap | Research → Snapshot → Migrate → Verify → PR |
+| Research | Investigation only, no code changes | Research → Report |
 
-Auto-detect from keywords and context. If ambiguous — state the assumed profile and ask the user to confirm before proceeding.
+**Skip stages that add no value for the task at hand.** A one-line bug fix does not need Research or a formal Plan. A large feature with unfamiliar dependencies needs the full pipeline.
+
+Auto-detect from scope and context. If ambiguous — state the assumed profile and ask the user to confirm before proceeding.
 
 Migration tasks use the `code-migration` skill. Feature tasks with explicit `/developer-workflow:implement-task` use that skill's built-in pipeline instead of these rules.
 
@@ -35,16 +38,14 @@ After results arrive, launch `business-analyst` agent to review the combined fin
 
 Artifact: `swarm-report/<slug>-research.md`
 
-## Web-Lookup Mandate
+## Web Lookup
 
-Internet access during Research is **mandatory**, not optional:
+Use web sources when the task involves external libraries, migrations, or unfamiliar APIs. Skip for internal-only changes where codebase analysis is sufficient.
 
-- Use Perplexity for approaches, best practices, common pitfalls
-- Use DeepWiki / Context7 for library docs and API reference
-- Use WebSearch for recent releases, breaking changes, migration guides
-- Use maven-mcp for dependency compatibility and vulnerability data
-
-Never rely solely on codebase analysis and training data. The Research stage must produce at least one web-sourced insight.
+- Perplexity — approaches, best practices, common pitfalls
+- DeepWiki / Context7 — library docs and API reference
+- WebSearch — recent releases, breaking changes, migration guides
+- maven-mcp — dependency compatibility and vulnerability data
 
 ## Re-Anchoring
 

@@ -49,77 +49,36 @@ After creating or entering a worktree in a **code project** (has source files li
 - Quality and security over speed. Never accept "we'll fix it later" or "it's temporary". Temporary solutions become permanent.
 - Long-term maintainability over quick result — even when it takes longer.
 
-## Main Session = Orchestrator Only (STRICT)
+## Agent Delegation
 
-The main session NEVER performs work directly — no code edits, no file reads for research, no builds, no test runs. ALL work is delegated to subagents via the Agent tool. The main session is a pure orchestrator.
+Use agents when the task benefits from parallelism, isolation, or specialist expertise. Do NOT delegate when direct action is simpler and faster.
 
-**What the main session does:**
-- Receive the user's request and clarify if needed
-- Launch subagents (foreground or background) to do the actual work
-- Summarise subagent results back to the user
-- Manage transitions between stages
-- Interact with the user (questions, confirmations, status updates)
+**When to delegate:**
+- Multi-step implementation across several files/modules
+- Parallel independent research or analysis
+- Specialist review (security, performance, architecture)
+- Long-running builds/tests where the main session should stay responsive
 
-**What the main session does NOT do:**
-- Read files to investigate or research (delegate to an Explore agent)
-- Edit or write code (delegate to an implementation agent)
-- Run builds, tests, or any Bash commands that are part of the task (delegate to an agent)
-- Perform multi-step reasoning over codebase contents (delegate to a Plan agent)
+**When to act directly:**
+- Reading files, quick investigation, single-file edits
+- Simple questions answerable from context
+- Running a build or test command
+- Any task completable in 1-3 tool calls
 
-**Background by default:** prefer `run_in_background: true` for agents so the main session stays responsive. Use foreground only when the agent's result is needed before the next user-facing message.
+**Task tracking:** for background agents, create a Task before launch. For foreground agents completing quickly — optional.
 
-**Task tracking (обязательно):**
-- Before launching a background agent → `TaskCreate` with description prefixed by agent type: `[Explore] Find auth module structure`, `[kotlin-engineer] Implement OrderUseCase`
-- When agents depend on each other → note it in description: `[kotlin-engineer] AuthRepository (waits for #1)`
-- In the agent prompt → include instruction: "Update your task via `TaskUpdate` at key milestones. If blocked or errored — update immediately with `⚠ BLOCKED: reason` or `❌ ERROR: reason`"
-- When the agent completes → update the Task with final status and a one-line result summary
-- For foreground agents that complete quickly — TaskCreate is optional
+**Model recommendation:**
+- `opus` — complex architecture, multi-step reasoning, security review
+- `sonnet` (default) — standard implementation, moderate research
+- `haiku` — simple lookups, formatting, single-file edits
 
-**Agent report format:**
-Every agent must end with a structured result in its final `TaskUpdate`:
-- **Status:** done / partial / blocked
-- **Summary:** one sentence — what was done
-- **Next:** what needs to happen next (if anything)
-- **Questions:** anything that needs user decision (if any)
+**Stage handoff:** for multi-stage tasks, each agent writes its result to `./swarm-report/<task-slug>-stage-<N>.md`. The next agent's prompt references the file path.
 
-**Result validation:**
-Before passing an agent's result to the next stage, the main session validates:
-- Does the result address the original task (not a tangent)?
-- Is it specific (file paths, code, concrete findings) — not generic filler?
-If validation fails → one automatic retry with a clarified/narrowed prompt. If retry also fails → stop and ask the user.
-
-**Escalation — agent must stop and return to main session when:**
-- Task scope is larger than originally expected
+**Escalation — agent returns to main session when:**
+- Task scope is larger than expected
 - A new dependency is needed
-- Multiple valid architectural approaches exist and the choice is non-obvious
-- Found a conflict with existing code/patterns that requires a decision
-- Needs access, credentials, or information it cannot obtain
-
-**Model recommendation:** when evaluating a task before delegation, choose the right model for the agent:
-- `opus` — complex architecture decisions, multi-step reasoning across large codebases, security review, refactoring with non-obvious trade-offs
-- `sonnet` (default) — standard implementation, code generation, moderate research, most day-to-day tasks
-- `haiku` — simple lookups, formatting, single-file edits, quick searches with a clear answer
-
-Set `model` in the Agent call. This is a recommendation — never block on it. When in doubt, leave model unset and let the agent inherit from the parent.
-
-**Parallel agents:** when work decomposes into independent pieces, launch multiple agents in a single message. Maximum 5 background agents simultaneously.
-
-**Stage handoff and persistence:**
-- Each agent writes its result to `./swarm-report/<task-slug>-stage-<N>.md` before finishing
-- The next agent's prompt includes the path to the previous stage file — agent reads it at start
-- This guarantees context survives compaction and agent boundaries
-- The main session's context handoff prompt must reference the file path, not inline the content
-
-**Context handoff — every subagent prompt must include:**
-1. The original user request (verbatim or summarised)
-2. Path to the previous stage result file (if any) — agent reads it itself
-3. If retrying after a failed stage — the reason for the failure
-
-**Proactive compaction:** at each stage boundary — save the stage result to the state file, then run `/compact` before starting the next stage. Do not wait until context is nearly full. Large context degrades model quality.
-
-**Exceptions** (main session may act directly):
-- Trivial one-shot actions: saving a memory, running `csync`, answering a factual question from context already loaded
-- Tool calls that are part of orchestration itself (e.g., TaskCreate/TaskUpdate to track progress)
+- Multiple valid approaches exist and the choice is non-obvious
+- Found a conflict requiring a decision
 
 ## Communication Style
 
@@ -266,7 +225,7 @@ Never silently pick an approach without surfacing the reasoning when alternative
 - **Commits:** one atomic commit per logical unit. For large tasks — one commit per meaningful stage (e.g. model, repository, UI).
 - **Commit messages:** imperative mood, English, max 72 chars in the subject. No type prefixes (`feat:`, `fix:`). Add body only when context is non-obvious.
 - **Branch naming:** `feature/short-description`, `fix/short-description`, `chore/short-description` — kebab-case, English.
-- **Force push:** `git push --force` запрещён. Использовать `--force-with-lease` или `--force-if-includes` — они проверяют, что remote ref не изменился.
+- **Force push:** `git push --force` запрещён. Использовать `--force-with-lease` или `--force-if-includes` — они проверяют, что remote ref не изменился. Эти команды требуют подтверждения пользователя (ask list), но НЕ запрещены.
 - **Git hooks:** never bypass hooks (`--no-verify`, `--no-gpg-sign`, `-c commit.gpgsign=false`, etc.) unless the user explicitly requests it. If a hook fails — investigate and fix the root cause; bypassing is not an option without explicit user instruction.
 
 ## Compact Instructions
@@ -278,4 +237,3 @@ At session end or on `/compact`, always preserve:
 - **Key architectural decisions** — choices made and why
 
 @RTK.md
-@task-decomposition.md
