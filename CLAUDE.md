@@ -114,9 +114,9 @@ Do **not** fetch GitHub pages (`https://github.com/...`) directly with WebFetch 
 
 By default use built-in `WebSearch` and `WebFetch` for web search and URL fetching.
 
-Perplexity MCP допустим в двух случаях:
-- Пользователь явно просит ("спроси perplexity", "через perplexity")
-- Research stage в dev-workflow pipeline (как один из источников наряду с WebSearch)
+Perplexity MCP is allowed in two cases:
+- User explicitly asks ("спроси perplexity", "через perplexity")
+- Research stage in dev-workflow pipeline (as one source alongside WebSearch)
 
 ## Large Output Handling
 
@@ -148,13 +148,7 @@ Whenever code is modified, update all directly related docs — KDoc, inline com
 
 ## Memory
 
-`autoMemoryEnabled` is on. Save to memory when you learn something non-obvious about the user or project:
-- **user** — role, preferences, domain knowledge
-- **feedback** — corrections or confirmed non-obvious approaches (include why + how to apply)
-- **project** — decisions, constraints, deadlines (convert relative dates to absolute)
-- **reference** — where to find things in external systems
-
-Do NOT save: code patterns, file paths, git history, anything already in CLAUDE.md.
+`autoMemoryEnabled` is on. Memory types, save/access rules, and exclusions — see `rules/agent-memory.md`.
 
 ## Context Compaction Resilience
 

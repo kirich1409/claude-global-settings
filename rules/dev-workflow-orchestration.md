@@ -238,6 +238,7 @@ Route implementation to the right specialist:
 | Feature verification on device | `test-feature` skill |
 | Retroactive test writing | `write-tests` skill |
 | Undirected QA / bug hunting | `exploratory-test` skill |
+| Research findings review | `business-analyst` agent |
 
 ## Stage Boundary Protocol
 
