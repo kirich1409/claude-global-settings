@@ -244,7 +244,7 @@ Route implementation to the right specialist:
 At every stage boundary:
 
 1. Write the stage artifact to `swarm-report/`
-2. Run `/compact` to free context before starting the next stage
-3. Include the artifact path in the next agent's prompt — the agent reads it itself
-4. Validate the artifact before advancing: does it address the original task? Is it concrete (file paths, findings, code), not generic filler?
+2. Include the artifact path in the next agent's prompt — the agent reads it itself
+3. Validate the artifact before advancing: does it address the original task? Is it concrete (file paths, findings, code), not generic filler?
+4. Run `/compact` only for Large/Migration tasks or when context is noticeably degraded. Skip for Small/Medium tasks.
 

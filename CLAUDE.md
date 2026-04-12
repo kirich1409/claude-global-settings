@@ -98,10 +98,7 @@ Use agents when the task benefits from parallelism, isolation, or specialist exp
 
 ## Code Search
 
-Code projects (with source files) must have **ast-index initialized** before any code search. At the start of a project session, verify it is set up — if not, run the appropriate `ast-index:initialize-*` skill first. Skip for config-only repos without source code.
-
-Prefer ast-index over Glob/Grep for any symbol search (classes, functions, usages, file by name).
-Use Glob/Grep only for plain-text patterns (strings, comments, config values).
+Search tool priorities and ast-index initialization rules — see `rules/ast-index.md`.
 
 ## GitHub Repository Research
 
@@ -117,10 +114,9 @@ Do **not** fetch GitHub pages (`https://github.com/...`) directly with WebFetch 
 
 By default use built-in `WebSearch` and `WebFetch` for web search and URL fetching.
 
-Use Perplexity MCP only when the user explicitly asks for it (e.g. "спроси perplexity", "через perplexity"):
-- `mcp__plugin_perplexity_perplexity__perplexity_ask` — quick AI-answered question
-- `mcp__plugin_perplexity_perplexity__perplexity_search` — search with citations
-- `mcp__plugin_perplexity_perplexity__perplexity_research` — deep multi-source research
+Perplexity MCP допустим в двух случаях:
+- Пользователь явно просит ("спроси perplexity", "через perplexity")
+- Research stage в dev-workflow pipeline (как один из источников наряду с WebSearch)
 
 ## Large Output Handling
 
@@ -172,7 +168,7 @@ This guarantees that after compaction the task continues from where it left off,
 
 ## Reports
 
-Save a report for each completed task to `./swarm-report/<slug>-YYYY-MM-DD.md`. The `swarm-report/` directory must be in the project's `.gitignore` — add it if missing before writing the first report. Minimum content:
+For multi-stage or agent-delegated tasks, save a report to `./swarm-report/<slug>-YYYY-MM-DD.md`. The `swarm-report/` directory must be in the project's `.gitignore` — add it if missing before writing the first report. Skip for simple tasks completable in a few tool calls. Minimum content:
 - Task description
 - What was done (files, modules)
 - Validation results
@@ -225,7 +221,7 @@ Never silently pick an approach without surfacing the reasoning when alternative
 - **Commits:** one atomic commit per logical unit. For large tasks — one commit per meaningful stage (e.g. model, repository, UI).
 - **Commit messages:** imperative mood, English, max 72 chars in the subject. No type prefixes (`feat:`, `fix:`). Add body only when context is non-obvious.
 - **Branch naming:** `feature/short-description`, `fix/short-description`, `chore/short-description` — kebab-case, English.
-- **Force push:** `git push --force` запрещён. Использовать `--force-with-lease` или `--force-if-includes` — они проверяют, что remote ref не изменился. Эти команды требуют подтверждения пользователя (ask list), но НЕ запрещены.
+- **Force push:** `git push --force` is denied. Use `--force-with-lease` or `--force-if-includes` — they verify the remote ref hasn't changed. These commands require user confirmation (ask list) but are NOT denied.
 - **Git hooks:** never bypass hooks (`--no-verify`, `--no-gpg-sign`, `-c commit.gpgsign=false`, etc.) unless the user explicitly requests it. If a hook fails — investigate and fix the root cause; bypassing is not an option without explicit user instruction.
 
 ## Compact Instructions

@@ -1,5 +1,6 @@
 #!/bin/bash
 # Branch guard: warns when editing files on protected branches
+# Exception: ~/.claude config repo is always edited on main
 
 # Read the tool input from stdin
 INPUT=$(cat)
@@ -19,6 +20,12 @@ if [ -n "$FILE_PATH" ] && [ -e "$(dirname "$FILE_PATH")" ]; then
     CHECK_DIR="$(dirname "$FILE_PATH")"
 else
     CHECK_DIR="$(pwd)"
+fi
+
+# Skip for ~/.claude config repo — always works on main
+GIT_ROOT=$(git -C "$CHECK_DIR" rev-parse --show-toplevel 2>/dev/null)
+if [ "$GIT_ROOT" = "$HOME/.claude" ]; then
+    exit 0
 fi
 
 # Check if we're in a git repo
