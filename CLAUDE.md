@@ -217,6 +217,7 @@ Never silently pick an approach without surfacing the reasoning when alternative
 - **Branch naming:** `feature/short-description`, `fix/short-description`, `chore/short-description` — kebab-case, English.
 - **Force push:** `git push --force` is denied. Use `--force-with-lease` or `--force-if-includes` — they verify the remote ref hasn't changed. These commands require user confirmation (ask list) but are NOT denied.
 - **Git hooks:** never bypass hooks (`--no-verify`, `--no-gpg-sign`, `-c commit.gpgsign=false`, etc.) unless the user explicitly requests it. If a hook fails — investigate and fix the root cause; bypassing is not an option without explicit user instruction.
+- **Local verification before push:** before pushing any branch (including the first push that triggers CI), verify locally that the code builds and passes relevant checks. At minimum: a debug/development build. If the changes touch tests, lint config, or CI-sensitive paths — run tests and lint locally too. Never rely on CI to catch issues that can be caught locally first.
 
 ## Compact Instructions
 
