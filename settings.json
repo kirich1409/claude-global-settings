@@ -277,7 +277,6 @@
     ],
     "defaultMode": "acceptEdits"
   },
-  "model": "sonnet",
   "hooks": {
     "SessionStart": [
       {
