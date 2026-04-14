@@ -433,7 +433,6 @@
     "ksrc@respawn-tools": true,
     "maven-mcp@krozov-ai-tools": true,
     "telegram@claude-plugins-official": true,
-    "developer-workflow@krozov-ai-tools": true,
     "kotlin-lsp@claude-plugins-official": true,
     "security-guidance@claude-plugins-official": true,
     "claude-code-setup@claude-plugins-official": true,
@@ -507,10 +506,10 @@
   },
   "alwaysThinkingEnabled": true,
   "showClearContextOnPlanAccept": true,
-  "voiceEnabled": false,
   "channelsEnabled": true,
   "autoMemoryEnabled": true,
   "skipDangerousModePermissionPrompt": true,
+  "voiceEnabled": false,
   "mcpServers": {
     "maven-deps-server": {
       "command": "npx",
