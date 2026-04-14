@@ -277,6 +277,7 @@
     ],
     "defaultMode": "acceptEdits"
   },
+  "model": "sonnet",
   "hooks": {
     "SessionStart": [
       {
@@ -519,6 +520,5 @@
         "mcp-maven-deps"
       ]
     }
-  },
-  "model": "sonnet"
+  }
 }
