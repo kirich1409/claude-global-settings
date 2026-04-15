@@ -267,7 +267,6 @@
       "Bash(git push *)",
       "Bash(git push --force-with-lease *)",
       "Bash(git push --force-if-includes *)",
-      "Bash(git commit *)",
       "Bash(npm publish *)",
       "Bash(yarn publish *)",
       "Bash(docker push *)",
