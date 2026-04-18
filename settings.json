@@ -449,7 +449,9 @@
     "mcp-server-dev@claude-plugins-official": true,
     "perplexity@perplexity-mcp-server": true,
     "caveman@caveman": true,
-    "rust-analyzer-lsp@claude-plugins-official": true
+    "rust-analyzer-lsp@claude-plugins-official": true,
+    "developer-workflow@krozov-ai-tools": true,
+    "developer-workflow-experts@krozov-ai-tools": true
   },
   "extraKnownMarketplaces": {
     "ast-index-marketplace": {
