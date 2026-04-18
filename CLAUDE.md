@@ -23,7 +23,8 @@ If absent → run `git status && git worktree list` to reconstruct state.
 
 - No git repo → skip worktree strategy, proceed directly
 - Planning / reading → stay on current branch
-- Code changes → evaluate before acting:
+- **Non-persistent changes** (files in `.gitignore`, scratch/throwaway work, build artifacts, local-only configs, temp experiments that will not be committed) → stay on current branch, no worktree needed
+- **Persistent code changes** (anything intended to end up in the repository as a commit) → evaluate before acting:
   1. Check GIT STATE for current location and existing worktrees
   2. Already in a worktree (not main/master/develop) that fits the task → stay, no new worktree needed
   3. Existing worktree clearly matches the task → offer to switch to it
@@ -33,7 +34,7 @@ If absent → run `git status && git worktree list` to reconstruct state.
 
 Never commit or push directly from main/master/develop.
 
-Key principle: create a worktree only when genuinely needed — not as a mechanical reaction to "there are code changes".
+Key principle: a worktree is only for work that will be committed and pushed. Ignored/temporary/throwaway modifications stay in place. As soon as a task shifts from "just poking around" to "this needs to land in the repo" — switch to a worktree before continuing.
 
 After creating or entering a worktree in a **code project** (has source files like `*.kt`, `*.java`, `*.ts`, etc.), **initialize ast-index** — it is per-worktree and does not carry over. Run the appropriate `ast-index:initialize-*` skill before any code search. Skip for config-only repos (e.g. `~/.claude`).
 
