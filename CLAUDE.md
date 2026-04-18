@@ -212,6 +212,8 @@ Never silently pick an approach without surfacing the reasoning when alternative
 
 ## Git Workflow
 
+- **Fresh base before starting:** before starting any code work, fetch the remote and make sure the working branch is based on the latest state of the main branch (`main`/`master`/`develop`). If behind — pull/rebase first. Never start work on a stale branch.
+- **Fresh base before pushing:** before `git push`, fetch again and verify the feature branch is still up-to-date with the latest main branch. If main has moved — rebase onto it and re-run local checks before pushing. Pushing a branch that diverged from an outdated base creates messy merges and broken CI.
 - **Commits:** one atomic commit per logical unit. For large tasks — one commit per meaningful stage (e.g. model, repository, UI).
 - **Commit messages:** imperative mood, English, max 72 chars in the subject. No type prefixes (`feat:`, `fix:`). Add body only when context is non-obvious.
 - **Branch naming:** `feature/short-description`, `fix/short-description`, `chore/short-description` — kebab-case, English.
