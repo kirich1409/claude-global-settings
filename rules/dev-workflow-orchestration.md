@@ -231,7 +231,7 @@ Route implementation to the right specialist:
 | Full autonomous cycle | `implement-task` skill (explicit-only) |
 | Quality check before PR | Quality Loop gates (this section) |
 | PR creation | `create-pr` skill |
-| Triage feedback (PR comments or pasted text) — categorize, prioritize, group; no code changes | `triage-feedback` skill |
+| Triage feedback (PR comments or pasted text) — categorize, prioritize, group; optionally post replies / resolve threads for items with terminal verdicts via an editable manifest; never edits code | `triage-feedback` skill |
 | Plan review (PoLL) | `plan-review` skill |
 | Test plan creation | `generate-test-plan` skill |
 | Feature verification on device | `test-feature` skill |
