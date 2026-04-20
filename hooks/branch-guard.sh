@@ -1,19 +1,21 @@
 #!/bin/bash
 # Branch guard: warns when editing files on protected branches
-# Exception: ~/.claude config repo is always edited on main
+# Exceptions:
+#   - ~/.claude config repo is always edited on main
+#   - Gitignored files (non-persistent changes) don't require a worktree
 
-# Read the tool input from stdin
 INPUT=$(cat)
 
-# Find the git root for the file being edited
-FILE_PATH=""
-if echo "$INPUT" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('file_path',''))" 2>/dev/null | read -r path; then
-    FILE_PATH="$path"
-fi
-
-if [ -z "$FILE_PATH" ]; then
-    FILE_PATH=$(echo "$INPUT" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('file_path', d.get('filePath','')))" 2>/dev/null)
-fi
+# Extract file_path from tool_input (Claude Code wraps tool arguments under tool_input)
+FILE_PATH=$(echo "$INPUT" | python3 -c "
+import sys, json
+try:
+    d = json.load(sys.stdin)
+    ti = d.get('tool_input', d)
+    print(ti.get('file_path', ti.get('filePath', '')))
+except Exception:
+    print('')
+" 2>/dev/null)
 
 # Determine the directory to check
 if [ -n "$FILE_PATH" ] && [ -e "$(dirname "$FILE_PATH")" ]; then
@@ -31,6 +33,11 @@ fi
 # Check if we're in a git repo
 BRANCH=$(git -C "$CHECK_DIR" branch --show-current 2>/dev/null)
 if [ $? -ne 0 ]; then
+    exit 0
+fi
+
+# Skip if the file is gitignored — non-persistent changes don't need a worktree
+if [ -n "$FILE_PATH" ] && git -C "$CHECK_DIR" check-ignore -q "$FILE_PATH" 2>/dev/null; then
     exit 0
 fi
 
