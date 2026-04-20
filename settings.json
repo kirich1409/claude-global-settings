@@ -274,7 +274,7 @@
       "Bash(fastlane *)",
       "Bash(firebase deploy *)"
     ],
-    "defaultMode": "acceptEdits"
+    "defaultMode": "auto"
   },
   "hooks": {
     "SessionStart": [
@@ -519,5 +519,6 @@
         "mcp-maven-deps"
       ]
     }
-  }
+  },
+  "skipAutoPermissionPrompt": true
 }
