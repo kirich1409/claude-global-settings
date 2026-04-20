@@ -453,7 +453,8 @@
     "developer-workflow@krozov-ai-tools": true,
     "developer-workflow-experts@krozov-ai-tools": true,
     "code-review@claude-plugins-official": true,
-    "pr-review-toolkit@claude-plugins-official": true
+    "pr-review-toolkit@claude-plugins-official": true,
+    "github@claude-plugins-official": true
   },
   "extraKnownMarketplaces": {
     "ast-index-marketplace": {
