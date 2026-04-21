@@ -453,7 +453,8 @@
     "code-review@claude-plugins-official": true,
     "pr-review-toolkit@claude-plugins-official": true,
     "context-mode@claude-context-mode": true,
-    "ast-index@ast-index-marketplace": true
+    "ast-index@ast-index-marketplace": true,
+    "mempalace@mempalace": true
   },
   "extraKnownMarketplaces": {
     "ast-index-marketplace": {
@@ -503,6 +504,12 @@
         "source": "github",
         "repo": "mksglu/context-mode"
       }
+    },
+    "mempalace": {
+      "source": {
+        "source": "github",
+        "repo": "MemPalace/mempalace"
+      }
     }
   },
   "language": "Russian",
@@ -514,6 +521,7 @@
     }
   },
   "alwaysThinkingEnabled": true,
+  "advisorModel": "opus",
   "showClearContextOnPlanAccept": true,
   "channelsEnabled": true,
   "autoMemoryEnabled": true,
