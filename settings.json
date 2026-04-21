@@ -454,7 +454,7 @@
     "pr-review-toolkit@claude-plugins-official": true,
     "context-mode@claude-context-mode": true,
     "ast-index@ast-index-marketplace": true,
-    "mempalace@mempalace": true
+    "mempalace@mempalace": false
   },
   "extraKnownMarketplaces": {
     "ast-index-marketplace": {
