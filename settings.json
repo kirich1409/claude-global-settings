@@ -453,8 +453,7 @@
     "code-review@claude-plugins-official": true,
     "pr-review-toolkit@claude-plugins-official": true,
     "context-mode@claude-context-mode": true,
-    "ast-index@ast-index-marketplace": true,
-    "mempalace@mempalace": false
+    "ast-index@ast-index-marketplace": true
   },
   "extraKnownMarketplaces": {
     "ast-index-marketplace": {
@@ -503,12 +502,6 @@
       "source": {
         "source": "github",
         "repo": "mksglu/context-mode"
-      }
-    },
-    "mempalace": {
-      "source": {
-        "source": "github",
-        "repo": "MemPalace/mempalace"
       }
     }
   },
