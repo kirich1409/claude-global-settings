@@ -276,6 +276,7 @@
     ],
     "defaultMode": "auto"
   },
+  "model": "sonnet",
   "hooks": {
     "SessionStart": [
       {

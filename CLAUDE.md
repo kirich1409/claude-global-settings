@@ -1,5 +1,15 @@
 # Global Claude Code Rules
 
+## Non-negotiables
+
+Rules that are not open for discussion. Violating these is an error, not a judgment call.
+
+- **Never bypass git hooks** (`--no-verify`, `--no-gpg-sign`, `-c commit.gpgsign=false`, etc.) without explicit user request. If a hook fails — investigate and fix the root cause.
+- **Never commit or push directly from main/master/develop.** All work goes in a worktree or feature branch.
+- **Force push only via `--force-with-lease` or `--force-if-includes`.** Plain `--force` is denied.
+- **Never add a new dependency without explicit user approval.** Prefer what is already in the project; propose and wait before adding anything new.
+- **Write tests only when explicitly asked.** Never proactively add or offer tests.
+
 ## ~/.claude portability
 
 This directory is a git repo synced across machines. When editing `settings.json`, hooks, or any config here, use `$HOME/.claude/...` instead of absolute paths like `/Users/<username>/...`. Never hardcode the home directory path.
