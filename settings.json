@@ -452,7 +452,7 @@
     "developer-workflow-experts@krozov-ai-tools": true,
     "code-review@claude-plugins-official": true,
     "pr-review-toolkit@claude-plugins-official": true,
-    "context-mode@claude-context-mode": true,
+    "context-mode@claude-context-mode": false,
     "ast-index@ast-index-marketplace": true
   },
   "extraKnownMarketplaces": {
