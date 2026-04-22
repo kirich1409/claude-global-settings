@@ -454,14 +454,16 @@
     "developer-workflow-experts@krozov-ai-tools": true,
     "code-review@claude-plugins-official": true,
     "pr-review-toolkit@claude-plugins-official": true,
-    "ast-index@ast-index-marketplace": true
+    "ast-index@ast-index-marketplace": true,
+    "context-mode@context-mode": true
   },
   "extraKnownMarketplaces": {
     "ast-index-marketplace": {
       "source": {
         "source": "github",
         "repo": "defendend/Claude-ast-index-search"
-      }
+      },
+      "autoUpdate": true
     },
     "krozov-ai-tools": {
       "source": {
@@ -503,7 +505,8 @@
       "source": {
         "source": "github",
         "repo": "mksglu/context-mode"
-      }
+      },
+      "autoUpdate": true
     }
   },
   "language": "Russian",
