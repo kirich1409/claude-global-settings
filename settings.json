@@ -277,6 +277,7 @@
     ],
     "defaultMode": "auto"
   },
+  "model": "sonnet",
   "hooks": {
     "SessionStart": [
       {
@@ -454,7 +455,8 @@
     "code-review@claude-plugins-official": true,
     "pr-review-toolkit@claude-plugins-official": true,
     "ast-index@ast-index-marketplace": true,
-    "context-mode@context-mode": true
+    "context-mode@context-mode": true,
+    "developer-workflow-kotlin@krozov-ai-tools": true
   },
   "extraKnownMarketplaces": {
     "ast-index-marketplace": {
@@ -531,6 +533,5 @@
         "mcp-maven-deps"
       ]
     }
-  },
-  "model": "sonnet"
+  }
 }
