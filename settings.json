@@ -125,6 +125,7 @@
       "Bash(command:mypy)",
       "Bash(command:ktlint)",
       "Bash(command:detekt)",
+      "Bash(rtk *)",
       "WebFetch(domain:github.com)",
       "WebFetch(domain:gist.github.com)",
       "WebFetch(domain:raw.githubusercontent.com)",
