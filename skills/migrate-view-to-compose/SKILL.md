@@ -89,6 +89,26 @@ Produce `swarm-report/<slug>-plan.md` with:
 - State inputs the screen consumes (ViewModel fields, Flows). Do not change them — just record them so the new Composable signature stays faithful.
 - Screen states to preserve: Loading / Error / Empty / Content (see checklist §7).
 
+**Base class analysis** — if the target Fragment extends anything other than plain `Fragment()` or `BaseAlfaFragment()`, read the base class before proceeding and record under `## Base class` in the plan:
+
+1. **What lifecycle the base owns**: which of `onCreateView` / `onViewCreated` / `onActivityCreated` / `onDestroyView` does the base override? Does it set title, toolbar, navigation panel, action bar home icon?
+2. **What abstract hooks the base expects**: e.g. `initView()`, `initViewModel()`, `onBack()`, `onNext()`, `onClose()` — these are called from the base lifecycle, not from the concrete Fragment directly.
+3. **What shared infrastructure the base wires**: disposables (`CompositeDisposable`), navigation observers (`openPreviousScreen`, `openNextScreen`), stepper ViewModel observers, error handling.
+4. **Does the base call `setContentView` or own `onCreateView`?** If yes — Pattern A (returning a ComposeView from `onCreateView`) may break the base; use Pattern B instead.
+
+Recording this is mandatory before choosing the wiring pattern in Stage 4. Do NOT change the base class — any base class modification is scope creep and must be escalated.
+
+**Wiring pattern selection rule** (feeds Stage 4):
+
+| Base class structure | Recommended pattern |
+|---|---|
+| Plain `Fragment()` or base only uses `onDestroyView` | Pattern A — override `onCreateView` to return `ComposeView` |
+| Base owns `onViewCreated` (sets title, toolbar, nav panel, calls `initView()`) | Pattern B — keep XML with `ComposeView` in layout; override `initView()` to `setContent { }` |
+| Base owns `onCreateView` (inflates layout itself) | Pattern B — override the abstract content-setter hook, not `onCreateView` |
+| Base calls RxJava / LiveData observers before abstract `initView()` | Pattern B — `initView()` override calls `binding.composeView.setContent { }` |
+
+Record the chosen pattern under `## Wiring pattern` in the plan with a one-line justification referencing the base class structure.
+
 **Theme decision checkpoint** — if the XML baseline is rendered dark (uses `NewAlfaTheme.Main`, `NewAlfaTheme.DesignLight` (**despite "Light" in the name this theme renders a dark UI** — verify on device, not from the manifest name alone), `bg_1.webp`, dark backgrounds, white-on-dark text, or sets `android:theme` to a dark AppCompat style), or the screen forces a theme in any other way, ask the user via `AskUserQuestion` — **but with Light as the recommended default**, because migrating off the old kit means moving to Light unless a designer spec says otherwise:
 
 > Screen `<slug>`: the legacy XML renders dark. New UI Kit is light-first, so Light is the expected target.
@@ -172,10 +192,49 @@ Launch `kotlin-engineer` agent. Prompt must include:
 
 - Existing Fragment path, ViewModel binding, the new Composable from Stage 3 (sibling file next to the Fragment).
 - Reference implementations already wired: `deposits-impl`, `auth-impl`, `credit-impl` (per `MEMORY.md`).
-- Requirement: **preserve the Fragment class** — keep lifecycle, ViewModel binding, navigation, arguments intact. Two canonical wiring patterns observed in the codebase (both valid; pick per legacy shape):
-  - **Pattern A — pure ComposeView host.** Fragment extends plain `Fragment()`. `onCreateView` returns `ComposeView(requireContext()).apply { setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed); setContent { AlfaTheme { <Screen>Content(state, callbacks) } } }`. Reference: `core-ui-components/sample/.../ComposeExampleFragment.kt`.
-  - **Pattern B — keep XML shell, embed ComposeView.** Fragment extends `BaseAlfaFragment(R.layout.<legacy_xml>)`; the XML exposes a `<androidx.compose.ui.platform.ComposeView>` or a container, and the Fragment calls `viewBinding.<id>.setContent { AlfaTheme { <Screen>Content(...) } }` in `onViewCreated`. Reference: `settings/app-settings/.../AllSettingsFragment.kt`, `auth/auth-impl/.../SetupGraphicalKeyFragment.kt`. Useful when the legacy XML has app-bar wiring or other non-content children that must stay.
-  - Either pattern uses `ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed` (verified in `AllSettingsFragment`). `onViewCreated` collectors and `setTitle` / `setDisplayHomeAsUpEnabled` calls stay untouched.
+- Requirement: **preserve the Fragment class** — keep lifecycle, ViewModel binding, navigation, arguments intact. **Read `## Base class` and `## Wiring pattern` from the plan before choosing.** Three canonical wiring patterns (pick per plan):
+
+  - **Pattern A — pure ComposeView host.** Fragment extends plain `Fragment()` (no base UI). `onCreateView` returns:
+    ```kotlin
+    ComposeView(requireContext()).apply {
+        setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+        setContent {
+            AlfaTheme {
+                Box(Modifier.fillMaxSize().background(AlfaTheme.colors.bg.primary)) {
+                    <Screen>Content(state, callbacks)
+                }
+            }
+        }
+    }
+    ```
+    Reference: `core-ui-components/sample/.../ComposeExampleFragment.kt`.
+
+  - **Pattern B — keep XML shell, embed ComposeView.** Fragment extends `BaseAlfaFragment(R.layout.<legacy_xml>)`. The XML has a `<androidx.compose.ui.platform.ComposeView android:id="@+id/composeView"/>` replacing the old content area. Fragment calls `viewBinding.composeView.setContent { AlfaTheme { Box(...) { <Screen>Content(...) } } }` in `onViewCreated`, **after** all base lifecycle calls (`setTitle`, `setDisplayHomeAsUpEnabled`, etc.). Reference: `settings/app-settings/.../AllSettingsFragment.kt`, `auth/auth-impl/.../SetupGraphicalKeyFragment.kt`.
+
+  - **Pattern C — override abstract hook.** Fragment extends a base that owns `onViewCreated` and calls abstract hooks (`initView()`, `initViewModel()`). **Do not override `onCreateView`** — the base inflates the layout. Instead:
+    1. Keep the Fragment extending the same base class.
+    2. In the XML layout, replace the legacy content area with `<androidx.compose.ui.platform.ComposeView android:id="@+id/composeView"/>`.
+    3. Override `initView()` to call `binding.composeView.setContent { AlfaTheme { Box(...) { <Screen>Content(...) } } }` and set `ViewCompositionStrategy`.
+    4. Keep `initViewModel()` exactly as-is — observers, navigation events, error handling must not move.
+    5. Keep `onDestroyView` if the base doesn't clear disposables / the concrete Fragment does.
+    ```kotlin
+    // Example: BaseStepFragment with abstract initView()
+    override fun initView() {
+        binding.composeView.apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+            setContent {
+                AlfaTheme {
+                    Box(Modifier.fillMaxSize().background(AlfaTheme.colors.bg.primary)) {
+                        <Screen>Content(state = viewModel.state.collectAsStateWithLifecycle().value, onAction = viewModel::onAction)
+                    }
+                }
+            }
+        }
+    }
+    ```
+    Reference pattern: any concrete `*StepFragment` subclass.
+
+  All patterns use `ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed`. `onViewCreated` lifecycle calls (`setTitle`, `setDisplayHomeAsUpEnabled`, `observeStepperViewModel`, navigation observers) stay completely untouched.
 - New composable file lives **next to the Fragment** in the same package (e.g. `<feature>/ui/<Screen>Fragment.kt` + `<Screen>Content.kt`). **Re-verify placement as a sanity check** — Stage 3 already enforced this, but run the same `dirname` / `package` diff once more; if mismatched (shouldn't happen with a correct Stage 3 deliverable), hand back to `compose-developer` instead of moving the file here (wiring is not the right place to fix placement).
 - Forbid any logic change. If wiring surfaces logic problems, stop and escalate.
 
@@ -209,21 +268,14 @@ The **orchestrator** runs these commands at Stage 5; the Stage 7 `code-reviewer`
 
    If setup is needed:
 
-   **`<module>/build.gradle.kts`** — add plugin and deps:
+   **`<module>/build.gradle.kts`** — one line, convention plugin handles everything:
    ```kotlin
    plugins {
        // existing plugins...
-       alias(libs.plugins.abm.testing.roborazzi)  // if catalog entry exists
-       // OR if not in catalog (add entry to libs.versions.toml first, or use raw coords pending catalog migration):
-       id("io.github.takahirom.roborazzi") version "<version>"
-   }
-   dependencies {
-       testImplementation(libs.roborazzi)           // from catalog if available
-       testImplementation(libs.roborazzi.compose)   // NOT roborazzi-compose-android (absent from Nexus)
-       testImplementation(libs.robolectric)
-       testImplementation(libs.androidx.compose.ui.test.junit4)
+       alias(libs.plugins.abm-testing-roborazzi)
    }
    ```
+   The `abm-testing-roborazzi` convention plugin applies `io.github.takahirom.roborazzi` and adds `testImplementation` for `roborazzi`, `roborazzi-compose` (NOT `roborazzi-compose-android` — absent from Nexus), and `robolectric`.
 
    **`src/test/AndroidManifest.xml`** (Android-only) or **`src/androidUnitTest/AndroidManifest.xml`** (KMP) — mandatory:
    ```xml
