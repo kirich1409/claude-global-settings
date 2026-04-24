@@ -91,19 +91,17 @@ Icons: `by.alfabank.uikit.Icons.Glyph.*`.
 | `WebView` / `MapView` / `VideoView` / `SurfaceView` / `TextureView` | **Approval-gated** — wrap in `AndroidView { ... }` via missing-components Option C, only with explicit user approval recorded in the plan. Skeleton below. |                                                                       |
 | Chat SDK view / third-party interactive widget | Same as above — Option C, approved, recorded.                             |                                                                       |
 
-Wrapper skeleton for approval-gated widgets (always `AlfaTheme { }` at the root so surrounding tokens apply):
+Wrapper skeleton for approval-gated widgets. **No `AlfaTheme { }` inside this composable** — `AlfaTheme` is owned by the Fragment's `setContent`, not by the composable body. The composable just hosts the `AndroidView`:
 
 ```kotlin
 @Composable
 private fun ChatContent(state: ChatState, onEvent: (ChatEvent) -> Unit) {
-    AlfaTheme {
-        AndroidView(
-            modifier = Modifier.fillMaxSize(),
-            factory = { context -> ChatView(context).apply { /* initial wiring */ } },
-            update = { view -> view.render(state) },
-            onRelease = { view -> view.release() },
-        )
-    }
+    AndroidView(
+        modifier = Modifier.fillMaxSize(),
+        factory = { context -> ChatView(context).apply { /* initial wiring */ } },
+        update = { view -> view.render(state) },
+        onRelease = { view -> view.release() },
+    )
 }
 ```
 

@@ -57,7 +57,15 @@ Before delegating anything:
    - Keep the device config fixed to the scenario's `device` line.
 
    Commit `scenarios.md` + all `baseline-S<n>.png` before Stage 3. A Roborazzi XML snapshot is nice to have for `compose-developer` reference but does not substitute the device baseline set.
-4. Read `docs/compose-migration/PROGRESS.md` on the migration branch — the target may already have notes or partial work.
+4. **Module setup checks** — ensure dependencies that Stage 4 wiring and Stage 5 tests need are present in the target module:
+   ```bash
+   # Roborazzi (needed by Stage 3 screenshot test)
+   grep -q "abm-testing-roborazzi" <module>/build.gradle.kts && echo "OK" || echo "NEEDS: alias(libs.plugins.abm-testing-roborazzi)"
+   # lifecycle-runtime-compose (needed by collectAsStateWithLifecycle() in Stage 4 patterns)
+   grep -qE "lifecycle-runtime-compose|lifecycle.runtime.compose" <module>/build.gradle.kts && echo "OK" || echo "NEEDS: androidx.lifecycle:lifecycle-runtime-compose"
+   ```
+   If Roborazzi setup is missing, add the convention plugin and create the test `AndroidManifest.xml` (see Stage 5 for the manifest template). If `lifecycle-runtime-compose` is missing, add it via `implementation(libs.androidx.lifecycle.runtime.compose)` (catalog entry) or the project's preferred alias. Do this now so Stage 3/4 produce compilable code.
+5. Read `docs/compose-migration/PROGRESS.md` on the migration branch — the target may already have notes or partial work.
 
 ## Workflow — two phases
 
@@ -71,6 +79,21 @@ The migration runs as two distinct phases separated by an explicit gate. **No co
 - `swarm-report/<slug>-scenarios.md` exists and is frozen (per `references/scenario-catalogue.md` format) with complete device-config lines.
 - `swarm-report/<slug>-baseline-S<n>.png` exists for every scenario `S<n>`.
 - No Stage 1 flag or Stage 2 question left with status "open" / "TBD" / "verify later".
+
+**Mechanical grep-gate** (orchestrator runs before presenting to user — all must pass):
+```bash
+PLAN="swarm-report/<slug>-plan.md"
+grep -q "## Gap decisions"        "$PLAN" || echo "GATE FAIL: Gap decisions section missing"
+grep -q "## Wiring pattern"       "$PLAN" || echo "GATE FAIL: Wiring pattern section missing"
+grep -q "## Base class"           "$PLAN" || echo "GATE FAIL: Base class section missing"
+grep -qiE "open|TBD|verify later" "$PLAN" && echo "GATE FAIL: unresolved open items in plan"
+grep -q "## Theme decision"       "$PLAN" || echo "GATE WARN: Theme decision missing (required if XML baseline is dark)"
+# Baseline PNGs
+for S in $(grep "^## S" "swarm-report/<slug>-scenarios.md" | grep -o "S[0-9]*"); do
+  ls "swarm-report/<slug>-baseline-${S}.png" 2>/dev/null || echo "GATE FAIL: baseline missing for ${S}"
+done
+```
+Any `GATE FAIL` → do not proceed; fix the plan first.
 
 If the user asks to change anything (add a scenario, revisit a gap decision, switch theme target) — handle it **in Phase A** and re-present. Phase A iterates; it does not proceed partial.
 
@@ -89,7 +112,7 @@ Produce `swarm-report/<slug>-plan.md` with:
 - State inputs the screen consumes (ViewModel fields, Flows). Do not change them — just record them so the new Composable signature stays faithful.
 - Screen states to preserve: Loading / Error / Empty / Content (see checklist §7).
 
-**Base class analysis** — if the target Fragment extends anything other than plain `Fragment()` or `BaseAlfaFragment()`, read the base class before proceeding and record under `## Base class` in the plan:
+**Base class analysis** — `## Base class` section in the plan is **always mandatory**. For plain `Fragment()` or `BaseAlfaFragment()` write one line: `N/A — plain Fragment (Pattern A)` or `BaseAlfaFragment (Pattern B)`. For anything else, read the base class before proceeding and record:
 
 1. **What lifecycle the base owns**: which of `onCreateView` / `onViewCreated` / `onActivityCreated` / `onDestroyView` does the base override? Does it set title, toolbar, navigation panel, action bar home icon?
 2. **What abstract hooks the base expects**: e.g. `initView()`, `initViewModel()`, `onBack()`, `onNext()`, `onClose()` — these are called from the base lifecycle, not from the concrete Fragment directly.
@@ -130,13 +153,13 @@ Before launching Stage 3, run through the Phase A exit checklist (see the *Workf
 
 Once Phase B has started, the plan and scenario catalogue are frozen (MUST 10.8). A handful of situations **require** returning to Phase A rather than patching over them mid-flow. Each forces the orchestrator to re-open the plan, re-run the relevant gate, and re-approve via `AskUserQuestion` before resuming Phase B.
 
-| Trigger | Required action |
-|---|---|
-| Late gap discovered during Stage 3 (widget not mapped, `AndroidView` Option C needs approval) | Stage 3 agent pauses → return to Stage 2 missing-components gate → `AskUserQuestion` → record resolution under `## Gap decisions` / `## AndroidView exceptions` → resume Stage 3 with the decision in hand. Already documented in `references/missing-components-decision.md` §Mid-Stage-3. |
-| Scenario hole surfaces at Stage 6 (a state the catalogue missed — new Error condition, new Content variant, keyboard-open state) | Return to Pre-flight → extend `scenarios.md` with the missing entry → capture baseline for the new scenario on the **legacy XML build** (re-install if necessary) → re-run Stage 6 on the Compose build for the new entry only. Do **not** skip the new scenario or adapt existing ones. |
-| Theme-decision revision (designer supplies new spec mid-flow, user changes their Light/Dark answer) | Return to Stage 1 Theme decision checkpoint → update `## Theme decision` entry with the new rationale → audit the Composable for `Mode.Dark` / `static.*` usages against the new answer (reuse §1.5 / §1.6 grep gates on a local run) → re-run Stage 6 scenario diff (visual delta is expected on the Compose side). |
-| Scope creep requested during Stage 3 or 4 (new feature / logic change / new ViewModel field) | Stop immediately — this is a non-negotiable #1 violation. Escalate to the user with the requested change; user either rejects it (resume Phase B unchanged) or accepts it as a separate task (close this migration, open a new one). Do not silently absorb the change. |
-| User approves an `AndroidView` Option C mid-flow that was not in the original plan | Same as the first row — return to Stage 2 briefly to record the approval under `## AndroidView exceptions` in the structured format; only then let the Composable use the wrapper. Stage 7 reviewer will grep-join the exception and fail if it is unrecorded. |
+| Trigger | Required action | Actor |
+|---|---|---|
+| Late gap discovered during Stage 3 (widget not mapped, `AndroidView` Option C needs approval) | **compose-developer** pauses → **orchestrator** returns to Stage 2 missing-components gate → `AskUserQuestion` → record resolution → re-delegate to **compose-developer** with decision. | orchestrator triggers; compose-developer pauses/resumes |
+| Scenario hole surfaces at Stage 6 (a state the catalogue missed) | **orchestrator** returns to Pre-flight → extends `scenarios.md` → captures new baseline on legacy XML build → re-runs Stage 6 for new entry only. | orchestrator |
+| Theme-decision revision (designer spec changes, user revises Light/Dark answer) | **orchestrator** returns to Stage 1 checkpoint → updates `## Theme decision` → hands diff to **code-reviewer** to audit `Mode.Dark` / `static.*` usages → re-runs Stage 6. | orchestrator; code-reviewer for audit |
+| Scope creep requested during Stage 3 or 4 | **orchestrator** stops immediately → escalates to **user**; user rejects (resume Phase B unchanged) or accepts as separate task. | orchestrator escalates to user |
+| User approves `AndroidView` Option C mid-flow not in original plan | **orchestrator** returns to Stage 2 to record under `## AndroidView exceptions`; then **compose-developer** may use the wrapper. | orchestrator records; compose-developer resumes |
 
 Every rollback writes one line to `## Phase rollbacks` in the plan: `YYYY-MM-DD | trigger | section updated | outcome`. Stage 7 reviewer reads this section to understand the plan's history and validates that the recorded resolution matches the code.
 
@@ -152,7 +175,7 @@ Launch `compose-developer` agent. Prompt must include:
   - `<composable-path>` = `<dirname(fragment-path)>/<Screen>Content.kt` (same package declaration as the Fragment).
   - `<preview-path>` = `<dirname(fragment-path)>/<Screen>Preview.kt`.
   - `<roborazzi-test-path>` = under `src/test/` (Android-only) or `src/androidUnitTest/` (KMP), per `MEMORY.md` Roborazzi section.
-- Explicit instructions: use `AlfaTheme.*` tokens, `by.alfabank.uikit.*` components. **Do NOT wrap the composable body in `AlfaTheme { }`** — that wrapper lives in the Fragment's `setContent { AlfaTheme { } }` (Stage 4). The composable uses `AlfaTheme.colors.*` / `AlfaTheme.typography.*` for tokens only. Forbid `androidx.compose.material*`.
+- Explicit instructions: use `AlfaTheme.*` tokens, `by.alfabank.uikit.*` components. **`AlfaTheme { }` wrapper is ONLY in two places: Fragment's `setContent { AlfaTheme { } }` (Stage 4) and `@Preview` function bodies (standalone rendering).** The composable itself and the Roborazzi test do NOT wrap. The composable uses `AlfaTheme.colors.*` / `AlfaTheme.typography.*` for tokens only. Forbid `androidx.compose.material*`.
 - **Composable is stateless and lives outside the ViewModel contract** (project wiring rule — not a generic Compose practice). Signature:
   ```kotlin
   @Composable
@@ -163,24 +186,23 @@ Launch `compose-developer` agent. Prompt must include:
   ) { /* AlfaTheme tokens used here, but NO AlfaTheme { } wrapper */ }
   ```
   `collectAsStateWithLifecycle()` / `observeAsState()` lives **in the Fragment's `setContent { }`** (Stage 4). The Composable file has **zero** import of `ViewModel` / `LiveData` / `Flow` / project Koin.
-- **Root must fill the Fragment container.** Wrap the column/content in `Box(modifier = modifier.fillMaxSize().background(AlfaTheme.colors.bg.primary))`. Without `fillMaxSize()`, a `ComposeView` placed in a `LinearLayout` with weighted siblings (e.g. `layout_weight=1`) will shrink to wrap-content height, and sibling views will dominate the screen. `AlfaTheme` does NOT set a background automatically — `background(AlfaTheme.colors.bg.primary)` must be explicit on the outermost Box.
+- **Composable root: use `modifier` directly on the Column. NO `fillMaxSize()`, NO `Modifier.background(...)`.** The Fragment's `setContent` owns height expansion (`Box(fillMaxSize)`) and background (see Stage 4 patterns) — that is the Fragment's responsibility. `fillMaxWidth()` on the Column IS fine and expected. `AlfaTheme` does NOT set a background automatically. The composable just passes `modifier` to its root layout:
   ```kotlin
   @Composable
   internal fun <Screen>Content(..., modifier: Modifier = Modifier) {
-      Box(modifier = modifier.fillMaxSize().background(AlfaTheme.colors.bg.primary)) {
-          Column(modifier = Modifier.fillMaxWidth().verticalScroll(...)) { ... }
-      }
+      Column(modifier = modifier.fillMaxWidth().verticalScroll(...)) { ... }
   }
   ```
 - CMP compatibility preference per `references/cmp-compatibility.md` — prefer CMP-friendly APIs where cheap; do not contort the code.
 
-**Placement self-check** (agent runs before returning):
+**Placement self-check** (agent substitutes real paths, runs before returning):
 
-```bash
-# Composable parent dir equals Fragment parent dir:
-test "$(dirname <composable-path>)" = "$(dirname <fragment-path>)" || echo "PLACEMENT VIOLATION"
-# Package declaration in composable file equals Fragment's package declaration:
-diff <(grep -m1 "^package " <fragment-path>) <(grep -m1 "^package " <composable-path>) || echo "PACKAGE MISMATCH"
+```
+# 1. Parent directories must match:
+dirname(<composable-path>) == dirname(<fragment-path>)   → PASS / FAIL: PLACEMENT VIOLATION
+
+# 2. Package declarations must match:
+first "package " line of <composable-path> == first "package " line of <fragment-path>  → PASS / FAIL: PACKAGE MISMATCH
 ```
 
 If either check fails, the agent corrects placement before returning. The agent writes the composable, preview, and screenshot test. It does **not** touch the Fragment.
@@ -200,7 +222,10 @@ Launch `kotlin-engineer` agent. Prompt must include:
         setContent {
             AlfaTheme {
                 Box(Modifier.fillMaxSize().background(AlfaTheme.colors.bg.primary)) {
-                    <Screen>Content(state, callbacks)
+                    <Screen>Content(
+                        state = viewModel.state.collectAsStateWithLifecycle().value,
+                        onAction = viewModel::onAction,
+                    )
                 }
             }
         }
@@ -208,29 +233,73 @@ Launch `kotlin-engineer` agent. Prompt must include:
     ```
     Reference: `core-ui-components/sample/.../ComposeExampleFragment.kt`.
 
-  - **Pattern B — keep XML shell, embed ComposeView.** Fragment extends `BaseAlfaFragment(R.layout.<legacy_xml>)`. The XML has a `<androidx.compose.ui.platform.ComposeView android:id="@+id/composeView"/>` replacing the old content area. Fragment calls `viewBinding.composeView.setContent { AlfaTheme { Box(...) { <Screen>Content(...) } } }` in `onViewCreated`, **after** all base lifecycle calls (`setTitle`, `setDisplayHomeAsUpEnabled`, etc.). Reference: `settings/app-settings/.../AllSettingsFragment.kt`, `auth/auth-impl/.../SetupGraphicalKeyFragment.kt`.
+  - **Pattern B — keep XML shell, embed ComposeView.** Fragment extends `BaseAlfaFragment(R.layout.<legacy_xml>)`. **`kotlin-engineer` modifies the XML**: replace the old content area with `<androidx.compose.ui.platform.ComposeView android:id="@+id/composeView" android:layout_width="match_parent" android:layout_height="match_parent"/>`, keeping any app-bar / toolbar siblings untouched. Then in `onViewCreated`, **after** all base lifecycle calls (`setTitle`, `setDisplayHomeAsUpEnabled`, etc.):
+    ```kotlin
+    viewBinding.composeView.apply {
+        setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+        setContent {
+            AlfaTheme {
+                Box(Modifier.fillMaxSize().background(AlfaTheme.colors.bg.primary)) {
+                    <Screen>Content(
+                        state = viewModel.state.collectAsStateWithLifecycle().value,
+                        onAction = viewModel::onAction,
+                    )
+                }
+            }
+        }
+    }
+    ```
+    Reference: `settings/app-settings/.../AllSettingsFragment.kt`, `auth/auth-impl/.../SetupGraphicalKeyFragment.kt`.
 
   - **Pattern C — inject into base callback.** Fragment extends a base that owns `onCreateView`/`onViewCreated` and calls abstract hooks (`initView()`, `onBack()`, `onNext()`, etc.). Same idea as Pattern A — create a `ComposeView` and call `setContent` — but the insertion point is the **abstract callback the base invokes**, not `onCreateView`. Base class stays completely untouched.
+
+    **Safety check before using Pattern C:** verify in the base class that `initView()` is called from `onViewCreated` or later (after inflation). If it is called from `onAttach` or `onCreate` (before `onCreateView` inflates the view), `requireView()` will throw — use Pattern B instead. (`onActivityCreated` is post-inflation and safe, though deprecated.)
+
+    **Preferred path (XML-first).** `kotlin-engineer` modifies the legacy XML: replace the content area with `<androidx.compose.ui.platform.ComposeView android:id="@+id/composeView" android:layout_width="match_parent" android:layout_height="match_parent"/>`. Then wire in `initView()`:
     ```kotlin
-    // Base calls initView() from its own onViewCreated.
-    // Concrete Fragment puts ComposeView setup here instead of View wiring.
     override fun initView() {
-        ComposeView(requireContext()).also { composeView ->
-            (view as? ViewGroup)?.addView(composeView)   // or binding.container.addView(...)
-            composeView.setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-            composeView.setContent {
+        binding.composeView.apply {   // <ComposeView> just added to XML with id=composeView
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+            setContent {
                 AlfaTheme {
                     Box(Modifier.fillMaxSize().background(AlfaTheme.colors.bg.primary)) {
-                        <Screen>Content(state, callbacks)
+                        <Screen>Content(
+                            state = viewModel.state.collectAsStateWithLifecycle().value,
+                            onAction = viewModel::onAction,
+                        )
                     }
                 }
             }
         }
     }
-    // initViewModel(), onBack(), onNext(), onClose() — left exactly as-is.
     ```
-    If the XML already has a named container or a `<ComposeView>` id, use `binding.composeView.setContent { }` directly — no need to add a view programmatically.
-    Reference pattern: any concrete `*StepFragment` subclass.
+    **Fallback (XML cannot be modified — shared layout, etc.):** add a `ComposeView` programmatically — **always supply `MATCH_PARENT × MATCH_PARENT` layout params**, otherwise the view will be `WRAP_CONTENT` and may render at 0dp in weighted containers:
+    ```kotlin
+    override fun initView() {
+        ComposeView(requireContext()).also { composeView ->
+            (requireView() as ViewGroup).addView(
+                composeView,
+                ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT),
+            )
+            composeView.setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+            composeView.setContent {
+                AlfaTheme {
+                    Box(Modifier.fillMaxSize().background(AlfaTheme.colors.bg.primary)) {
+                        <Screen>Content(
+                            state = viewModel.state.collectAsStateWithLifecycle().value,
+                            onAction = viewModel::onAction,
+                        )
+                    }
+                }
+            }
+        }
+    }
+    ```
+    `initViewModel()`, `onBack()`, `onNext()`, `onClose()` — left **exactly as-is**.
+
+    **Fallback-path edge case:** `requireView()` cast to `ViewGroup` fails if the root is a single non-group view (rare — plain `TextView`, `ImageView`, or an already-converted `ComposeView`). If this is the case, (a) wrap the legacy root in a `FrameLayout` in the XML and switch to Pattern B (preferred), or (b) escalate to the user — a non-ViewGroup root with an `initView()`-owning base cannot be wired without modifying the base class, which is a non-negotiable #1 violation.
+
+    Reference pattern: `auth/auth-impl/.../registration/presentation/steps/` concrete `*StepFragment` subclasses (verify the file exists via `ast-index class` before using).
 
   All patterns use `ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed`. `onViewCreated` lifecycle calls (`setTitle`, `setDisplayHomeAsUpEnabled`, `observeStepperViewModel`, navigation observers) stay completely untouched.
 - New composable file lives **next to the Fragment** in the same package (e.g. `<feature>/ui/<Screen>Fragment.kt` + `<Screen>Content.kt`). **Re-verify placement as a sanity check** — Stage 3 already enforced this, but run the same `dirname` / `package` diff once more; if mismatched (shouldn't happen with a correct Stage 3 deliverable), hand back to `compose-developer` instead of moving the file here (wiring is not the right place to fix placement).
@@ -242,17 +311,19 @@ All fast mechanical gates must pass **before any device run** (Stage 6). Failure
 
 The **orchestrator** runs these commands at Stage 5; the Stage 7 `code-reviewer` does not re-run detekt / tests — it consults the Stage 5 output and focuses on checks detekt cannot see.
 
+**Stage 5 artefacts — capture all gradle output to disk** so Stage 7 reviewer can read them (reviewer does not re-run gradle). Write each log to `swarm-report/<slug>-stage-5-<gate>.log`:
+
 1. **detekt** — cheapest quality gate (includes Compose rules via `config/detekt/detekt-compose.yml`):
 
    ```bash
-   ./gradlew :<module>:detekt
+   ./gradlew :<module>:detekt > swarm-report/<slug>-stage-5-detekt.log 2>&1
    ```
 
 2. **compile + lint**:
 
    ```bash
-   ./gradlew :<module>:compileDebugKotlin
-   ./gradlew :<module>:lintDebug
+   ./gradlew :<module>:compileDebugKotlin > swarm-report/<slug>-stage-5-compile.log 2>&1
+   ./gradlew :<module>:lintDebug           > swarm-report/<slug>-stage-5-lint.log    2>&1
    ```
 
 3. **unit tests + Roborazzi (sanity)** — confirms the Composable compiles, renders without crash, and previews are valid. This is **not** the final visual gate; that happens at Stage 6 via device-screenshot diff.
@@ -288,34 +359,52 @@ The **orchestrator** runs these commands at Stage 5; the Stage 7 `code-reviewer`
    ```
    `xmlns:android` is **required** — omitting it causes `prefix 'android' not bound` error. `package` is **required** for Robolectric activity resolution — without it Robolectric uses `org.robolectric.default` and cannot resolve `ComponentActivity`.
 
-   **Test pattern** — use `captureRoboImage(filePath) { composable }`, NOT `createAndroidComposeRule<ComponentActivity>()`:
+   **Test pattern** — use `captureRoboImage(filePath) { composable }`, NOT `createAndroidComposeRule<ComponentActivity>()`. **No `AlfaTheme { }` wrapper in the test** — `AlfaTheme` is only wrapped by the Fragment (production) and `@Preview` (IDE preview). The test uses the composable's own default token values.
+
+   **One `@Test` per screen state** — write one test function per state listed in the plan (Loading, Error, Content variants, Empty). Pass explicit state instances; do not rely on data class defaults. This mirrors the scenario catalogue from Pre-flight and guarantees every state covered by the plan is rendered at least once.
    ```kotlin
    @RunWith(RobolectricTestRunner::class)
    @GraphicsMode(GraphicsMode.Mode.NATIVE)
    @Config(sdk = [33], qualifiers = "w360dp-h800dp-xxhdpi")
    class <Screen>ScreenshotTest {
+
        @Test
-       fun <screenName>() {
-           captureRoboImage("screenshots/<Screen>Content.png") {
-               AlfaTheme {
-                   <Screen>Content(
-                       // parameters
-                   )
-               }
+       fun content() {
+           captureRoboImage("screenshots/<Screen>-content.png") {
+               <Screen>Content(state = <State>(/* content fixture */), onAction = {})
+           }
+       }
+
+       @Test
+       fun loading() {
+           captureRoboImage("screenshots/<Screen>-loading.png") {
+               <Screen>Content(state = <State>(isLoading = true), onAction = {})
+           }
+       }
+
+       @Test
+       fun error() {
+           captureRoboImage("screenshots/<Screen>-error.png") {
+               <Screen>Content(state = <State>(error = "..."), onAction = {})
            }
        }
    }
    ```
-   `@Config(sdk = [33])` is required — higher SDK levels cause `NoSuchMethodError` in Compose text rendering with Robolectric. `createAndroidComposeRule<ComponentActivity>()` triggers activity-resolution failures in AGP 8+ even with a correct manifest; the direct `captureRoboImage { }` API avoids this. The test wraps the composable in `AlfaTheme { }` explicitly (the composable itself must not self-wrap).
+   `@Config(sdk = [33])` is required — higher SDK levels cause `NoSuchMethodError` in Compose text rendering with Robolectric. `createAndroidComposeRule<ComponentActivity>()` triggers activity-resolution failures in AGP 8+ even with a correct manifest; the direct `captureRoboImage { }` API avoids this.
 
    ```bash
-   ./gradlew :<module>:testDebugUnitTest
-   ./gradlew :<module>:testDebugUnitTest -Proborazzi.test.record=true   # first run / no prior snapshot
+   ./gradlew :<module>:testDebugUnitTest                                  > swarm-report/<slug>-stage-5-test.log 2>&1
+   ./gradlew :<module>:testDebugUnitTest -Proborazzi.test.record=true     # first run / no prior snapshot
    ```
 
 Any failure → loop back to the agent whose stage produced the failing file. **Do not install or launch the app on device/emulator until 1–3 are all green.**
 
-Cross-module check: discover dependents via `ast-index dependents <module-name>` and run `compileDebugKotlin` + `testDebugUnitTest` for each. At a minimum check `:apps:abm-android:common` (shared wiring layer) — it consumes feature modules and breakage there blocks device install.
+**Cross-module check (bounded).** Run `compileDebugKotlin` on:
+- (a) the migrated module (already done above)
+- (b) `:apps:abm-android:common` — always; shared wiring layer, breakage blocks device install
+- (c) **first-level direct** dependents returned by `ast-index dependents <module-name>` — skip transitive
+
+If (c) returns more than 5 modules, ask the user which to cover — do not compile all of them by default. Testing transitive dependents is out of scope. A compile failure in a cross-module dependent bounces to `kotlin-engineer` only if caused by the Fragment/ComposeView wiring; unrelated failures escalate to the user.
 
 ### Stage 6 — Scenario-by-scenario device screenshot comparison (final approval gate)
 
@@ -345,7 +434,7 @@ Missing a scenario from the catalogue set → loop back, do not proceed.
 
 **6c. Compare & record verdict** — produce `swarm-report/<slug>-screenshot-diff.md`. Row shape: `Scenario | State | Baseline | Compose | Verdict | Notes`, one row per scenario.
 
-Acceptance criteria and PASS/FAIL rules live in `references/ui-quality-checklist.md` §10 (MUST 10.4–10.8) and §14 (universal visual criteria). Do not restate them here.
+**Load `references/ui-quality-checklist.md` before scoring rows.** Acceptance criteria and PASS/FAIL rules live in §10 (MUST 10.4–10.8) and §14 (universal visual criteria) of that file — the orchestrator reads them once and applies to every scenario row.
 
 Any FAIL row → migration **not approved**. Hand back to `compose-developer` with the scenario ID, failing step number, diff note, and both PNGs. Attach `scenarios.md`, the diff document, and all `baseline-S<n>.png` / `compose-S<n>.png` pairs in the Stage 8 report.
 
@@ -354,7 +443,8 @@ Any FAIL row → migration **not approved**. Hand back to `compose-developer` wi
 Launch `code-reviewer` with `references/ui-quality-checklist.md` as the authoritative rubric. Prompt must:
 
 - Point the reviewer at the Composable files + screenshot tests.
-- Pass paths to the **Stage 5 artefacts** (detekt report, compile/lint output, test run log) — the reviewer **reads** these; reviewer does NOT re-run gradle. Re-running is the orchestrator's responsibility; re-checks waste time and risk differing outputs. If a Stage 5 artefact is missing, reviewer returns "not runnable — bounce to orchestrator".
+- **Instruct the reviewer to read `references/ui-quality-checklist.md` §§1–12 and §14 first**, before running any grep-gates. Those sections are the authoritative rubric.
+- Pass explicit paths to the **Stage 5 artefacts**: `swarm-report/<slug>-stage-5-detekt.log`, `-compile.log`, `-lint.log`, `-test.log`. The reviewer **reads** these; reviewer does NOT re-run gradle. If any artefact is missing, reviewer returns "not runnable — bounce to orchestrator".
 - Mandate running the grep-gates in checklist §MUST (§§1–12, §14). These are lightweight text greps, not gradle runs.
 - Return structured findings: `MUST` violations (blockers) and `SHOULD` findings (fix opportunistically).
 
