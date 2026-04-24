@@ -102,10 +102,9 @@ Recording this is mandatory before choosing the wiring pattern in Stage 4. Do NO
 
 | Base class structure | Recommended pattern |
 |---|---|
-| Plain `Fragment()` or base only uses `onDestroyView` | Pattern A — override `onCreateView` to return `ComposeView` |
-| Base owns `onViewCreated` (sets title, toolbar, nav panel, calls `initView()`) | Pattern B — keep XML with `ComposeView` in layout; override `initView()` to `setContent { }` |
-| Base owns `onCreateView` (inflates layout itself) | Pattern B — override the abstract content-setter hook, not `onCreateView` |
-| Base calls RxJava / LiveData observers before abstract `initView()` | Pattern B — `initView()` override calls `binding.composeView.setContent { }` |
+| Plain `Fragment()` or base only uses `onDestroyView` | **Pattern A** — override `onCreateView` to return `ComposeView` |
+| Base owns `onViewCreated`, has non-content children in XML (app-bar, toolbar) | **Pattern B** — keep XML, replace content area with `<ComposeView>`, wire in `onViewCreated` |
+| Base calls abstract hooks (`initView()`, `onBack()`, `onNext()`, etc.) | **Pattern C** — create `ComposeView` inside the abstract content callback; other callbacks untouched |
 
 Record the chosen pattern under `## Wiring pattern` in the plan with a one-line justification referencing the base class structure.
 
@@ -211,27 +210,26 @@ Launch `kotlin-engineer` agent. Prompt must include:
 
   - **Pattern B — keep XML shell, embed ComposeView.** Fragment extends `BaseAlfaFragment(R.layout.<legacy_xml>)`. The XML has a `<androidx.compose.ui.platform.ComposeView android:id="@+id/composeView"/>` replacing the old content area. Fragment calls `viewBinding.composeView.setContent { AlfaTheme { Box(...) { <Screen>Content(...) } } }` in `onViewCreated`, **after** all base lifecycle calls (`setTitle`, `setDisplayHomeAsUpEnabled`, etc.). Reference: `settings/app-settings/.../AllSettingsFragment.kt`, `auth/auth-impl/.../SetupGraphicalKeyFragment.kt`.
 
-  - **Pattern C — override abstract hook.** Fragment extends a base that owns `onViewCreated` and calls abstract hooks (`initView()`, `initViewModel()`). **Do not override `onCreateView`** — the base inflates the layout. Instead:
-    1. Keep the Fragment extending the same base class.
-    2. In the XML layout, replace the legacy content area with `<androidx.compose.ui.platform.ComposeView android:id="@+id/composeView"/>`.
-    3. Override `initView()` to call `binding.composeView.setContent { AlfaTheme { Box(...) { <Screen>Content(...) } } }` and set `ViewCompositionStrategy`.
-    4. Keep `initViewModel()` exactly as-is — observers, navigation events, error handling must not move.
-    5. Keep `onDestroyView` if the base doesn't clear disposables / the concrete Fragment does.
+  - **Pattern C — inject into base callback.** Fragment extends a base that owns `onCreateView`/`onViewCreated` and calls abstract hooks (`initView()`, `onBack()`, `onNext()`, etc.). Same idea as Pattern A — create a `ComposeView` and call `setContent` — but the insertion point is the **abstract callback the base invokes**, not `onCreateView`. Base class stays completely untouched.
     ```kotlin
-    // Example: BaseStepFragment with abstract initView()
+    // Base calls initView() from its own onViewCreated.
+    // Concrete Fragment puts ComposeView setup here instead of View wiring.
     override fun initView() {
-        binding.composeView.apply {
-            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-            setContent {
+        ComposeView(requireContext()).also { composeView ->
+            (view as? ViewGroup)?.addView(composeView)   // or binding.container.addView(...)
+            composeView.setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+            composeView.setContent {
                 AlfaTheme {
                     Box(Modifier.fillMaxSize().background(AlfaTheme.colors.bg.primary)) {
-                        <Screen>Content(state = viewModel.state.collectAsStateWithLifecycle().value, onAction = viewModel::onAction)
+                        <Screen>Content(state, callbacks)
                     }
                 }
             }
         }
     }
+    // initViewModel(), onBack(), onNext(), onClose() — left exactly as-is.
     ```
+    If the XML already has a named container or a `<ComposeView>` id, use `binding.composeView.setContent { }` directly — no need to add a view programmatically.
     Reference pattern: any concrete `*StepFragment` subclass.
 
   All patterns use `ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed`. `onViewCreated` lifecycle calls (`setTitle`, `setDisplayHomeAsUpEnabled`, `observeStepperViewModel`, navigation observers) stay completely untouched.
