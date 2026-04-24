@@ -63,7 +63,7 @@ Before delegating anything:
 4. **Module setup checks** — ensure dependencies that Stage 4 wiring and Stage 5 tests need are present in the target module:
    ```bash
    # Roborazzi (needed by Stage 3 screenshot test)
-   grep -q "abm-testing-roborazzi" <module>/build.gradle.kts && echo "OK" || echo "NEEDS: alias(libs.plugins.abm-testing-roborazzi)"
+   grep -qE "abm[-.]testing[-.]roborazzi" <module>/build.gradle.kts && echo "OK" || echo "NEEDS: alias(libs.plugins.abm.testing.roborazzi)"
    # lifecycle-runtime-compose (needed by collectAsStateWithLifecycle() in Stage 4 patterns)
    grep -qE "lifecycle-runtime-compose|lifecycle.runtime.compose" <module>/build.gradle.kts && echo "OK" || echo "NEEDS: androidx.lifecycle:lifecycle-runtime-compose"
    ```

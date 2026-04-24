@@ -4,21 +4,24 @@ Loaded when Pre-flight step 4 reports `NEEDS SETUP`. One-time per module — ide
 
 ## Build configuration
 
-Add the convention plugin to the module — it handles plugin application and test dependencies:
+Add the convention plugin + three test dependencies to the module:
 
 ```kotlin
 // <module>/build.gradle.kts
 plugins {
     // existing plugins...
-    alias(libs.plugins.abm-testing-roborazzi)
+    alias(libs.plugins.abm.testing.roborazzi)
+}
+
+dependencies {
+    // for KMP modules use `androidUnitTest` instead of `testImplementation`
+    testImplementation(libs.roborazzi)
+    testImplementation(libs.roborazzi.compose)   // NOT roborazzi-compose-android (absent from Nexus)
+    testImplementation(libs.robolectric)
 }
 ```
 
-The `abm-testing-roborazzi` convention plugin (defined in `android-base-gradle-plugin/`) applies `io.github.takahirom.roborazzi` and adds `testImplementation` for:
-
-- `roborazzi`
-- `roborazzi-compose` — **not `roborazzi-compose-android`** (absent from Nexus)
-- `robolectric`
+The `abm-testing-roborazzi` convention plugin (defined in `android-base-gradle-plugin/`) applies `io.github.takahirom.roborazzi`. Test deps go in the module because `testImplementation` is only available after the android/java plugin is applied (which happens in the module, not in the precompiled script plugin).
 
 All versions come from `gradle/libs.versions.toml`.
 
