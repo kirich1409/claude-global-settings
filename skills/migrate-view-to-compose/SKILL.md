@@ -12,17 +12,20 @@ Thin orchestrator skill. Plans the migration, delegates code to specialist agent
 - Writing a brand-new Compose screen (no legacy View to migrate) — use the feature-flow / implement path instead.
 - Changing ViewModel / domain / navigation — that is scope creep, escalate.
 - Navigation-infrastructure refactor — decision locked in `project_navigation_decision.md`.
+- Screen is already Compose (partial migration) — verify with `ast-index outline <Fragment>` first; if `setContent { }` is present, this skill aborts.
+- Pure Compose→Compose refactor (theme/token swap, componentisation) — use the feature-flow / refactor path.
+- Cross-screen design-system migration spanning many screens at once — this skill is single-screen; run it repeatedly.
 
 ## Non-negotiables
 
 Enforced on every migration — any violation blocks merge.
 
 1. **Business logic is untouched.** `ViewModel`, `UseCase`, `Repository`, `Flow`, navigation routes, Koin modules — all stay as-is. Only the rendering layer changes. If logic restructuring seems required, stop and escalate.
-1a. **Two phases with a hard gate.** Migration runs as **Phase A — Discovery & Planning** (no code) then **Phase B — Implementation & Verification** (code). The user approves the Phase A plan before Phase B starts; see the *Workflow* section for the exit checklist. Writing code while mappings or gap decisions are open is how reflex "Material-instead", `Mode.Dark`-by-default, and sub-package misplacements slip in.
-2. **AlfaTheme is the mandatory theme wrapper. Target theme defaults to Light.** Every migrated screen root is wrapped in `AlfaTheme { ... }`. The new UI Kit is light-first — the source `AlfaTheme` composable literally declares `mode: Mode = Mode.Light` with the comment *"always use Light mode by default"*. Migration from the old kit to the new one therefore **means moving to Light**; a legacy XML dark background (`NewAlfaTheme.Main` / `bg_1.webp` / `AlfaText.WhiteText.*`) is part of the OLD visual language and is expected to disappear on migration. **Dark is the exception, not the default**: use `AlfaTheme(mode = Mode.Dark)` only when the designer spec for this specific screen in the **new** UI Kit explicitly keeps it dark. When the XML baseline is dark or theme-forcing, run the Stage 1 **Theme decision checkpoint** — the skill asks the user and **recommends Light**; user answers `Dark` only with a design spec reference. Record the answer under `## Theme decision` in the plan. Do not enter Stage 3 without that record when the baseline is dark; the record is not required for baselines that are already light. All colours / typography / spacing come from `AlfaTheme.*` / `Gap.*` / `CornerSize.*` tokens — no hex, no inline `sp`, no magic `dp`. No Material / material3 components in migrated code — use `libs.abm.designsystem` (AlfaTheme) and `abm-uikit-ext` only. **`LegacyAlfaTheme` is forbidden** — it exists for lift-and-shift of the old visual style onto Compose; this skill's target is the new UI Kit, not the legacy look. See `references/uikit-mapping.md` and `references/ui-quality-checklist.md` §1.
-3. **Missing UIKit component = hard pause.** Do not substitute Material. Do not inline a custom copy. Follow `references/missing-components-decision.md` — surface options to the user via `AskUserQuestion`.
-4. **Do not delete old XML / Views.** Keep legacy `*.xml`, old Fragments, and `View` classes in place after migration — mark "pending deletion" in `PROGRESS.md` and wait for explicit user approval. Matches project rule `feedback_no_delete_old_code.md`.
-5. **Never bypass git hooks; never commit to `develop`.** Work inside the `feature/compose-migration` branch / `.worktree/compose-migration` worktree (see `MEMORY.md` → *Compose Migration*).
+2. **Two phases with a hard gate.** Migration runs as **Phase A — Discovery & Planning** (no code) then **Phase B — Implementation & Verification** (code). The user approves the Phase A plan before Phase B starts; see the *Workflow* section for the exit checklist. Writing code while mappings or gap decisions are open is how reflex "Material-instead", `Mode.Dark`-by-default, and sub-package misplacements slip in.
+3. **AlfaTheme is the mandatory theme wrapper. Target theme defaults to Light.** Every migrated screen root is wrapped in `AlfaTheme { ... }`. The new UI Kit is light-first — the source `AlfaTheme` composable literally declares `mode: Mode = Mode.Light` with the comment *"always use Light mode by default"*. Migration from the old kit to the new one therefore **means moving to Light**; a legacy XML dark background (`NewAlfaTheme.Main` / `bg_1.webp` / `AlfaText.WhiteText.*`) is part of the OLD visual language and is expected to disappear on migration. **Dark is the exception, not the default**: use `AlfaTheme(mode = Mode.Dark)` only when the designer spec for this specific screen in the **new** UI Kit explicitly keeps it dark. When the XML baseline is dark or theme-forcing, run the Stage 1 **Theme decision checkpoint** — the skill asks the user and **recommends Light**; user answers `Dark` only with a design spec reference. Record the answer under `## Theme decision` in the plan. Do not enter Stage 3 without that record when the baseline is dark; the record is not required for baselines that are already light. All colours / typography / spacing come from `AlfaTheme.*` / `Gap.*` / `CornerSize.*` tokens — no hex, no inline `sp`, no magic `dp`. No Material / material3 components in migrated code — use `libs.abm.designsystem` (AlfaTheme) and `abm-uikit-ext` only. **`LegacyAlfaTheme` is forbidden** — it exists for lift-and-shift of the old visual style onto Compose; this skill's target is the new UI Kit, not the legacy look. See `references/uikit-mapping.md` and `references/ui-quality-checklist.md` §1.
+4. **Missing UIKit component = hard pause.** Do not substitute Material. Do not inline a custom copy. Follow `references/missing-components-decision.md` — surface options to the user via `AskUserQuestion`.
+5. **Do not delete old XML / Views.** Keep legacy `*.xml`, old Fragments, and `View` classes in place after migration — mark "pending deletion" in `PROGRESS.md` and wait for explicit user approval. Matches project rule `feedback_no_delete_old_code.md`.
+6. **Never bypass git hooks; never commit to `develop`.** Work inside the `feature/compose-migration` branch / `.worktree/compose-migration` worktree (see `MEMORY.md` → *Compose Migration*).
 
 ## View whitelist — allowed after migration
 
@@ -213,95 +216,18 @@ Launch `kotlin-engineer` agent. Prompt must include:
 
 - Existing Fragment path, ViewModel binding, the new Composable from Stage 3 (sibling file next to the Fragment).
 - Reference implementations already wired: `deposits-impl`, `auth-impl`, `credit-impl` (per `MEMORY.md`).
-- Requirement: **preserve the Fragment class** — keep lifecycle, ViewModel binding, navigation, arguments intact. **Read `## Base class` and `## Wiring pattern` from the plan before choosing.** Three canonical wiring patterns (pick per plan):
+- Requirement: **preserve the Fragment class** — keep lifecycle, ViewModel binding, navigation, arguments intact. **Read `## Base class` and `## Wiring pattern` from the plan before choosing a pattern.**
+- **Wiring patterns — loaded from `references/wiring-patterns.md`.** Three patterns (A / B / C) with selection table, full Kotlin snippets, XML edits, edge cases. The plan's `## Wiring pattern` entry names the pattern; the agent reads only that section of the reference.
 
-  - **Pattern A — pure ComposeView host.** Fragment extends plain `Fragment()` (no base UI). `onCreateView` returns:
-    ```kotlin
-    ComposeView(requireContext()).apply {
-        setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-        setContent {
-            AlfaTheme {
-                Box(Modifier.fillMaxSize().background(AlfaTheme.colors.bg.primary)) {
-                    <Screen>Content(
-                        state = viewModel.state.collectAsStateWithLifecycle().value,
-                        onAction = viewModel::onAction,
-                    )
-                }
-            }
-        }
-    }
-    ```
-    Reference: `core-ui-components/sample/.../ComposeExampleFragment.kt`.
+  Pattern summary:
 
-  - **Pattern B — keep XML shell, embed ComposeView.** Fragment extends `BaseAlfaFragment(R.layout.<legacy_xml>)`. **`kotlin-engineer` modifies the XML**: replace the old content area with `<androidx.compose.ui.platform.ComposeView android:id="@+id/composeView" android:layout_width="match_parent" android:layout_height="match_parent"/>`, keeping any app-bar / toolbar siblings untouched. Then in `onViewCreated`, **after** all base lifecycle calls (`setTitle`, `setDisplayHomeAsUpEnabled`, etc.):
-    ```kotlin
-    viewBinding.composeView.apply {
-        setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-        setContent {
-            AlfaTheme {
-                Box(Modifier.fillMaxSize().background(AlfaTheme.colors.bg.primary)) {
-                    <Screen>Content(
-                        state = viewModel.state.collectAsStateWithLifecycle().value,
-                        onAction = viewModel::onAction,
-                    )
-                }
-            }
-        }
-    }
-    ```
-    Reference: `settings/app-settings/.../AllSettingsFragment.kt`, `auth/auth-impl/.../SetupGraphicalKeyFragment.kt`.
+  | Base class shape | Pattern |
+  |---|---|
+  | Plain `Fragment()` | A — `onCreateView` returns `ComposeView` |
+  | `BaseAlfaFragment(R.layout.*)` with app-bar siblings | B — `<ComposeView>` in XML, wire in `onViewCreated` |
+  | Base calls abstract hooks (`initView()`, etc.) | C — `ComposeView` inside the callback; base untouched |
 
-  - **Pattern C — inject into base callback.** Fragment extends a base that owns `onCreateView`/`onViewCreated` and calls abstract hooks (`initView()`, `onBack()`, `onNext()`, etc.). Same idea as Pattern A — create a `ComposeView` and call `setContent` — but the insertion point is the **abstract callback the base invokes**, not `onCreateView`. Base class stays completely untouched.
-
-    **Safety check before using Pattern C:** verify in the base class that `initView()` is called from `onViewCreated` or later (after inflation). If it is called from `onAttach` or `onCreate` (before `onCreateView` inflates the view), `requireView()` will throw — use Pattern B instead. (`onActivityCreated` is post-inflation and safe, though deprecated.)
-
-    **Preferred path (XML-first).** `kotlin-engineer` modifies the legacy XML: replace the content area with `<androidx.compose.ui.platform.ComposeView android:id="@+id/composeView" android:layout_width="match_parent" android:layout_height="match_parent"/>`. Then wire in `initView()`:
-    ```kotlin
-    override fun initView() {
-        binding.composeView.apply {   // <ComposeView> just added to XML with id=composeView
-            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-            setContent {
-                AlfaTheme {
-                    Box(Modifier.fillMaxSize().background(AlfaTheme.colors.bg.primary)) {
-                        <Screen>Content(
-                            state = viewModel.state.collectAsStateWithLifecycle().value,
-                            onAction = viewModel::onAction,
-                        )
-                    }
-                }
-            }
-        }
-    }
-    ```
-    **Fallback (XML cannot be modified — shared layout, etc.):** add a `ComposeView` programmatically — **always supply `MATCH_PARENT × MATCH_PARENT` layout params**, otherwise the view will be `WRAP_CONTENT` and may render at 0dp in weighted containers:
-    ```kotlin
-    override fun initView() {
-        ComposeView(requireContext()).also { composeView ->
-            (requireView() as ViewGroup).addView(
-                composeView,
-                ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT),
-            )
-            composeView.setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-            composeView.setContent {
-                AlfaTheme {
-                    Box(Modifier.fillMaxSize().background(AlfaTheme.colors.bg.primary)) {
-                        <Screen>Content(
-                            state = viewModel.state.collectAsStateWithLifecycle().value,
-                            onAction = viewModel::onAction,
-                        )
-                    }
-                }
-            }
-        }
-    }
-    ```
-    `initViewModel()`, `onBack()`, `onNext()`, `onClose()` — left **exactly as-is**.
-
-    **Fallback-path edge case:** `requireView()` cast to `ViewGroup` fails if the root is a single non-group view (rare — plain `TextView`, `ImageView`, or an already-converted `ComposeView`). If this is the case, (a) wrap the legacy root in a `FrameLayout` in the XML and switch to Pattern B (preferred), or (b) escalate to the user — a non-ViewGroup root with an `initView()`-owning base cannot be wired without modifying the base class, which is a non-negotiable #1 violation.
-
-    Reference pattern: `auth/auth-impl/.../registration/presentation/steps/` concrete `*StepFragment` subclasses (verify the file exists via `ast-index class` before using).
-
-  All patterns use `ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed`. `onViewCreated` lifecycle calls (`setTitle`, `setDisplayHomeAsUpEnabled`, `observeStepperViewModel`, navigation observers) stay completely untouched.
+  All three: `ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed`; Fragment owns `AlfaTheme { Box(fillMaxSize + background) }`; composable does not self-wrap.
 - New composable file lives **next to the Fragment** in the same package (e.g. `<feature>/ui/<Screen>Fragment.kt` + `<Screen>Content.kt`). **Re-verify placement as a sanity check** — Stage 3 already enforced this, but run the same `dirname` / `package` diff once more; if mismatched (shouldn't happen with a correct Stage 3 deliverable), hand back to `compose-developer` instead of moving the file here (wiring is not the right place to fix placement).
 - Forbid any logic change. If wiring surfaces logic problems, stop and escalate.
 
@@ -328,73 +254,11 @@ The **orchestrator** runs these commands at Stage 5; the Stage 7 `code-reviewer`
 
 3. **unit tests + Roborazzi (sanity)** — confirms the Composable compiles, renders without crash, and previews are valid. This is **not** the final visual gate; that happens at Stage 6 via device-screenshot diff.
 
-   **Roborazzi module setup check** — before running tests, verify the module has Roborazzi configured. If not, set it up now (one-time per module):
+   Full module setup (plugin, test manifest, test pattern, `@Config(sdk=[33])` rationale): `references/roborazzi-setup.md`. Loaded when Pre-flight step 4 reports `NEEDS SETUP`.
 
    ```bash
-   # Check: does the module already have Roborazzi?
-   grep -q "roborazzi" <module>/build.gradle.kts && echo "already set up" || echo "NEEDS SETUP"
-   ```
-
-   If setup is needed:
-
-   **`<module>/build.gradle.kts`** — one line, convention plugin handles everything:
-   ```kotlin
-   plugins {
-       // existing plugins...
-       alias(libs.plugins.abm-testing-roborazzi)
-   }
-   ```
-   The `abm-testing-roborazzi` convention plugin applies `io.github.takahirom.roborazzi` and adds `testImplementation` for `roborazzi`, `roborazzi-compose` (NOT `roborazzi-compose-android` — absent from Nexus), and `robolectric`.
-
-   **`src/test/AndroidManifest.xml`** (Android-only) or **`src/androidUnitTest/AndroidManifest.xml`** (KMP) — mandatory:
-   ```xml
-   <?xml version="1.0" encoding="utf-8"?>
-   <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-       package="<app.package.id>">
-       <application android:theme="@style/Theme.AppCompat">
-           <activity android:name="androidx.activity.ComponentActivity"
-               android:theme="@style/Theme.AppCompat" />
-       </application>
-   </manifest>
-   ```
-   `xmlns:android` is **required** — omitting it causes `prefix 'android' not bound` error. `package` is **required** for Robolectric activity resolution — without it Robolectric uses `org.robolectric.default` and cannot resolve `ComponentActivity`.
-
-   **Test pattern** — use `captureRoboImage(filePath) { composable }`, NOT `createAndroidComposeRule<ComponentActivity>()`. **No `AlfaTheme { }` wrapper in the test** — `AlfaTheme` is only wrapped by the Fragment (production) and `@Preview` (IDE preview). The test uses the composable's own default token values.
-
-   **One `@Test` per screen state** — write one test function per state listed in the plan (Loading, Error, Content variants, Empty). Pass explicit state instances; do not rely on data class defaults. This mirrors the scenario catalogue from Pre-flight and guarantees every state covered by the plan is rendered at least once.
-   ```kotlin
-   @RunWith(RobolectricTestRunner::class)
-   @GraphicsMode(GraphicsMode.Mode.NATIVE)
-   @Config(sdk = [33], qualifiers = "w360dp-h800dp-xxhdpi")
-   class <Screen>ScreenshotTest {
-
-       @Test
-       fun content() {
-           captureRoboImage("screenshots/<Screen>-content.png") {
-               <Screen>Content(state = <State>(/* content fixture */), onAction = {})
-           }
-       }
-
-       @Test
-       fun loading() {
-           captureRoboImage("screenshots/<Screen>-loading.png") {
-               <Screen>Content(state = <State>(isLoading = true), onAction = {})
-           }
-       }
-
-       @Test
-       fun error() {
-           captureRoboImage("screenshots/<Screen>-error.png") {
-               <Screen>Content(state = <State>(error = "..."), onAction = {})
-           }
-       }
-   }
-   ```
-   `@Config(sdk = [33])` is required — higher SDK levels cause `NoSuchMethodError` in Compose text rendering with Robolectric. `createAndroidComposeRule<ComponentActivity>()` triggers activity-resolution failures in AGP 8+ even with a correct manifest; the direct `captureRoboImage { }` API avoids this.
-
-   ```bash
-   ./gradlew :<module>:testDebugUnitTest                                  > swarm-report/<slug>-stage-5-test.log 2>&1
-   ./gradlew :<module>:testDebugUnitTest -Proborazzi.test.record=true     # first run / no prior snapshot
+   ./gradlew :<module>:testDebugUnitTest                               > swarm-report/<slug>-stage-5-test.log 2>&1
+   ./gradlew :<module>:testDebugUnitTest -Proborazzi.test.record=true  # first run / no prior snapshot
    ```
 
 Any failure → loop back to the agent whose stage produced the failing file. **Do not install or launch the app on device/emulator until 1–3 are all green.**
@@ -469,9 +333,13 @@ One question per round, recommended option first.
 
 ## References
 
-- **`references/uikit-mapping.md`** — View → AlfaTheme / abm-uikit lookup. Loaded during Stage 1.
-- **`references/ui-quality-checklist.md`** — MUST (grep-gates, blockers) + SHOULD criteria for Stage 7 reviewer.
-- **`references/missing-components-decision.md`** — Protocol for Stage 2 gate.
-- **`references/cmp-compatibility.md`** — CMP-friendly APIs to prefer, Android-only APIs to avoid. Guidance, not blocker.
+Ordered by workflow stage.
+
 - **`references/scenario-catalogue.md`** — exact shape of `swarm-report/<slug>-scenarios.md` (entry format, coverage, device config, naming, freeze rule). Loaded during Pre-flight step 3.
-- **`references/legacy-view-mapping.md`** — pre-computed table of project-specific legacy custom Views (`by.st.alfa.ib2.ui_components.*`) → UIKit / abm-uikit-ext replacements, with confidence levels. Check this first at Stage 1 before running the Missing-components gate on a legacy custom view.
+- **`references/roborazzi-setup.md`** — convention plugin, test manifest template, `captureRoboImage` pattern, `@Config(sdk=[33])` rationale. Loaded when Pre-flight step 4 reports `NEEDS SETUP`.
+- **`references/legacy-view-mapping.md`** — pre-computed table of project-specific legacy custom Views (`by.st.alfa.ib2.ui_components.*`) → UIKit / abm-uikit-ext replacements, with confidence levels. Loaded during Stage 1 (check first before running the Missing-components gate on a legacy custom view).
+- **`references/uikit-mapping.md`** — View → AlfaTheme / abm-uikit lookup. Loaded during Stage 1.
+- **`references/missing-components-decision.md`** — Protocol for Stage 2 gate.
+- **`references/wiring-patterns.md`** — three Fragment wiring patterns (A/B/C) with full code, XML edits, edge cases. Loaded during Stage 4.
+- **`references/ui-quality-checklist.md`** — MUST (grep-gates, blockers) + SHOULD criteria. Loaded during Stage 6c and Stage 7.
+- **`references/cmp-compatibility.md`** — advisory: CMP-friendly APIs to prefer, Android-only APIs to avoid. Not a blocker. Loaded during Stage 3 when compose-developer decides between equivalents.
