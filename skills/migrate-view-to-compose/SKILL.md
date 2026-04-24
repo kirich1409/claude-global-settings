@@ -178,7 +178,7 @@ Launch `compose-developer` agent. Prompt must include:
   - `<composable-path>` = `<dirname(fragment-path)>/<Screen>Content.kt` (same package declaration as the Fragment).
   - `<preview-path>` = `<dirname(fragment-path)>/<Screen>Preview.kt`.
   - `<roborazzi-test-path>` = under `src/test/` (Android-only) or `src/androidUnitTest/` (KMP), per `MEMORY.md` Roborazzi section.
-- Explicit instructions: use `AlfaTheme.*` tokens, `by.alfabank.uikit.*` components. **`AlfaTheme { }` wrapper is ONLY in two places: Fragment's `setContent { AlfaTheme { } }` (Stage 4) and `@Preview` function bodies (standalone rendering).** The composable itself and the Roborazzi test do NOT wrap. The composable uses `AlfaTheme.colors.*` / `AlfaTheme.typography.*` for tokens only. Forbid `androidx.compose.material*`.
+- Explicit instructions: use `AlfaTheme.*` tokens, `by.alfabank.uikit.*` components. **`AlfaTheme { }` wrapper lives at every render site EXCEPT the composable body itself: Fragment's `setContent { AlfaTheme { } }` (Stage 4), `@Preview` function bodies, and Roborazzi test's `captureRoboImage { AlfaTheme { } }` (Stage 5).** The composable itself must NOT wrap — it uses `AlfaTheme.colors.*` / `AlfaTheme.typography.*` tokens, which require a wrapper in its call site. Forbid `androidx.compose.material*`.
 - **Composable is stateless and lives outside the ViewModel contract** (project wiring rule — not a generic Compose practice). Signature:
   ```kotlin
   @Composable

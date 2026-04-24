@@ -4,7 +4,7 @@ Loaded when Pre-flight step 4 reports `NEEDS SETUP`. One-time per module — ide
 
 ## Build configuration
 
-Add the convention plugin + three test dependencies to the module:
+Add the convention plugin, three test dependencies, and enable Android resources in unit tests:
 
 ```kotlin
 // <module>/build.gradle.kts
@@ -13,13 +13,30 @@ plugins {
     alias(libs.plugins.abm.testing.roborazzi)
 }
 
+android {
+    // existing android {} config...
+    testOptions {
+        unitTests {
+            isIncludeAndroidResources = true   // required — resolves stringResource() / R.* in Robolectric
+        }
+    }
+}
+
 dependencies {
-    // for KMP modules use `androidUnitTest` instead of `testImplementation`
+    // Android-only module:
     testImplementation(libs.roborazzi)
     testImplementation(libs.roborazzi.compose)   // NOT roborazzi-compose-android (absent from Nexus)
     testImplementation(libs.robolectric)
+    // KMP module: use androidUnitTest source-set deps instead:
+    //   androidUnitTest.dependencies {
+    //       implementation(libs.roborazzi)
+    //       implementation(libs.roborazzi.compose)
+    //       implementation(libs.robolectric)
+    //   }
 }
 ```
+
+`isIncludeAndroidResources = true` is mandatory when the composable uses `stringResource(R.string.*)` — without it Robolectric throws `Resources$NotFoundException`.
 
 The `abm-testing-roborazzi` convention plugin (defined in `android-base-gradle-plugin/`) applies `io.github.takahirom.roborazzi`. Test deps go in the module because `testImplementation` is only available after the android/java plugin is applied (which happens in the module, not in the precompiled script plugin).
 
@@ -31,8 +48,7 @@ Create `src/test/AndroidManifest.xml` (Android-only modules) or `src/androidUnit
 
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="<app.package.id>">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application android:theme="@style/Theme.AppCompat">
         <activity android:name="androidx.activity.ComponentActivity"
             android:theme="@style/Theme.AppCompat" />
@@ -40,14 +56,16 @@ Create `src/test/AndroidManifest.xml` (Android-only modules) or `src/androidUnit
 </manifest>
 ```
 
-Both attributes are mandatory:
+Required:
 
 - `xmlns:android` — omitting it causes `prefix 'android' not bound` at manifest parse.
-- `package` — without it Robolectric uses `org.robolectric.default` and cannot resolve `ComponentActivity`.
+- `<activity android:name="androidx.activity.ComponentActivity">` — Robolectric needs this registered to resolve the Compose host activity.
+
+**Do NOT add a `package=` attribute.** AGP 9.0 rejects manifest `package` in library test sources — the namespace is derived from the module's `android.namespace` in `build.gradle.kts`.
 
 ## Test pattern
 
-Use `captureRoboImage(filePath) { composable }`, **not** `createAndroidComposeRule<ComponentActivity>()`. No `AlfaTheme { }` wrapper in the test — the composable's own default token values are used. Write one `@Test` per screen state listed in the plan (Loading, Error, Content variants, Empty); pass explicit state instances, do not rely on data class defaults.
+Use `captureRoboImage(filePath) { AlfaTheme { composable } }`, **not** `createAndroidComposeRule<ComponentActivity>()`. Wrap the composable in `AlfaTheme { }` — without it `LocalColorScheme` has no value and `AlfaTheme.colors.*` throws `IllegalStateException: No value provided!`. Write one `@Test` per screen state listed in the plan (Loading, Error, Content variants, Empty); pass explicit state instances, do not rely on data class defaults.
 
 ```kotlin
 @RunWith(RobolectricTestRunner::class)
@@ -58,21 +76,27 @@ class <Screen>ScreenshotTest {
     @Test
     fun content() {
         captureRoboImage("screenshots/<Screen>-content.png") {
-            <Screen>Content(state = <State>(/* content fixture */), onAction = {})
+            AlfaTheme {
+                <Screen>Content(state = <State>(/* content fixture */), onAction = {})
+            }
         }
     }
 
     @Test
     fun loading() {
         captureRoboImage("screenshots/<Screen>-loading.png") {
-            <Screen>Content(state = <State>(isLoading = true), onAction = {})
+            AlfaTheme {
+                <Screen>Content(state = <State>(isLoading = true), onAction = {})
+            }
         }
     }
 
     @Test
     fun error() {
         captureRoboImage("screenshots/<Screen>-error.png") {
-            <Screen>Content(state = <State>(error = "..."), onAction = {})
+            AlfaTheme {
+                <Screen>Content(state = <State>(error = "..."), onAction = {})
+            }
         }
     }
 }
