@@ -533,5 +533,7 @@
         "mcp-maven-deps"
       ]
     }
-  }
+  },
+  "remoteControlAtStartup": true,
+  "agentPushNotifEnabled": true
 }
