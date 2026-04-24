@@ -277,7 +277,7 @@
     ],
     "defaultMode": "auto"
   },
-  "model": "Opus",
+  "model": "sonnet",
   "hooks": {
     "SessionStart": [
       {
@@ -524,10 +524,10 @@
   "channelsEnabled": true,
   "autoMemoryEnabled": true,
   "skipDangerousModePermissionPrompt": true,
-  "skipAutoPermissionPrompt": true,
-  "voiceEnabled": false,
   "remoteControlAtStartup": true,
   "agentPushNotifEnabled": true,
+  "skipAutoPermissionPrompt": true,
+  "voiceEnabled": false,
   "mcpServers": {
     "maven-deps-server": {
       "command": "npx",
