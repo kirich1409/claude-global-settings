@@ -543,6 +543,5 @@
         "mcp-maven-deps"
       ]
     }
-  },
-  "model": "sonnet"
+  }
 }
