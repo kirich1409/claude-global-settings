@@ -38,7 +38,15 @@ Pick the category that matches:
 
 For each option, record: effort (S/M/L), risk, CMP posture, reversibility.
 
-- **Option A — Compose in place from UIKit primitives.** Best for category 1. Wrap into a `private @Composable` inside the sibling screen file, named descriptively. Only tokens from `AlfaTheme`. Tag with `// Local composable — no UIKit equivalent at <date>, reuse only inside this screen.`
+- **Option A — Compose in place from UIKit primitives.** Best for category 1 — but **only when reuse-count is 1**. Run a project-wide reuse audit:
+
+  ```bash
+  grep -rl "<by.fully.qualified.ViewClass\|<id_or_pattern>" --include="*.xml" --include="*.kt" | wc -l
+  ```
+
+  If the result is **2 or more** (counting both migrated and not-yet-migrated screens that will need the same primitive), Option A is **forbidden** — promote to **Option A+** below. Wrap into a `private @Composable` inside the sibling screen file, named descriptively. Only tokens from `AlfaTheme`. Tag with `// Local composable — single use only, do not extract.`
+
+- **Option A+ — Create shared component upfront.** Mandatory when reuse-count ≥ 2. Place the new Composable in `core-ui-components/ui-components/src/commonMain/.../components/<Name>.kt` (KMP commonMain — usable from any Android dependent module). Use the canonical name from the legacy View setters (`BottomControlPanel` ≈ `BottomControlPanelView`, `PickerRow` ≈ `TwoLineChooseView`). Compile, commit, and update the plan's `## Gap decisions` row to `DONE: <package>.<Name> committed in <sha>` **before** any Stage 3 agent starts on a screen that uses it. See SKILL.md §Stage 2.5 for the full protocol.
 - **Option B — Request UIKit addition.** Best for category 2. File a UIKit ticket, agree on a temporary local composable living in `<feature>-impl/ui/local/` until the UIKit component lands, guarded by a TODO referencing the ticket id.
 - **Option C — `AndroidView` wrapper (approved complex widget only).** Available **only** when the element is a complex third-party / native / functional-integration widget — WebView, MapView, chat SDK, camera / media surface, `RecyclerView` whose adapter cannot be preserved in `LazyColumn` without touching non-UI code, `ConstraintLayout` with Barrier/Chain logic that cannot be preserved in Compose `ConstraintLayout` without rewriting behaviour. Requires explicit user approval at the screen level. Roborazzi test for that state is skipped (`AndroidView` does not render in unit tests).
 

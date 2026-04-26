@@ -111,9 +111,55 @@ Progress is tracked with TaskCreate; each stage writes its artefact to `swarm-re
 Produce `swarm-report/<slug>-plan.md` with:
 
 - Target Fragment / screen path and the XML layout(s) involved.
-- View-by-View mapping. For any class under `by.st.alfa.ib2.ui_components.*` (project-specific legacy custom views), consult **`references/legacy-view-mapping.md` first** — it has the pre-computed replacements with confidence levels. For standard framework / AppCompat / Material views, use `references/uikit-mapping.md`. Flag every View with **no** direct match → input for the missing-components gate.
+- **Complete component inventory** — every single View element in the XML must be listed in a table with its target Compose mapping. NOT just the "missing" ones. This is the input that decides whether Stage 2 needs to create new shared components, write inline composables, or reuse existing UIKit. The table is the audit trail.
 - State inputs the screen consumes (ViewModel fields, Flows). Do not change them — just record them so the new Composable signature stays faithful.
 - Screen states to preserve: Loading / Error / Empty / Content (see checklist §7).
+
+#### Component inventory table — MANDATORY
+
+Every View in the XML (custom widget, AppCompat, framework, Material) gets one row. Pick the lookup order:
+
+1. **`references/legacy-view-mapping.md`** — for `by.st.alfa.ib2.ui_components.*` (pre-computed with confidence levels).
+2. **`references/uikit-mapping.md`** — for standard framework / AppCompat / Material views.
+3. **`ast-index search`** — confirm the candidate exists in `by.alfabank.uikit.components.*` or `core-ui-components/ui-components/.../components/`.
+
+For each row, classify the **status** (this drives Stage 2):
+
+| Status | Meaning | Stage-2 action |
+|---|---|---|
+| `existing-uikit` | Direct match in `abm.designsystem` (e.g. `Button`, `Switch`, `TextField`). | Use as-is. |
+| `existing-shared` | Already in project's shared Compose module (`core-ui-components/ui-components/.../components/`, e.g. `AlfaDivider`, `PickerRow`, `BottomControlPanel`). | Use as-is. |
+| `needs-shared` | No direct match, but the View is reused across **2+ screens** (current batch or known future migrations). | **Must create** in `core-ui-components/ui-components/.../components/` before Stage 3. |
+| `inline-ok` | Truly screen-local with **only one call site**, ≤ 30 LOC, no theming complexity. | Allowed as a `private @Composable` in the screen file with a `// Local — single use, do not extract` comment. |
+| `option-c` | Complex third-party widget needing `AndroidView`. | Apply Option C protocol (approval required). |
+| `blocked` | Cannot map at all — feature itself unmigratable. | Escalate. |
+
+Format the table:
+
+```markdown
+## Component inventory
+
+| XML element | Lookup result | Status | Action |
+|---|---|---|---|
+| `Button @+id/sign_button` | UIKit `Button` | existing-uikit | use `by.alfabank.uikit.components.button.Button` |
+| `View divider` | none | existing-shared | use `by.st.alfa.ib2.ui_components.components.AlfaDivider` |
+| `TwoLineChooseView` | none | existing-shared | use `by.st.alfa.ib2.ui_components.components.PickerRow` |
+| `BottomControlPanelView` | none, used in 8+ step screens | needs-shared | **create** `BottomControlPanel` in ui-components/commonMain |
+| `WebView` | none, browser surface | option-c | `AndroidView` wrapper, approval ticket #... |
+| `CustomBadge @+id/info_chip` | none, single screen | inline-ok | `private @Composable InfoChip()` in this file |
+```
+
+**Reuse audit — explicit count of call sites.** Before classifying as `inline-ok`, run a project-wide grep:
+
+```bash
+grep -rl "<by.fully.qualified.ViewClass\|<id_or_pattern>" --include="*.xml" --include="*.kt" | wc -l
+```
+
+If the count is **2 or more** (in the current branch — including non-migrated screens that will eventually need it), the status is `needs-shared`, not `inline-ok`. The reviewer at Stage 7 re-runs this grep and rejects `inline-ok` rows whose count exceeds 1.
+
+**Batch inventory.** When migrating multiple screens in one batch (e.g. `cards/cards/cards-impl` step fragments), the inventory MUST be done across **all screens in the batch** before Stage 3 starts on the first screen. Components shared across the batch get classified as `needs-shared` once and built once. Doing one screen at a time and discovering the same component repeatedly is a process failure (see *Lesson — BottomControlPanel* in *Lessons learned* section).
+
+The agent tasked with Stage 1 reads each XML in the batch, merges the component list, deduplicates by class name, and produces a **single** inventory table covering the whole batch. The `## Component inventory` section in the plan lives at the batch level (or the screen level if migrating one at a time), but the audit is always cross-batch when batches exist.
 
 **Base class analysis** — `## Base class` section in the plan is **always mandatory**. For plain `Fragment()` or `BaseAlfaFragment()` write one line: `N/A — plain Fragment (Pattern A)` or `BaseAlfaFragment (Pattern B)`. For anything else, read the base class before proceeding and record:
 
@@ -148,9 +194,57 @@ Record the chosen answer + rationale under `## Theme decision` in the plan. The 
 
 For every flagged gap, follow `references/missing-components-decision.md` (options A composition / B UIKit request / C approved `AndroidView` for complex widgets only; never Material). Record resolutions in the plan under `## Gap decisions` and Option-C approvals under `## AndroidView exceptions` in the structured format the decision doc specifies. `AskUserQuestion` for every gap — do not proceed without a recorded answer.
 
+#### Stage 2.5 — Component creation (NON-NEGOTIABLE)
+
+For every row in the Stage 1 inventory marked `needs-shared`, the new component **must be created, compiled, and committed** before Stage 3 begins. Inline replacement at Stage 3 ("the agent will inline it for now") is **forbidden** — it produces the duplication problem (see *Lesson — Divider* in *Lessons learned*).
+
+Steps for each `needs-shared` component:
+
+1. Read the legacy View source (`ast-index class "<View>"`, then read the file). Note the public API: setters, callbacks, dynamic state, visual variants.
+2. Read the legacy XML the View uses internally (`view_<name>.xml`). Note dimensions, gravity, default visibilities, color attrs.
+3. Choose the location:
+   - **Default — `core-ui-components/ui-components/src/commonMain/kotlin/by/st/alfa/ib2/ui_components/components/`** (KMP commonMain — usable from any Android dependent module). Use this for any component used in 2+ feature modules.
+   - **Feature-impl `compose/` package** — only when the component is genuinely used by exactly one feature (e.g. `cards-impl` only). Even then, prefer ui-components if the component looks reusable.
+4. Implement the Composable with the API matching the legacy setters (`showPrevious` ≈ `setPreviousVisibility`, `nextText` ≈ `setNextButtonText`, etc.). Use `AlfaTheme.*` tokens only.
+5. Compile the host module: `./gradlew :core-ui-components:ui-components:compileDebugKotlinAndroid` (or the chosen module).
+6. Commit the new component on `feature/compose-migration` with message `Add <ComponentName> shared Compose component`.
+7. Update `## Gap decisions` in the plan: change `needs-shared → action: create <Component>` to `needs-shared → DONE: <package>.<ComponentName> committed in <sha>`.
+
+**No screen migration starts until every `needs-shared` row is in `DONE` state.** This is the bright line.
+
+**Why this is non-negotiable.** Skipping this and "inlining for now" creates 7 — 20 duplicates that must be cleaned up later (see *Lessons learned*). The cleanup costs more than upfront extraction, requires re-touching every migrated file, and risks introducing subtle behavior drift if the inline copies diverged.
+
+**Exceptions** — only `inline-ok` rows skip Stage 2.5. Their definition (≤ 30 LOC, single call site, no theming complexity) is enforced by the Stage 7 reviewer.
+
+#### Mechanical grep-gate for Stage 2 exit
+
+Before declaring Phase A complete, run:
+
+```bash
+PLAN="swarm-report/<slug>-plan.md"
+# Every needs-shared row must reference a committed sha
+grep "needs-shared" "$PLAN" | grep -v "DONE:" && echo "GATE FAIL: needs-shared rows still pending creation"
+# Every option-c row must have a structured AndroidView exception entry
+grep "option-c" "$PLAN" | wc -l
+grep -c "^- widget:" "$PLAN"   # counts must match
+```
+
 ### Phase A → Phase B gate
 
-Before launching Stage 3, run through the Phase A exit checklist (see the *Workflow* section above): plan complete, scenarios frozen with baseline PNGs, every `## Gap decisions` / `## AndroidView exceptions` / `## Theme decision` entry populated, zero "open" items. Hand the plan to the user (`AskUserQuestion` — approve plan / revise <which section>) and wait for explicit approval. Partial approval is not a path forward; revisions loop back into Phase A.
+Before launching Stage 3, run through the Phase A exit checklist (see the *Workflow* section above): plan complete, scenarios frozen with baseline PNGs, every `## Gap decisions` / `## AndroidView exceptions` / `## Theme decision` entry populated, zero "open" items, **every `needs-shared` component committed (Stage 2.5 DONE)**. Hand the plan to the user (`AskUserQuestion` — approve plan / revise <which section>) and wait for explicit approval. Partial approval is not a path forward; revisions loop back into Phase A.
+
+**Mechanical exit check (orchestrator runs before presenting to user — all must pass):**
+
+```bash
+PLAN="swarm-report/<slug>-plan.md"
+# Inventory present
+grep -q "## Component inventory" "$PLAN" || echo "GATE FAIL: Component inventory section missing"
+# No needs-shared rows still pending creation
+grep "needs-shared" "$PLAN" | grep -v "DONE:" | grep -v "^|" && echo "GATE FAIL: needs-shared rows pending creation"
+# Existing checks (theme, scenarios, gap decisions) — see Phase A exit
+```
+
+If even one `needs-shared` row is missing a `DONE: <sha>` marker, Phase B cannot start. Re-open Phase A, return to Stage 2.5, create the component, commit, update the plan, then re-run the exit check.
 
 ### Phase B → Phase A rollback
 
@@ -330,6 +424,45 @@ Hand control back and wait when:
 - A View falls outside the whitelist and has no UIKit substitute (`AndroidView` is only valid for the approved complex-widget category).
 
 One question per round, recommended option first.
+
+## Lessons learned
+
+Real cases from past migrations that drove the current process rules. **Read these before starting any new batch** — they exist because the rules above are the result of paying these costs once.
+
+### Lesson — `BottomControlPanel` (Phase A inventory miss)
+
+**What happened.** During cards card-issue migration (8+ step fragments), `BottomControlPanelView` was used as the bottom navigation panel in every step screen. No Compose equivalent existed in `abm.designsystem` or in any project module. The MEMORY.md note about `abm-uikit-ext.BottomControlPanel` referred to a phantom module that never existed.
+
+Each `compose-developer` agent independently discovered the gap mid-Stage-3 and built an inline `BottomNavPanel` private composable inside its screen file. After 4 screens were committed, the inline implementations had drifted in subtle ways (different button colors, padding, border behavior). Cleanup required:
+
+- Reading the legacy `BottomControlPanelView` to understand the canonical API (`setPreviousVisibility`, `setOnNextClickListener`, `setNextButtonText`, `isFinalStep` attr)
+- Creating shared `BottomControlPanel` composable in `core-ui-components/ui-components/.../components/` (~120 LOC)
+- Replacing inline implementations in 4 already-migrated screens
+- Re-running compile + detekt + push
+
+**Root cause.** Stage 1 inventory only listed "missing" components — it did not list every component used. Stage 2 was satisfied by the inline-implementation Option A without checking how many screens would need the same gap filled.
+
+**Fixed by.** Stage 1 now requires a **complete component inventory** (every View → status row), with a cross-screen reuse audit (`grep -rl ... | wc -l`). Status `needs-shared` is mandatory when count ≥ 2. Stage 2.5 requires the component to be created and committed before Stage 3 starts.
+
+### Lesson — `Divider` (inline duplication explosion)
+
+**What happened.** Across 18 migrated screens, every `compose-developer` agent created its own private `Divider()` composable: a 5-line `Box(Modifier.fillMaxWidth().height(1.dp).background(AlfaTheme.colors.border.primary))`. Identical code copied 18 times.
+
+The skill at the time said `// Local — single use` was acceptable for small composables. Each agent applied that rule individually without checking whether the composable would be needed elsewhere. The cleanup deleted ~1100 lines of duplicate code and added ~100 lines of shared component + 20 import statements.
+
+**Root cause.** "Inline-OK" was applied per-screen without considering reuse. The reviewer at Stage 7 had no signal to flag the proliferation because each individual screen looked clean.
+
+**Fixed by.** `inline-ok` now requires a hard check: project-wide grep count must be 1. If 2+, the row is `needs-shared`. The reviewer at Stage 7 re-runs the grep on Stage 1 inventory rows and rejects `inline-ok` rows whose count exceeds 1.
+
+### Lesson — `PickerRow` / `PickerField` (naming drift across screens)
+
+**What happened.** Seven screens implemented `private fun PickerRow(...)` with slightly different signatures (some had `error`, some had `enabled`, some had `showChevron`, some had `icon`). Four other screens implemented `private fun PickerField(...)` — same purpose, different name. Same root cause as `Divider`, plus a naming-discipline failure: each agent invented its own name without checking what other screens called it.
+
+**Fixed by.** Stage 1 inventory now consults `references/uikit-mapping.md` and `references/legacy-view-mapping.md` for canonical Compose names. When a `needs-shared` component is created in Stage 2.5, it gets the canonical name (`PickerRow`, not `PickerField`); the mapping references are updated to record the new component so future migrations reuse the name.
+
+### Process pattern (universal)
+
+When a Stage 3 agent reports "I implemented this inline / created a small private composable for X", that is a Phase A failure, not a Stage 3 success. Stop, return to Phase A, do the proper inventory, create the shared component if reuse is plausible, then re-run Stage 3. The cost of this loop once is far less than the cost of 7-20 cleanups later.
 
 ## References
 
