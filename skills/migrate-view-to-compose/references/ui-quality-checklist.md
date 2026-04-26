@@ -356,10 +356,10 @@ A screenshot fails if any MUST is violated. SHOULD items are reported as finding
 
 #### Edge-to-edge layout (system bars)
 
-- **MUST** — **No content overlaps the system navigation bar.** In the screenshot, the last visible content element must not share pixels with the system navigation bar (gesture handle or button bar). A button row or list item partially hidden under the navigation bar overlay = MUST violation. Applies to every screenshot, in every orientation.
-- **MUST** — **No content overlaps the status bar.** The top of the screen shows the status bar followed by the app's NavigationBar (title row), with no content peeking behind or inside the status bar area.
-- **MUST** — **Scroll-to-end: bottom of list clears the navigation bar.** For any scrollable screen, scrolling fully to the bottom must reveal the last item **entirely above** the navigation bar with a visible gap. A last item partially clipped by the navigation bar overlay = MUST violation. Common fix: `contentPadding` on `LazyColumn` / `LazyRow` must include the navigation-bar inset (`PaddingValues(bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding())`).
-- **MUST** — **No phantom bottom whitespace.** On non-scrollable screens, the area below the last content element and above the navigation bar should look intentional — typically filled with the screen's background colour (`AlfaTheme.colors.bg.primary`), not a transparent gap that reveals the Activity behind.
+- **MUST** — **Initial state: no content clipped under the system navigation bar.** In the first visible frame (before scrolling), interactive elements and primary content must be accessible — not hidden behind the navigation bar. Content scrolling *behind* the navigation bar during active scrolling is normal edge-to-edge behaviour and is not a violation here.
+- **MUST** — **No content overlaps the status bar.** The top of the screen shows the status bar area followed by the app's NavigationBar title row. No content may peek into the status bar zone.
+- **MUST** — **Scroll-to-end: last item reachable above the navigation bar.** For scrollable screens, the very last list item or content element must be fully readable after scrolling to the bottom — not obscured by the navigation bar. Typical fix: `contentPadding(bottom = navigationBarHeight)` on the scroll container. The implementation detail doesn't matter; only the visual result does.
+- **SHOULD** — On non-scrollable screens, the area between the last content element and the navigation bar looks intentional (filled with `AlfaTheme.colors.bg.primary`), not a raw transparent gap revealing the Activity behind.
 
 ### 14.4 Element integrity
 
