@@ -54,7 +54,12 @@ ComposeView(requireContext()).apply {
     setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
     setContent {
         AlfaTheme {
-            Box(Modifier.fillMaxSize().background(AlfaTheme.colors.bg.primary)) {
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .background(AlfaTheme.colors.bg.primary)
+                    .windowInsetsPadding(WindowInsets.navigationBars),
+            ) {
                 <Screen>Content(
                     state = viewModel.state.collectAsStateWithLifecycle().value,
                     onAction = viewModel::onAction,
@@ -85,7 +90,12 @@ viewBinding.composeView.apply {
     setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
     setContent {
         AlfaTheme {
-            Box(Modifier.fillMaxSize().background(AlfaTheme.colors.bg.primary)) {
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .background(AlfaTheme.colors.bg.primary)
+                    .windowInsetsPadding(WindowInsets.navigationBars),
+            ) {
                 <Screen>Content(
                     state = viewModel.state.collectAsStateWithLifecycle().value,
                     onAction = viewModel::onAction,
@@ -123,7 +133,12 @@ override fun initView() {
         setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
         setContent {
             AlfaTheme {
-                Box(Modifier.fillMaxSize().background(AlfaTheme.colors.bg.primary)) {
+                Box(
+                    Modifier
+                        .fillMaxSize()
+                        .background(AlfaTheme.colors.bg.primary)
+                        .windowInsetsPadding(WindowInsets.navigationBars),
+                ) {
                     <Screen>Content(
                         state = viewModel.state.collectAsStateWithLifecycle().value,
                         onAction = viewModel::onAction,
@@ -149,7 +164,12 @@ override fun initView() {
         composeView.setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
         composeView.setContent {
             AlfaTheme {
-                Box(Modifier.fillMaxSize().background(AlfaTheme.colors.bg.primary)) {
+                Box(
+                    Modifier
+                        .fillMaxSize()
+                        .background(AlfaTheme.colors.bg.primary)
+                        .windowInsetsPadding(WindowInsets.navigationBars),
+                ) {
                     <Screen>Content(
                         state = viewModel.state.collectAsStateWithLifecycle().value,
                         onAction = viewModel::onAction,

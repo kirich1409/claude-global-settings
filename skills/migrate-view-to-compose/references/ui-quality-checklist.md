@@ -203,6 +203,21 @@ Migrated screen must render every state that the original renders. Missing state
      - No exact match, or widget missing from plan → **MUST violation** (unauthorised `AndroidView`; must migrate or request approval).
      - `<Widget>` is ordinary UI (`TextView` / `Button` / `ImageView` / `LinearLayout` / `ScrollView` / `EditText` / `FrameLayout` / `RelativeLayout` / `ConstraintLayout` with trivial use) regardless of approval → **MUST violation** (ordinary UI never qualifies for Option C).
 
+- **MUST 8.5** — **Edge-to-edge: outer Box carries `windowInsetsPadding(WindowInsets.navigationBars)`.**
+  Fragment's `setContent` must wrap the composable call in a `Box` that carries `.windowInsetsPadding(WindowInsets.navigationBars)`. This ensures the Compose tree consumes the navigation-bar inset before it reaches any child — preventing content from being clipped by the system navigation bar. Root cause: the Activity's `fitsSystemWindows` propagation does not reach an embedded `ComposeView`; `windowInsetsPadding` is the explicit fix.
+  ```bash
+  grep -rn "windowInsetsPadding" "$SCREEN_DIR"/../*Fragment.kt  # must hit the Fragment wiring file
+  grep -rn "navigationBars" "$SCREEN_DIR"/../*Fragment.kt        # must appear alongside it
+  ```
+  Any Fragment wiring file that lacks both → MUST violation.
+
+- **MUST 8.6** — **Edge-to-edge: `Scaffold` uses explicit `contentWindowInsets = WindowInsets.systemBars`.**
+  Any `Scaffold(...)` call in the Content file must pass `contentWindowInsets = WindowInsets.systemBars`. This makes Scaffold apply the correct inset-based padding to its content slot (status bar top + navigation bar bottom), complementing §8.5 which handles the outer container.
+  ```bash
+  grep -rn "Scaffold(" "$SCREEN_DIR" | grep -v "contentWindowInsets"
+  ```
+  Any hit (a `Scaffold` call that omits `contentWindowInsets`) is a MUST violation — either add the argument or confirm the screen has no Scaffold (which is then fine).
+
 ## 9. Previews & Roborazzi snapshots (MUST / SHOULD)
 
 Roborazzi is the **Compose-function sanity gate** — it confirms the Composable compiles, renders without crash, applies design tokens, and covers all screen states. It is **not** the final visual-parity gate (that is Stage 6 / §10). The criteria below define what a Roborazzi snapshot must look like to pass sanity; pixel-parity with the XML baseline is explicitly **not** required here.
@@ -256,6 +271,24 @@ Final approval is a side-by-side device screenshot comparison run through a **lo
 - **MUST 10.6** — Stylistic delta is expected and does **not** fail a row: new UI Kit changes colours / typography / icon set / component shape — **including a dark-to-light background shift** for screens the legacy XML rendered on dark `NewAlfaTheme.Main`. Failing rows are structural / interaction / layout regressions, not style updates.
 - **MUST 10.7** — Compose-side screenshot for every scenario passes the universal visual criteria in §14. Baseline-side may legitimately fail some §14 items (the old design might have had poor contrast or crowded spacing — that is exactly why we migrate); the **Compose side must pass them all**.
 - **MUST 10.8** — If a scenario step cannot be reproduced on the Compose build (missing affordance, different navigation graph, altered input validation), that is a structural regression — mark the row FAIL and return to `compose-developer` with the **scenario ID**, the failing step number, the diff note, and both PNGs. Do **not** adapt the scenario to match the Compose build; the scenario catalogue is frozen once Stage 3 starts (no scenarios added, removed, or renamed mid-pipeline — gaps discovered during Stage 6 escalate, not silently drop).
+
+### Edge-to-edge device checks (mandatory — add to every scenario's Compose screenshot)
+
+- **MUST 10.9** — **No content clipped by the system navigation bar at rest.** The Compose-side screenshot for every scenario must show that the last visible element is not cut, overlapped, or hidden by the navigation bar. If the screen has a bottom action button or a bottom sheet handle, it must be fully visible above the bar. Violation = FAIL row.
+
+  How to verify: capture the screen in its default state, then look at the bottom edge. The last visible content element must have a clear gap between itself and the physical navigation bar (or home indicator on gesture-nav devices). No element may share pixels with the navigation bar overlay.
+
+- **MUST 10.10** — **Scroll-to-end: last item fully visible above the navigation bar.** For every screen that has a scrollable list or a `LazyColumn` / `LazyRow` / `verticalScroll`, the Content-state scenario must include a `scroll to bottom` step. The captured screenshot must show the very last list item or content element fully visible — not partially hidden under the navigation bar. Violation = FAIL row.
+
+  Steps to add to the scrollable-content scenario:
+  1. Load Content state until data is visible.
+  2. Scroll to the very bottom.
+  3. Capture screenshot at the bottom position.
+
+  Acceptance: last item fully inside the safe area. A partially obscured last item → FAIL; return to `compose-developer` to verify `contentPadding` on the `LazyColumn` / `LazyRow` carries the navigation-bar inset.
+
+- **MUST 10.11** — **Status bar / NavigationBar title not overlapping.** The navigation bar title and action icons (rendered by UIKit `NavigationBar`) must not overlap with the status bar clock or icons. Verify in every non-fullscreen Content scenario: the top of the screen shows [status-bar area] → [NavigationBar title row] with clear separation. Violation = FAIL row.
+
 - Any FAIL row blocks approval. Hand back to `compose-developer` with the scenario ID, diff note, and PNG pair.
 
 ## 11. No logic drift (MUST)
@@ -324,6 +357,13 @@ A screenshot fails if any MUST is violated. SHOULD items are reported as finding
 - **MUST** — Alignment consistent: text rows that should share a left-edge actually do; numeric columns right-align; icons aligned with their labels' baseline / centre per design.
 - **SHOULD** — No excessive empty regions without purpose.
 - **SHOULD** — Density balanced — not crowded (cramped touch targets, walls of text without breathing room) and not wastefully sparse.
+
+#### Edge-to-edge layout (system bars)
+
+- **MUST** — **No content overlaps the system navigation bar.** In the screenshot, the last visible content element must not share pixels with the system navigation bar (gesture handle or button bar). A button row or list item partially hidden under the navigation bar overlay = MUST violation. Applies to every screenshot, in every orientation.
+- **MUST** — **No content overlaps the status bar.** The top of the screen shows the status bar followed by the app's NavigationBar (title row), with no content peeking behind or inside the status bar area.
+- **MUST** — **Scroll-to-end: bottom of list clears the navigation bar.** For any scrollable screen, scrolling fully to the bottom must reveal the last item **entirely above** the navigation bar with a visible gap. A last item partially clipped by the navigation bar overlay = MUST violation. Common fix: `contentPadding` on `LazyColumn` / `LazyRow` must include the navigation-bar inset (`PaddingValues(bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding())`).
+- **MUST** — **No phantom bottom whitespace.** On non-scrollable screens, the area below the last content element and above the navigation bar should look intentional — typically filled with the screen's background colour (`AlfaTheme.colors.bg.primary`), not a transparent gap that reveals the Activity behind.
 
 ### 14.4 Element integrity
 
