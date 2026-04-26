@@ -274,20 +274,16 @@ Final approval is a side-by-side device screenshot comparison run through a **lo
 
 ### Edge-to-edge device checks (mandatory — add to every scenario's Compose screenshot)
 
-- **MUST 10.9** — **No content clipped by the system navigation bar at rest.** The Compose-side screenshot for every scenario must show that the last visible element is not cut, overlapped, or hidden by the navigation bar. If the screen has a bottom action button or a bottom sheet handle, it must be fully visible above the bar. Violation = FAIL row.
+- **MUST 10.9** — **No content clipped by the system navigation bar in the initial (rest) state.** In the first captured frame of every scenario (before any scrolling), interactive elements and primary content must not be hidden under the navigation bar. A bottom action button or sheet handle must be accessible. Note: content scrolling *behind* the navigation bar during active scrolling is intentional edge-to-edge behaviour and is NOT a violation. Only the initial resting state matters here. Violation = FAIL row.
 
-  How to verify: capture the screen in its default state, then look at the bottom edge. The last visible content element must have a clear gap between itself and the physical navigation bar (or home indicator on gesture-nav devices). No element may share pixels with the navigation bar overlay.
-
-- **MUST 10.10** — **Scroll-to-end: last item fully visible above the navigation bar.** For every screen that has a scrollable list or a `LazyColumn` / `LazyRow` / `verticalScroll`, the Content-state scenario must include a `scroll to bottom` step. The captured screenshot must show the very last list item or content element fully visible — not partially hidden under the navigation bar. Violation = FAIL row.
+- **MUST 10.10** — **Scroll-to-end: last item reachable above the navigation bar.** For every screen with a scrollable list (`LazyColumn` / `LazyRow` / `verticalScroll`), the Content-state scenario must include a "scroll to the very bottom" step. The captured screenshot at the end position must show the very last item fully readable — not clipped by the navigation bar. Common fix: `contentPadding` on the `LazyColumn` / `LazyRow` carrying the navigation-bar inset so the last item can scroll above the bar. Violation = FAIL row.
 
   Steps to add to the scrollable-content scenario:
   1. Load Content state until data is visible.
   2. Scroll to the very bottom.
-  3. Capture screenshot at the bottom position.
+  3. Capture screenshot.
 
-  Acceptance: last item fully inside the safe area. A partially obscured last item → FAIL; return to `compose-developer` to verify `contentPadding` on the `LazyColumn` / `LazyRow` carries the navigation-bar inset.
-
-- **MUST 10.11** — **Status bar / NavigationBar title not overlapping.** The navigation bar title and action icons (rendered by UIKit `NavigationBar`) must not overlap with the status bar clock or icons. Verify in every non-fullscreen Content scenario: the top of the screen shows [status-bar area] → [NavigationBar title row] with clear separation. Violation = FAIL row.
+- **MUST 10.11** — **Status bar / NavigationBar title not overlapping.** The UIKit `NavigationBar` title and action icons must not overlap with the status bar. Verify in every non-fullscreen Content scenario: top of the screen shows [status-bar area] → [NavigationBar title row] with clear visual separation. Violation = FAIL row.
 
 - Any FAIL row blocks approval. Hand back to `compose-developer` with the scenario ID, diff note, and PNG pair.
 
