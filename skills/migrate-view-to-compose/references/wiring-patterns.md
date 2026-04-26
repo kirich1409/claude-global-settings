@@ -14,6 +14,37 @@ All three use `ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed`. Exi
 
 The Fragment's `setContent` owns `AlfaTheme { Box(fillMaxSize + background) }` — the composable itself does not wrap. Same rule for all three patterns.
 
+## Edge-to-edge insets — mandatory
+
+**All three patterns must apply this rule.** Without it, content extends under the system navigation bar.
+
+**Fragment wiring** — add `.windowInsetsPadding(WindowInsets.navigationBars)` to the outer `Box`:
+```kotlin
+Box(
+    Modifier
+        .fillMaxSize()
+        .background(AlfaTheme.colors.bg.primary)
+        .windowInsetsPadding(WindowInsets.navigationBars),
+) { ... }
+```
+Required imports:
+```kotlin
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.windowInsetsPadding
+```
+
+**Content file Scaffold** — pass explicit `contentWindowInsets = WindowInsets.systemBars`:
+```kotlin
+Scaffold(
+    contentWindowInsets = WindowInsets.systemBars,
+    ...
+)
+```
+This ensures Scaffold correctly accounts for both status bar and navigation bar padding inside its content lambda.
+
+**Why two changes?** The outer `windowInsetsPadding(navigationBars)` marks navigation bar insets as consumed for the Compose subtree — this fixes content cut at bottom. `Scaffold(contentWindowInsets = WindowInsets.systemBars)` ensures the top status bar inset is applied inside Scaffold's content slot. Both are needed because the View host (`Activity`) may not propagate `fitsSystemWindows` to the embedded `ComposeView`.
+
 ## Pattern A — pure ComposeView host
 
 Fragment extends plain `Fragment()` (no base UI). `onCreateView` returns:
