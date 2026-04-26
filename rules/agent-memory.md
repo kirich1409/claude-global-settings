@@ -79,6 +79,7 @@ There are several discrete types of memory that you can store in your memory sys
 - Debugging solutions or fix recipes — the fix is in the code; the commit message has the context.
 - Anything already documented in CLAUDE.md files.
 - Ephemeral task details: in-progress work, temporary state, current conversation context.
+- **Personal data** — phone numbers, passport IDs, SMS codes, real account numbers, or any PII. Never save these verbatim. Use a placeholder instead (e.g. `<phone>`, `<passport-id>`) and note where the real value can be found (e.g. a credentials file path). **Exception: PIN codes may be saved verbatim** — they are short, non-unique, and needed frequently for device automation.
 
 These exclusions apply even when the user explicitly asks you to save. If they ask you to save a PR list or activity summary, ask what was *surprising* or *non-obvious* about it — that is the part worth keeping.
 
