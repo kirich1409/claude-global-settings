@@ -157,6 +157,15 @@ Write tests only when explicitly asked. Do not add tests proactively or offer to
 
 Whenever code is modified, update all directly related docs — KDoc, inline comments, `.md` files, and any project-specific docs. Never leave docs describing something the code no longer does.
 
+**Mandatory inline comments** — add a short comment whenever the code contains any of the following:
+
+- **Preserved behavior from a migration** — old API used system default timezone, new API could use UTC but intentionally doesn't; old code had no null-check and callers rely on that; etc. Comment: what the old code did and why the new code matches it.
+- **Intentionally retained bug or quirk** — a known incorrect/surprising behavior that is kept for compatibility, spec compliance, or because fixing it would break something else. Comment: what the bug is, why it's kept.
+- **Non-obvious constraint** — the code looks wrong but is correct due to an external contract, hardware quirk, server format, third-party library behavior, or platform limitation.
+- **Implicit semantic change** — the logic appears equivalent but subtly differs in edge cases (overflow, timezone, locale, rounding, encoding). Comment: what differs and why it's acceptable.
+
+Format: one or two lines, lead with the surprising fact, follow with the reason. No need to reference the task or PR.
+
 ## Memory
 
 `autoMemoryEnabled` is on. Memory types, save/access rules, and exclusions — see `rules/agent-memory.md`.
