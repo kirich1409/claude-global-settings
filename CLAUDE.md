@@ -26,32 +26,6 @@ If you see "SETTINGS CONFLICT" in the session start message, there are `*.remote
 4. Delete the `.remote` file
 5. Run `csync` (or `$HOME/.claude/hooks/sync-settings.sh`) to commit and push the merged result
 
-## Worktree Strategy
-
-At session start, read GIT STATE from the SessionStart hook output.
-If absent → run `git status && git worktree list` to reconstruct state.
-
-- No git repo → skip worktree strategy, proceed directly
-- Planning / reading → stay on current branch
-- **Non-persistent changes** (files in `.gitignore`, scratch/throwaway work, build artifacts, local-only configs, temp experiments that will not be committed) → stay on current branch, no worktree needed
-- **Persistent code changes** (anything intended to end up in the repository as a commit) → evaluate before acting:
-  1. Check GIT STATE for current location and existing worktrees
-  2. Already in a worktree (not main/master/develop) that fits the task → stay, no new worktree needed
-  3. Existing worktree clearly matches the task → offer to switch to it
-  4. On main/master/develop and need to make changes, but it's unclear if a worktree is warranted → ask the user, explain current location and what would be created
-  5. New worktree is clearly needed → create from main/master/develop in `.worktree/<branch-name>` (always use `.worktree/` folder at project root)
-  6. Multiple parallel agents → each gets its own worktree
-
-Never commit or push directly from main/master/develop.
-
-Key principle: a worktree is only for work that will be committed and pushed. Ignored/temporary/throwaway modifications stay in place. As soon as a task shifts from "just poking around" to "this needs to land in the repo" — switch to a worktree before continuing.
-
-After creating or entering a worktree in a **code project** (has source files like `*.kt`, `*.java`, `*.ts`, etc.), **initialize ast-index** — it is per-worktree and does not carry over. Run the appropriate `ast-index:initialize-*` skill before any code search. Skip for config-only repos (e.g. `~/.claude`).
-
-| Moment | Skill |
-|---|---|
-| Stale gone branches | `commit-commands:clean_gone` |
-
 ## Principles
 
 - If a change affects other files that **must** be updated — do it without asking. If it **might** affect them — notify with specifics. Never leave the codebase in a broken or inconsistent state.
@@ -110,6 +84,8 @@ Use agents when the task benefits from parallelism, isolation, or specialist exp
 ## Code Search
 
 Search tool priorities and ast-index initialization rules — see `rules/ast-index.md`.
+
+ast-index is per-worktree and does not carry over. After entering a new worktree in a code project, run the appropriate `ast-index:initialize-*` skill before any code search. Skip for config-only repos (e.g. `~/.claude`).
 
 ## GitHub Repository Research
 
@@ -240,6 +216,7 @@ Never silently pick an approach without surfacing the reasoning when alternative
 - **Force push:** `git push --force` is denied. Use `--force-with-lease` or `--force-if-includes` — they verify the remote ref hasn't changed. These commands require user confirmation (ask list) but are NOT denied.
 - **Git hooks:** never bypass hooks (`--no-verify`, `--no-gpg-sign`, `-c commit.gpgsign=false`, etc.) unless the user explicitly requests it. If a hook fails — investigate and fix the root cause; bypassing is not an option without explicit user instruction.
 - **Local verification before push:** code pushed to remote must pass the local checks relevant to what changed — don't push code that will obviously fail CI. Before pushing, consciously decide which checks apply: build changed → run build; tests changed → run tests; lint/CI config changed → run lint; build system changed → run release build too. Draft status is not an excuse to skip verification — drafts should also build and pass checks. The only acceptable reason to skip a check is explicit conscious awareness that it's incomplete work, not oversight or laziness.
+- **Stale gone branches:** use `commit-commands:clean_gone` skill to clean up local branches whose remotes are gone.
 
 ## Compact Instructions
 
