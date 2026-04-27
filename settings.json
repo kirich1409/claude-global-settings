@@ -300,7 +300,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node /Users/krozov/.claude/hooks/context-mode-cache-heal.mjs"
+            "command": "node $HOME/.claude/hooks/context-mode-cache-heal.mjs"
           }
         ]
       }
