@@ -140,10 +140,6 @@ Whenever code is modified, update all directly related docs — KDoc, inline com
 
 Format: one or two lines, lead with the surprising fact, follow with the reason. No need to reference the task or PR.
 
-## Memory
-
-`autoMemoryEnabled` is on. Memory types, save/access rules, and exclusions — see `rules/agent-memory.md`.
-
 ## Context Compaction Resilience
 
 For long multi-stage tasks, persist state to a file so work survives context compaction:
@@ -156,7 +152,11 @@ This guarantees that after compaction the task continues from where it left off,
 
 ## Reports
 
-For multi-stage or agent-delegated tasks, save a report to `./swarm-report/<slug>-YYYY-MM-DD.md`. The `swarm-report/` directory must be in the project's `.gitignore` — add it if missing before writing the first report. Skip for simple tasks completable in a few tool calls. Minimum content:
+Both report types live in `./swarm-report/` (must be in `.gitignore` — add if missing):
+- **`<slug>-report.md`** — final report saved when the task completes (multi-stage or agent-delegated tasks). Skip for simple tasks completable in a few tool calls.
+- **`<slug>-state.md`** — operational state file for compaction resilience (see section above). Deleted after task completes.
+
+Minimum content for the final report:
 - Task description
 - What was done (files, modules)
 - Validation results
@@ -178,7 +178,7 @@ Show a step list with checkmarks as work progresses. Update it at each meaningfu
 
 ## Breaking Changes
 
-Make the change directly. Backward compatibility and migration are the user's responsibility unless explicitly asked to handle them.
+Make the change directly. Backward compatibility and migration are the user's responsibility unless explicitly asked to handle them. Applies to internal code changes. For public API, database schema, or CLI interface changes — notify the user before proceeding.
 
 ## Logging
 
@@ -223,5 +223,3 @@ At session end or on `/compact`, always preserve:
 - **Open TODOs** — unfinished tasks, in order of priority
 - **Verification commands** — e.g. `./gradlew test`, `./gradlew build`
 - **Key architectural decisions** — choices made and why
-
-@RTK.md

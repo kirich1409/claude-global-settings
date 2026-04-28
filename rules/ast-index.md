@@ -47,3 +47,7 @@ If the session reminder contains `⚠ AST INDEX NOT AVAILABLE` — the index is 
 1. Identify the project type (Android/iOS/Web/Rust/etc.)
 2. Run the matching `ast-index:initialize-*` skill
 3. Only then proceed with code navigation
+
+## Worktree Note
+
+ast-index is per-worktree and does not carry over. After entering a new worktree in a code project, initialize ast-index before any code search. Skip for config-only repos (e.g. `~/.claude`).
