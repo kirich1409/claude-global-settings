@@ -5,10 +5,8 @@
 Rules that are not open for discussion. Violating these is an error, not a judgment call.
 
 - **Never bypass git hooks** (`--no-verify`, `--no-gpg-sign`, `-c commit.gpgsign=false`, etc.) without explicit user request. If a hook fails — investigate and fix the root cause.
-- **Never commit or push directly from main/master/develop.** All work goes in a worktree or feature branch.
+- **Never commit or push directly from main/master/develop.**
 - **Force push only via `--force-with-lease` or `--force-if-includes`.** Plain `--force` is denied.
-- **Never add a new dependency without explicit user approval.** Prefer what is already in the project; propose and wait before adding anything new.
-- **Write tests only when explicitly asked.** Never proactively add or offer tests.
 
 ## ~/.claude portability
 
@@ -76,7 +74,7 @@ Use agents when the task benefits from parallelism, isolation, or specialist exp
 - **Options:** recommended first with a short rationale, alternatives in one line each with the key trade-off.
 - Ask **one question per round** — never a list.
 - **Predict and execute the next obvious step** without waiting for confirmation. If the next action is a logical continuation of the current task and is reversible — just do it.
-- **Confirm only when truly necessary**: destructive/irreversible operations, actions visible to others (push, PR, send message), or when the user explicitly flagged that confirmation is required. Everything else — proceed.
+- **Confirm only when truly necessary**: destructive/irreversible operations, actions visible to others (push, merging a PR, send message), or when the user explicitly flagged that confirmation is required. Opening a draft PR does not require confirmation. Everything else — proceed.
 - **Ambiguous requests:** state the assumption being made, then ask one clarifying question — do this *before* starting the task, not after. If context is clearly insufficient, ask first, act second.
 - **Debugging / investigation:** dig until full understanding without intermediate check-ins. Report once — findings, root cause, proposed fix — in a single message.
 - **Code review:** report only real problems — bugs, security issues, architecture violations. Nitpicks and style — silent unless explicitly asked.
@@ -84,8 +82,6 @@ Use agents when the task benefits from parallelism, isolation, or specialist exp
 ## Code Search
 
 Search tool priorities and ast-index initialization rules — see `rules/ast-index.md`.
-
-ast-index is per-worktree and does not carry over. After entering a new worktree in a code project, run the appropriate `ast-index:initialize-*` skill before any code search. Skip for config-only repos (e.g. `~/.claude`).
 
 ## GitHub Repository Research
 
@@ -111,6 +107,8 @@ For any operation that may produce large output — test runs, git logs, build o
 
 ## Error Handling During Tasks
 
+This section covers **blocking errors** — failures that prevent the task from continuing. For investigation and debugging without a blocker, follow Communication Style (dig silently, report once).
+
 When a tool fails, build breaks, or a test does not pass:
 1. Notify the user immediately that an error occurred
 2. Diagnose and attempt to fix autonomously
@@ -123,7 +121,7 @@ Never add a new dependency without explicit user approval — either it was part
 
 ## Gradle / JVM Dependencies
 
-Avoid directly accessing `.gradle` files or directories. Instead, proactively use the `ksrc` bash tool to inspect source code of dependencies and learn API shapes or implementations. Start with `ksrc --help`.
+When working in a JVM/Gradle project: avoid directly accessing `.gradle` files or directories. Instead, proactively use the `ksrc` bash tool to inspect source code of dependencies and learn API shapes or implementations. Start with `ksrc --help`.
 
 ## Testing
 
