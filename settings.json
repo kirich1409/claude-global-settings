@@ -549,5 +549,6 @@
         "mcp-maven-deps"
       ]
     }
-  }
+  },
+  "effortLevel": "high"
 }
