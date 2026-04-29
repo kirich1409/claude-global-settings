@@ -533,6 +533,7 @@
     }
   },
   "alwaysThinkingEnabled": true,
+  "effortLevel": "high",
   "advisorModel": "opus",
   "showClearContextOnPlanAccept": true,
   "channelsEnabled": true,
@@ -549,6 +550,5 @@
         "mcp-maven-deps"
       ]
     }
-  },
-  "effortLevel": "high"
+  }
 }
