@@ -517,6 +517,12 @@
         "repo": "mksglu/context-mode"
       },
       "autoUpdate": true
+    },
+    "android-skills": {
+      "source": {
+        "source": "github",
+        "repo": "rcosteira79/android-skills"
+      }
     }
   },
   "language": "Russian",
