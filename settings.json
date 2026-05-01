@@ -277,7 +277,6 @@
     ],
     "defaultMode": "auto"
   },
-  "model": "opus",
   "hooks": {
     "SessionStart": [
       {
