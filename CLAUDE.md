@@ -83,6 +83,10 @@ Use agents when the task benefits from parallelism, isolation, or specialist exp
 
 Search tool priorities and ast-index initialization rules — see `rules/ast-index.md`.
 
+## Kotlin Code Style
+
+Visibility and style rules for `.kt` / `.kts` files — see `rules/kotlin-style.md`. Core rule: minimum visibility by default — `private` first, `internal` next, `public` only for intentional module API.
+
 ## GitHub Repository Research
 
 When given a GitHub repository URL or asked to explore a GitHub repo — always use **DeepWiki** or **Context7** first:
