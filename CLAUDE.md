@@ -79,14 +79,6 @@ Use agents when the task benefits from parallelism, isolation, or specialist exp
 - **Debugging / investigation:** dig until full understanding without intermediate check-ins. Report once — findings, root cause, proposed fix — in a single message.
 - **Code review:** report only real problems — bugs, security issues, architecture violations. Nitpicks and style — silent unless explicitly asked.
 
-## Code Search
-
-Search tool priorities and ast-index initialization rules — see `rules/ast-index.md`.
-
-## Kotlin Code Style
-
-Visibility and style rules for `.kt` / `.kts` files — see `rules/kotlin-style.md`. Core rule: minimum visibility by default — `private` first, `internal` next, `public` only for intentional module API.
-
 ## GitHub Repository Research
 
 When given a GitHub repository URL or asked to explore a GitHub repo — always use **DeepWiki** or **Context7** first:
