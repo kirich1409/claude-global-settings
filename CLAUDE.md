@@ -206,8 +206,11 @@ Never silently pick an approach without surfacing the reasoning when alternative
 
 ## Git Workflow
 
-- **Fresh base before starting:** before starting any code work, fetch the remote and make sure the working branch is based on the latest state of the main branch (`main`/`master`/`develop`). If behind — pull/rebase first. Never start work on a stale branch.
-- **Fresh base before pushing:** before `git push`, fetch again and verify the feature branch is still up-to-date with the latest main branch. If main has moved — rebase onto it and re-run local checks before pushing. Pushing a branch that diverged from an outdated base creates messy merges and broken CI.
+- **Fresh base before branching:** before creating a new feature branch (or new worktree), `git fetch` the remote and branch from the freshly updated base (`main`/`master`/`develop` — whichever the project uses). Never branch from a stale local base ref. Same rule applies when adding a new worktree — create it off the just-fetched remote tip, not the stale local pointer.
+- **Fresh base before resuming work:** when returning to an existing branch after any pause, fetch and verify the branch is still on top of the latest base. If behind — rebase first. Never continue work on a stale branch.
+- **Fresh base before pushing:** before `git push`, fetch again and verify the feature branch is still up-to-date with the latest base. If base has moved — rebase onto it before pushing. Pushing a branch that diverged from an outdated base creates messy merges and broken CI.
+- **Fresh base before opening MR/PR:** immediately before `glab mr create` / `gh pr create`, fetch and rebase onto the latest base. An MR opened against a stale base produces noisy diffs and pipeline conflicts.
+- **Re-run checks after rebase:** if a fetch+rebase pulled in any new commits from the base, re-run the local verification checks relevant to the changes (build / tests / lint) before pushing or opening the MR. New commits in the base can break things even when your own code did not change.
 - **Commits:** one atomic commit per logical unit. For large tasks — one commit per meaningful stage (e.g. model, repository, UI).
 - **Commit messages:** imperative mood, English, max 72 chars in the subject. No type prefixes (`feat:`, `fix:`). Add body only when context is non-obvious.
 - **Branch naming:** `feature/short-description`, `fix/short-description`, `chore/short-description` — kebab-case, English.
