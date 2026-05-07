@@ -151,6 +151,10 @@ Never add a new dependency without explicit user approval — either it was part
 
 When working in a JVM/Gradle project: avoid directly accessing `.gradle` files or directories. Instead, proactively use the `ksrc` bash tool to inspect source code of dependencies and learn API shapes or implementations. Start with `ksrc --help`.
 
+## Android Tooling
+
+For Android projects (or any Android-platform question), Google's `android` CLI is the primary tool — official docs search/fetch, project metadata, AVD/SDK management, device screen and layout capture, APK deploy. Detailed routing rules, fallbacks for when the CLI is missing, and the no-auto-skill-install policy live in `rules/android-cli.md`.
+
 ## Testing
 
 Write tests only when explicitly asked. Do not add tests proactively or offer to write them unprompted.
