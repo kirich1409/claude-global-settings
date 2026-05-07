@@ -79,15 +79,47 @@ Use agents when the task benefits from parallelism, isolation, or specialist exp
 - **Debugging / investigation:** dig until full understanding without intermediate check-ins. Report once — findings, root cause, proposed fix — in a single message.
 - **Code review:** report only real problems — bugs, security issues, architecture violations. Nitpicks and style — silent unless explicitly asked.
 
-## GitHub Repository Research
+## External Source Lookup (DeepWiki / Context7)
 
-When given a GitHub repository URL or asked to explore a GitHub repo — always use **DeepWiki** or **Context7** first:
-- `mcp__deepwiki__ask_question` — ask a specific question about the repo
-- `mcp__deepwiki__read_wiki_contents` — read full AI-generated documentation
-- `mcp__deepwiki__read_wiki_structure` — get topic structure first
-- `mcp__claude_ai_Context7__resolve-library-id` + `mcp__claude_ai_Context7__query-docs` — for libraries with docs on Context7
+DeepWiki and Context7 are **narrow tools**, not default research tools. Use them only when the question is about a third-party project or library that is actually indexed there. Misusing them wastes tokens and produces irrelevant or empty results.
 
-Do **not** fetch GitHub pages (`https://github.com/...`) directly with WebFetch — rendered HTML is noisy and expensive. Raw README fetch (`https://raw.githubusercontent.com/...`) is acceptable only as a fallback when DeepWiki and Context7 have no data.
+### DeepWiki — when to use
+
+Use **only** when **all** of the following hold:
+- Question is about a **specific public GitHub repository** (the user named it, linked it, or it is clearly a third-party dependency of the project).
+- The repo is **public on GitHub** — DeepWiki only indexes public GitHub. Private repos, GitLab/Bitbucket, internal code → not there, do not try.
+- You need **architectural / behavioral / docs-level understanding** of that repo — not a literal file read.
+
+Do **not** use DeepWiki for:
+- Questions about the **current project / working directory** — read files locally instead.
+- Code that is **not a third-party GitHub dependency** of this project.
+- Asking "does library X have feature Y" when you can find out faster by reading the dependency source via `ksrc` or local files.
+- General programming, language, or framework concepts.
+- A library you have not first verified is on GitHub and indexed there.
+
+### Context7 — when to use
+
+Use **only** when:
+- Question is about a **published, well-known library / framework / SDK / CLI / cloud service** (React, Spring, Ktor, Tailwind, Firebase CLI, etc.).
+- You need **current API / configuration / migration / setup docs** that may have changed since training cutoff.
+- You first call `resolve-library-id` to confirm the library is actually in Context7. If it is not — stop, do not retry with variants.
+
+Do **not** use Context7 for:
+- Project-internal code, business logic, or refactoring questions.
+- Debugging the user's own code.
+- General concepts that are stable and well-known.
+- Libraries you have not confirmed are indexed (one `resolve-library-id` failure → fall back to other sources, do not chase synonyms).
+
+### Fallback order
+
+1. Local code / project files (always first for project questions).
+2. `ksrc` for inspecting JVM/Gradle dependency sources.
+3. DeepWiki (if the specific public GitHub repo is the target).
+4. Context7 (if a known published library's docs are the target).
+5. `WebSearch` / `WebFetch` for everything else.
+6. Raw README via `https://raw.githubusercontent.com/...` only as a last-resort fallback for a specific repo.
+
+Never fetch rendered GitHub pages (`https://github.com/...`) with WebFetch — HTML is noisy and expensive.
 
 ## Web Search
 
