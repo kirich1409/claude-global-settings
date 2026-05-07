@@ -79,6 +79,23 @@ Use agents when the task benefits from parallelism, isolation, or specialist exp
 - **Debugging / investigation:** dig until full understanding without intermediate check-ins. Report once — findings, root cause, proposed fix — in a single message.
 - **Code review:** report only real problems — bugs, security issues, architecture violations. Nitpicks and style — silent unless explicitly asked.
 
+## Recommended workflow
+
+The `developer-workflow` plugin family is a toolbox of on-demand skills, not a forced pipeline. Pick what the task needs; let plan mode drive sequencing.
+
+For non-trivial features:
+1. Plan mode → optional `/multiexpert-review` for high-risk plans, optional `/write-spec` when the change is too big to hold in head.
+2. Implement on a feature branch in a worktree. Open draft PR early via `/create-pr --draft`.
+3. `/check` → `/finalize` → `/create-pr --promote` → `/drive-to-merge`.
+
+For bug fixes:
+1. Plan mode (debug + fix in the plan).
+2. Implement → optional `/write-tests` for regression → `/check` → `/finalize` → PR.
+
+## Code Search
+
+Search tool priorities and ast-index initialization rules — see `rules/ast-index.md`.
+
 ## External Source Lookup (DeepWiki / Context7)
 
 DeepWiki and Context7 are **narrow tools**, not default research tools. Use them only when the question is about a third-party project or library that is actually indexed there. Misusing them wastes tokens and produces irrelevant or empty results.
