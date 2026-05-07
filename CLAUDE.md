@@ -191,19 +191,76 @@ Format: one or two lines, lead with the surprising fact, follow with the reason.
 
 ## Context Compaction Resilience
 
-For long multi-stage tasks, persist state to a file so work survives context compaction:
-- Save validation checklists, E2E scenarios, and in-progress state to `./swarm-report/<slug>-state.md`
-- Before each action in Validation — re-read the state file via Read tool
-- Completed steps (`[x]`) — do not repeat
-- Resume from the first incomplete step (`[ ]`)
+For long multi-stage tasks, persist state to a file so work survives context compaction. Three canonical files live in `./swarm-report/`:
 
-This guarantees that after compaction the task continues from where it left off, not from the beginning.
+### `<slug>-state.md` — operational checklist for any long task
+
+Generic step list with checkboxes. Used during plan execution, multi-step refactors, batch fixes — anything that would otherwise restart from zero after compaction.
+
+```markdown
+# State: <slug>
+Goal: <one sentence>
+
+## Steps
+- [x] 1. <done step> ✅
+- [ ] 2. <next step>
+- [ ] 3. ...
+```
+
+### `<slug>-e2e-scenario.md` — running-app verification scenario
+
+Created during acceptance / QA against a running app or service. The single source of truth for what counts as "verified". Owned by the `developer-workflow:acceptance` skill when invoked; can also be authored manually.
+
+```markdown
+# E2E Scenario: <task name>
+Type: Feature / Bug fix
+Platforms: Android / iOS / Web / Backend / Desktop  (one or several)
+
+## Steps
+- [ ] 1. Open screen X
+- [ ] 2. Tap button Y → expect state Z
+- [ ] 3. ...
+```
+
+### `<slug>-debug.md` — bug investigation record
+
+Created during plan-mode bug investigation: reproduction steps, observed vs expected, hypotheses, root cause once known. Picked up by `acceptance` (Branch 3 — `on-the-fly`) as a spec-like source for bug-fix verification, and by `create-pr` as primary context for bug-fix PR bodies.
+
+```markdown
+# Debug: <bug slug>
+Status: Investigating | Root cause found | Fixed
+Platform: <platform>
+
+## Reproduction
+1. ...
+2. → expected: X, actual: Y
+
+## Stacktrace / logs
+...
+
+## Hypotheses
+- ...
+
+## Root cause
+<filled once known — file:line + one-paragraph explanation>
+
+## Fix outline
+<files to touch, approach>
+```
+
+### Re-read rule (applies to all three)
+
+Before each meaningful action that depends on prior state — **Read the file first**. Completed steps (`[x]`) are not redone; resume from the first `[ ]`. After compaction the task continues exactly where it left off.
+
+Mark steps `[x]` only after the action is actually verified, never speculatively. If a step had to be redone or rolled back, edit the file to reflect that — the file is the truth, the chat is not.
 
 ## Reports
 
-Both report types live in `./swarm-report/` (must be in `.gitignore` — add if missing):
+All `./swarm-report/` files (must be in `.gitignore` — add if missing):
 - **`<slug>-report.md`** — final report saved when the task completes (multi-stage or agent-delegated tasks). Skip for simple tasks completable in a few tool calls.
-- **`<slug>-state.md`** — operational state file for compaction resilience (see section above). Deleted after task completes.
+- **`<slug>-state.md`** — operational state file (see § Context Compaction Resilience). Deleted after task completes.
+- **`<slug>-e2e-scenario.md`** — running-app verification scenario (see § Context Compaction Resilience). Survives across re-runs of acceptance.
+- **`<slug>-debug.md`** — bug investigation record (see § Context Compaction Resilience). Stays as audit trail; do not auto-delete.
 
 Minimum content for the final report:
 - Task description
