@@ -71,6 +71,8 @@ For bug fixes:
 1. Plan mode (debug + fix in the plan).
 2. Implement → optional `/write-tests` for regression → `/check` → `/finalize` → PR.
 
+For exploratory QA without a spec — call the `manual-tester` agent directly via the Task tool (no skill needed).
+
 ## Code Search
 
 Search tool priorities and ast-index initialization rules — see `rules/ast-index.md`.
@@ -115,6 +117,8 @@ For Android projects (or any Android-platform question), Google's `android` CLI 
 ## Testing
 
 Write tests only when explicitly asked. Do not add tests proactively or offer to write them unprompted.
+
+Detailed rules — public-API coverage gate, P0–P3 priority framework, non-UI lightweight test plans, author-fixes-broken-tests rule, infrastructure detection markers — live in `rules/qa-and-testing.md`.
 
 ## Code clarity and documentation
 
