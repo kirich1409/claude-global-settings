@@ -55,6 +55,35 @@ Keep a `for` loop when **any** of these hold — the operator form would be wors
 
 When in doubt, write the operator chain. If it ends up needing more than three operators or a `let`-tower, reconsider — but don't fall back to `for` mechanically.
 
+## Named arguments — required for ambiguous calls
+
+Use named arguments when **any** of the following hold:
+
+- The argument is a **primitive type** (`Boolean`, `Int`, `Long`, `String`, etc.) and its meaning is not obvious from the call site alone.
+- **Multiple parameters share the same type** — name every argument of that type. Other arguments in the same call may stay positional unless they fall under another rule.
+
+```kotlin
+// Bad — three Strings, meaning unclear
+createUser("Alice", "alice@example.com", "password123")
+
+// Good — same-type args named; positional allowed only when unambiguous
+createUser(name = "Alice", email = "alice@example.com", password = "password123")
+
+// Bad — Boolean argument with no context
+setRetry(true, 3)
+
+// Good
+setRetry(enabled = true, maxAttempts = 3)
+```
+
+### When positional is fine
+
+- Non-primitive, domain-typed argument whose type already documents the meaning: `show(dialog)`, `navigate(destination)`.
+- Single-argument call where the function name makes the argument obvious: `listOf(items)`, `println(message)`.
+- Well-known stdlib/operator-style calls: `maxOf(a, b)`, `Pair(key, value)`.
+
+The test: a reader who sees only the call site — not the function signature — must be able to infer what each argument means without guessing.
+
 ## Empty blocks — delete the call
 
 If a call ends with an empty `{}` block and the call exists only to satisfy a signature, delete it. An empty lambda / `apply {}` / `run {}` / `also {}` / `let {}` / `forEach {}` carries no behaviour and obscures the fact that nothing happens.
