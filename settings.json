@@ -365,7 +365,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"/opt/homebrew/Cellar/node/25.9.0_2/bin/node\" \"/Users/krozov/.claude/hooks/context-mode-cache-heal.mjs\""
+            "command": "\"/Users/krozov/.claude/hooks/context-mode-cache-heal.mjs\""
           }
         ]
       }
@@ -525,7 +525,9 @@
     "pr-review-toolkit@claude-plugins-official": true,
     "ast-index@ast-index-marketplace": true,
     "developer-workflow-kotlin@krozov-ai-tools": true,
-    "firebase@firebase": true
+    "firebase@firebase": true,
+    "context-mode@context-mode": true,
+    "kotlin-lsp@claude-plugins-official": true
   },
   "extraKnownMarketplaces": {
     "ast-index-marketplace": {
