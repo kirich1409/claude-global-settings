@@ -585,6 +585,12 @@
         "source": "github",
         "repo": "rcosteira79/android-skills"
       }
+    },
+    "koin-migration": {
+      "source": {
+        "source": "github",
+        "repo": "InsertKoinIO/koin-migration"
+      }
     }
   },
   "language": "Russian",
