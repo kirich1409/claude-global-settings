@@ -506,7 +506,6 @@
     "figma@claude-plugins-official": true,
     "ksrc@respawn-tools": true,
     "maven-mcp@krozov-ai-tools": true,
-    "kotlin-lsp@claude-plugins-official": true,
     "security-guidance@claude-plugins-official": true,
     "claude-code-setup@claude-plugins-official": true,
     "swift-lsp@claude-plugins-official": true,
@@ -525,7 +524,6 @@
     "code-review@claude-plugins-official": true,
     "pr-review-toolkit@claude-plugins-official": true,
     "ast-index@ast-index-marketplace": true,
-    "context-mode@context-mode": true,
     "developer-workflow-kotlin@krozov-ai-tools": true,
     "firebase@firebase": true
   },
