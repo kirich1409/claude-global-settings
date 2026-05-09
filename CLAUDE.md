@@ -110,8 +110,6 @@ Never add a new dependency without explicit user approval. Prefer what's already
 
 **Gradle / JVM:** avoid touching `.gradle` files/directories directly. Use `ksrc` to inspect dep source code (`ksrc --help`).
 
-**Dependency configuration (`api` vs `implementation`):** default to `implementation` — narrowest scope, dependency stays internal to the module and isn't exposed to consumers. Use `api` only when the dependency's types appear in the module's *public* surface (return types, public-API parameters, public class hierarchies, annotations on public symbols) and downstream modules genuinely need to reference those types directly. Picking `api` correctly avoids forcing every consumer module to redeclare the same dependency; picking it incorrectly leaks transitive deps and inflates rebuild graphs. Same priority rule as Kotlin visibility: narrowest first, widen only when there's a real need. Same goes for KMP source sets — `commonMain.dependencies { api(...) }` is the multiplatform equivalent.
-
 ## Android tooling
 
 For Android projects (or any Android-platform question), Google's `android` CLI is the primary tool — official docs search/fetch, project metadata, AVD/SDK management, device screen and layout capture, APK deploy. Detailed routing, fallbacks, and the no-auto-skill-install policy live in `rules/android-cli.md`.
