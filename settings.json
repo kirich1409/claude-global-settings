@@ -343,6 +343,7 @@
     ],
     "defaultMode": "auto"
   },
+  "model": "sonnet",
   "hooks": {
     "SessionStart": [
       {
@@ -602,7 +603,6 @@
     }
   },
   "alwaysThinkingEnabled": true,
-  "effortLevel": "high",
   "advisorModel": "opus",
   "showClearContextOnPlanAccept": true,
   "channelsEnabled": true,
