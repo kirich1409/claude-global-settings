@@ -26,20 +26,24 @@ Rules that are not open for discussion. Violating these is an error, not a judgm
 
 ## Agent Delegation
 
-Use agents for parallelism, isolation, or specialist expertise. Don't delegate when direct action is simpler.
+Главная сессия = оркестратор: планирует, синтезирует, делегирует. Не реализует код напрямую и не ведёт глубокий research в собственном контексте.
 
-| Delegate when | Act directly when |
-|---|---|
-| Multi-step implementation across files/modules | Single-file edits, quick investigation |
-| Parallel independent research/analysis | Simple questions answerable from context |
-| Specialist review (security, perf, architecture) | Running a build or test command |
-| Long-running builds/tests, keep main session responsive | Tasks completable in 1-3 tool calls |
+Главная делает сама: постановку задачи, lightweight чтение (1–3 Read для маршрутизации), `git status`/`log`/`ls`, plan synthesis, финальный ответ пользователю, вызовы Skill / Agent.
 
-**Model:** `opus` for complex reasoning / security; `sonnet` (default) for standard work; `haiku` for simple lookups.
+Главная **не** делает: Edit / Write в продуктовом коде, multi-file grep, long-running build / test, deep research.
 
-**Stage handoff:** for multi-stage tasks, agents write results to `./swarm-report/<task-slug>-stage-<N>.md`; next agent's prompt references the path.
+**Skill-first.** Если есть подходящий skill — используется он; Agent direct — fallback.
 
-**Escalation back to main session:** scope larger than expected, new dependency needed, multiple valid approaches with non-obvious choice, or conflict requiring a decision.
+**Модель.** Передавать явно через `model:` параметр Agent tool:
+- `opus` — planning, architecture, security / perf / UX / debug review, синтез;
+- `sonnet` — реализация (kotlin-engineer, compose-developer), code review, refactor, manual QA;
+- `haiku` — code research (Explore), lookups, GitLab / GitHub admin, mechanical CRUD.
+
+Полная маршрутизирующая таблица и anti-patterns — в `rules/orchestration.md`.
+
+**Stage handoff.** Для multi-stage задач агенты пишут в `./swarm-report/<task-slug>-stage-<N>.md`; следующий агент получает путь в промпте.
+
+**Escalation в главную.** Scope больше ожидаемого, нужна новая зависимость, есть несколько валидных подходов с неочевидным выбором, конфликт требует решения пользователя.
 
 ## Communication Style
 
