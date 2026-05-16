@@ -1,3 +1,10 @@
+---
+paths:
+  - "**/*.gradle.kts"
+  - "**/*.gradle"
+  - "**/libs.versions.toml"
+---
+
 # Gradle Build Script Rules
 
 Applies to Gradle build scripts only: `*.gradle.kts`, `*.gradle`, `settings.gradle*`, convention plugins under `build-logic/` and `buildSrc/`.
