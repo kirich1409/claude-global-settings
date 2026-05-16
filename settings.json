@@ -183,18 +183,20 @@
       "WebFetch(domain:expressjs.com)",
       "WebFetch(domain:platform.claude.com)",
       "mcp__google-dev-knowledge__search_documents",
-      "mcp__maven-tools__compare_dependency_versions",
       "mcp__deepwiki__read_wiki_contents",
       "mcp__deepwiki__read_wiki_structure",
-      "mcp__google-dev-knowledge__get_document",
-      "mcp__plugin_context-mode_context-mode__execute",
+      "mcp__google-dev-knowledge__get_documents",
+      "mcp__google-dev-knowledge__answer_query",
+      "mcp__plugin_context-mode_context-mode__ctx_execute",
+      "mcp__plugin_context-mode_context-mode__ctx_execute_file",
+      "mcp__plugin_context-mode_context-mode__ctx_batch_execute",
+      "mcp__plugin_context-mode_context-mode__ctx_search",
+      "mcp__plugin_context-mode_context-mode__ctx_fetch_and_index",
       "Bash(ast-index help:*)",
       "Bash(ast-index rebuild:*)",
       "Bash(python3:*)",
       "Bash(gh api:*)",
       "Bash(bash:*)",
-      "Bash(./gradlew :settings:app-settings:compileDebugKotlin:*)",
-      "WebFetch(domain:gitlab.alfabank.by)",
       "Bash(./gradlew:*)",
       "Skill(claude-md-management:revise-claude-md)",
       "mcp__mobile__screenshot",
@@ -203,17 +205,13 @@
       "mcp__mobile__install_app",
       "mcp__mobile__launch_app",
       "WebFetch(domain:formulae.brew.sh)",
-      "WebFetch(domain:eu-central-1-1.aws.cloud2.influxdata.com)",
-      "WebFetch(domain:nexus.alfabank.by)",
       "Bash(grep:*)",
-      "Bash(grep AlfaTheme:*)",
       "Bash(unzip:*)",
       "Bash(jar tf:*)",
       "Bash(git checkout:*)",
       "Bash(git worktree:*)",
       "Bash(git commit:*)",
-      "Bash(find:*)",
-      "mcp__plugin_greptile_greptile__list_merge_requests"
+      "Bash(find:*)"
     ],
     "deny": [
       "Read(./.env)",
@@ -474,28 +472,6 @@
           }
         ]
       }
-    ],
-    "PostToolUseFailure": [
-      {
-        "matcher": "*",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "[ -n \"$SUPERSET_HOME_DIR\" ] && [ -x \"$SUPERSET_HOME_DIR/hooks/notify.sh\" ] && \"$SUPERSET_HOME_DIR/hooks/notify.sh\" || true"
-          }
-        ]
-      }
-    ],
-    "PermissionRequest": [
-      {
-        "matcher": "*",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "[ -n \"$SUPERSET_HOME_DIR\" ] && [ -x \"$SUPERSET_HOME_DIR/hooks/notify.sh\" ] && \"$SUPERSET_HOME_DIR/hooks/notify.sh\" || true"
-          }
-        ]
-      }
     ]
   },
   "statusLine": {
@@ -556,49 +532,74 @@
         "repo": "respawn-app/claude-plugin-marketplace"
       }
     },
-    "anthropic-agent-skills": {
-      "source": {
-        "source": "github",
-        "repo": "anthropics/skills"
-      }
-    },
-    "perplexity-mcp-server": {
-      "source": {
-        "source": "github",
-        "repo": "perplexityai/modelcontextprotocol"
-      }
-    },
-    "caveman": {
-      "source": {
-        "source": "github",
-        "repo": "JuliusBrussee/caveman"
-      }
-    },
     "context-mode": {
       "source": {
         "source": "github",
         "repo": "mksglu/context-mode"
       },
       "autoUpdate": true
-    },
-    "android-skills": {
-      "source": {
-        "source": "github",
-        "repo": "rcosteira79/android-skills"
-      }
-    },
-    "koin-migration": {
-      "source": {
-        "source": "github",
-        "repo": "InsertKoinIO/koin-migration"
-      }
     }
   },
   "language": "Russian",
   "sandbox": {
     "network": {
       "allowedDomains": [
-        "*"
+        "anthropic.com",
+        "api.anthropic.com",
+        "claude.ai",
+        "platform.claude.com",
+        "github.com",
+        "api.github.com",
+        "raw.githubusercontent.com",
+        "objects.githubusercontent.com",
+        "codeload.github.com",
+        "gist.github.com",
+        "gitlab.com",
+        "registry.npmjs.org",
+        "npmjs.com",
+        "pypi.org",
+        "files.pythonhosted.org",
+        "crates.io",
+        "index.crates.io",
+        "static.crates.io",
+        "proxy.golang.org",
+        "sum.golang.org",
+        "go.dev",
+        "rubygems.org",
+        "repo1.maven.org",
+        "repo.maven.apache.org",
+        "central.sonatype.org",
+        "oss.sonatype.org",
+        "jitpack.io",
+        "dl.google.com",
+        "maven.google.com",
+        "registry-1.docker.io",
+        "auth.docker.io",
+        "hub.docker.com",
+        "formulae.brew.sh",
+        "developer.android.com",
+        "d.android.com",
+        "android.com",
+        "source.android.com",
+        "cs.android.com",
+        "developer.apple.com",
+        "swift.org",
+        "kotlinlang.org",
+        "jetbrains.com",
+        "gradle.org",
+        "services.gradle.org",
+        "plugins.gradle.org",
+        "docs.gradle.org",
+        "stackoverflow.com",
+        "docs.oracle.com",
+        "spring.io",
+        "react.dev",
+        "vuejs.org",
+        "flutter.dev",
+        "dart.dev",
+        "pub.dev",
+        "rust-lang.org",
+        "docs.rs"
       ]
     }
   },
