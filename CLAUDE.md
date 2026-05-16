@@ -264,6 +264,7 @@ Never silently pick an approach when alternatives exist.
 - **Branch naming:** `feature/...`, `fix/...`, `chore/...` — kebab-case, English.
 - **Force push:** plain `--force` is denied. Use `--force-with-lease` or `--force-if-includes` (require confirmation but allowed).
 - **Git hooks:** never bypass (`--no-verify`, `--no-gpg-sign`, etc.) without explicit user instruction. Hook fail → investigate root cause.
+- **Checkpoint before large refactors.** Before letting an agent touch multiple files, rewrite a function/module, or run any multi-step transformation — first commit a checkpoint: `git add -A && git commit -m "checkpoint: <what's about to change>"`. If the agent makes a mess, recovery is `Esc Esc` in the Claude Code prompt (undo recent edits) or `git reset --hard HEAD` (drop everything since the checkpoint). Goal: never more than 10 seconds away from a working state.
 - **Local verification before push:** push only what passes the checks relevant to what changed (build changed → build; tests changed → tests; lint config changed → lint; build system changed → release build). Draft status is not an excuse. The only acceptable reason to skip a check is explicit awareness that it's incomplete work.
 - **Stale gone branches:** `commit-commands:clean_gone` skill cleans up local branches whose remotes are gone.
 
