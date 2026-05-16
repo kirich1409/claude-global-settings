@@ -12,12 +12,25 @@ Does NOT implement, deep-research, or run long commands directly.
 - Финальный синтез результатов и ответ пользователю.
 - Skill / Agent invocation с правильной моделью.
 
-## What main session never does
+## What main session is forbidden from doing
 
-- Edit / Write в файлы продукта (исключение: правка plan-file в plan mode, сами `~/.claude` rules/configs).
-- Multi-file grep / deep code search → Explore.
-- Long-running build / test / CI команды → general-purpose.
-- Deep dive по неизвестному модулю → Explore + при необходимости architecture-expert.
+Это hard-rules, а не guidance. Нарушение = ошибка (см. `CLAUDE.md § Non-negotiables`).
+
+- **Запрещено** Edit / Write в файлы продукта. Исключения: правка plan-file в plan mode, сами `~/.claude` rules/configs/hooks.
+- **Запрещено** multi-file grep / deep code search → Explore (haiku).
+- **Запрещено** запускать long-running build / test / CI в собственном контексте → general-purpose в background.
+- **Запрещено** deep dive по неизвестному модулю → Explore + при необходимости architecture-expert.
+- **Запрещено** review задач (security / performance / UX / code review) в главной → соответствующий expert-агент.
+
+### STOP-чек перед инструментом
+
+Перед каждым вызовом `Edit` / `Write` / `Grep` / `Glob` / `Bash` (если не тривиальный shell для ориентации) — **STOP** и ответить:
+
+1. Это `~/.claude/**` или plan-file? → можно из главной.
+2. Это lightweight Read (1–3 файла для маршрутизации) или `git status`/`log`/`ls`? → можно из главной.
+3. Иначе → выбрать агента из routing matrix и делегировать. **Никаких исключений «just one quick edit».**
+
+Если в текущей задаче нужно сделать сразу N мелких правок продуктового кода — это не «много мелких из главной», а одна задача для специалиста.
 
 ## Skill-first
 
@@ -76,7 +89,10 @@ Does NOT implement, deep-research, or run long commands directly.
 
 - Запустить grep по 200+ файлов из главной (вместо Explore).
 - Сделать Edit в feature-коде из главной (вместо kotlin-engineer / compose-developer).
+- Сделать «всего один маленький Edit» в продуктовом файле из главной — не существует «маленьких» Edit'ов в продакшн-коде; всё уходит специалисту.
 - Запустить `./gradlew build` напрямую и ждать в контексте главной (вместо general-purpose в background).
 - Дать агенту модель по дефолту «inherit» без явного выбора — теряется экономия Haiku / Sonnet.
 - Делегировать planning — теряется синтетическая сила главной.
 - Игнорировать существующий skill в пользу прямого Agent.
+- Пропустить STOP-чек перед `Edit`/`Write`/`Grep`/`Glob`/нетривиальным `Bash` и сразу вызвать инструмент.
+- Делать review (security / performance / code review) в главной вместо expert-агента.
