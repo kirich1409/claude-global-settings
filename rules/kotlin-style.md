@@ -1,3 +1,9 @@
+---
+paths:
+  - "**/*.kt"
+  - "**/*.kts"
+---
+
 # Kotlin Code Style Rules
 
 Applies to `.kt` and `.kts` files only.
