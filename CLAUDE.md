@@ -116,6 +116,18 @@ Never add a new dependency without explicit user approval. Prefer what's already
 
 **Gradle / JVM:** avoid touching `.gradle` files/directories directly. Use `ksrc` to inspect dep source code (`ksrc --help`).
 
+### Adding or upgrading a dependency — mandatory checks
+
+When adding a **new** dependency or **bumping** an existing one (Maven / Gradle), run both checks before the version lands in code. Skipping either is an error.
+
+1. **Freshness.** Resolve the latest stable release via `maven-mcp:latest-version` (or `maven-mcp:check-deps` when scanning the whole project). Never pin to a stale version "because it was in the snippet". If the latest is a pre-release/RC and stable is older — pick stable and note the gap.
+2. **Vulnerabilities.** Run `maven-mcp:check-deps-vulnerabilities` against the chosen `groupId:artifactId:version` (or the updated build file). Any CVE / GHSA hit → stop, report severity + advisory ID + fixed-in version to the user, do not commit. If no fixed version is available, surface the trade-off and wait for the user's call.
+3. **Upgrade diff (when bumping).** For a major-version or risky bump, run `maven-mcp:dependency-changes <old> <new>` and surface breaking changes / migration notes before applying.
+
+If the dependency is not on Maven Central (npm, PyPI, cargo, SwiftPM, etc.) — `maven-mcp` does not apply. State that explicitly and fall back to the ecosystem's own scanner (`npm audit`, `pip-audit`, `cargo audit`, etc.) plus a freshness check via the registry. Do not silently skip the checks just because `maven-mcp` is the wrong tool.
+
+Output expected from the main session before the edit: one line "latest stable: X.Y.Z, no advisories" or "latest stable: X.Y.Z, CVE-… severity HIGH — proposing N.M.K instead / asking user". No edit to `libs.versions.toml` / `build.gradle*` / `pom.xml` until this line exists in the transcript.
+
 ## Android tooling
 
 For Android projects (or any Android-platform question), Google's `android` CLI is the primary tool — official docs search/fetch, project metadata, AVD/SDK management, device screen and layout capture, APK deploy. Detailed routing, fallbacks, and the no-auto-skill-install policy live in `rules/android-cli.md`.
