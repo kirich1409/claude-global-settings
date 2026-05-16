@@ -17,6 +17,12 @@ except Exception:
     print('')
 " 2>/dev/null)
 
+# Skip global scratch dir — see ~/.claude/CLAUDE.md § Context compaction resilience.
+# Hardcoded to bypass git/.gitignore checks that fail when hook cwd is unrelated to target repo.
+case "$FILE_PATH" in
+    */swarm-report/*|swarm-report/*) exit 0 ;;
+esac
+
 # Determine the directory to check
 if [ -n "$FILE_PATH" ] && [ -e "$(dirname "$FILE_PATH")" ]; then
     CHECK_DIR="$(dirname "$FILE_PATH")"
@@ -26,7 +32,7 @@ fi
 
 # Skip for ~/.claude config repo — always works on main
 GIT_ROOT=$(git -C "$CHECK_DIR" rev-parse --show-toplevel 2>/dev/null)
-if [ "$GIT_ROOT" = "$HOME/.claude" ]; then
+if [ -n "$GIT_ROOT" ] && [ "$(cd "$GIT_ROOT" 2>/dev/null && pwd -P)" = "$(cd "$HOME/.claude" 2>/dev/null && pwd -P)" ]; then
     exit 0
 fi
 
@@ -43,8 +49,8 @@ fi
 
 # Warn on protected branches
 if [ "$BRANCH" = "main" ] || [ "$BRANCH" = "master" ] || [ "$BRANCH" = "develop" ] || [ "$BRANCH" = "dev" ] || [ "$BRANCH" = "development" ]; then
-    echo "BRANCH: You are on the '$BRANCH' branch. You usually work in a separate feature branch."
-    echo "Please confirm this is intentional before proceeding."
+    echo "BRANCH: You are on the '$BRANCH' branch. You usually work in a separate feature branch." >&2
+    echo "Please confirm this is intentional before proceeding." >&2
     exit 2
 fi
 
