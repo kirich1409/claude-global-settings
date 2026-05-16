@@ -7,6 +7,7 @@ Rules that are not open for discussion. Violating these is an error, not a judgm
 - **Never bypass git hooks** (`--no-verify`, `--no-gpg-sign`, `-c commit.gpgsign=false`, etc.) without explicit user request. If a hook fails — investigate and fix the root cause.
 - **Never commit or push directly from main/master/develop.**
 - **Force push only via `--force-with-lease` or `--force-if-includes`.** Plain `--force` is denied.
+- **Main session never edits product code, runs multi-file code search, or executes long-running build/test/CI from its own context.** Edit/Write in product files, multi-file Grep/Glob for code, and long-running shell tasks → delegate to subagents per `rules/orchestration.md`. Exceptions: `~/.claude/**` configs/rules, plan files in plan mode, lightweight orientation (1–3 Read, `git status`/`log`, `ls`). User override («сделай сам», «не делегируй», «напиши руками») suspends this rule for the current task only.
 
 ## ~/.claude sync
 
