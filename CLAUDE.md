@@ -7,7 +7,7 @@ Rules that are not open for discussion. Violating these is an error, not a judgm
 - **Never bypass git hooks** (`--no-verify`, `--no-gpg-sign`, `-c commit.gpgsign=false`, etc.) without explicit user request. If a hook fails — investigate and fix the root cause.
 - **Never commit or push directly from main/master/develop.**
 - **Force push only via `--force-with-lease` or `--force-if-includes`.** Plain `--force` is denied.
-- **Main session never edits product code, runs multi-file code search, or executes long-running build/test/CI from its own context.** Edit/Write in product files, multi-file Grep/Glob for code, and long-running shell tasks → delegate to subagents per `rules/orchestration.md`. Exceptions: `~/.claude/**` configs/rules, plan files in plan mode, lightweight orientation (1–3 Read, `git status`/`log`, `ls`). User override («сделай сам», «не делегируй», «напиши руками») suspends this rule for the current task only.
+- **Main session never edits the project's product code, never runs heavy/multi-file code search, and never executes long-running build/test/CI in its own context.** The line: the main session synthesizes and orchestrates; specialists implement. Edit/Write in process working files (`swarm-report/**`, state/report/debug/e2e/plan files, `~/.claude/**` configs/rules/hooks/notes) — **allowed**. Edit/Write in project files (production source, project configs, project tests) — **subagent only**. Orientation-level research/Read is allowed; heavy multi-file Grep/Glob across the production codebase → Explore. A user override ("do it yourself", "don't delegate", "write it by hand") suspends this rule for the current task only. See `rules/orchestration.md` for the full matrix.
 
 ## ~/.claude sync
 
