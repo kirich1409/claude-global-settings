@@ -90,6 +90,18 @@ The model is passed explicitly via the Agent tool's `model:` parameter.
 
 When the choice between two adjacent models is unclear — pick the **smaller** one. Bump to the larger model on the first failure or poor-quality result.
 
+## Effort level
+
+`/effort` sets how hard the main session thinks. Per-session and persisted across restarts; subagents do **not** inherit it. Opus 4.7 levels: `low | medium | high | xhigh | max`.
+
+- `xhigh` / `max` — planning, architecture, security review, debugging root cause, ambiguous trade-offs.
+- `high` / `medium` — day-to-day orchestration and routing.
+- `low` — narrow targeted edits, mechanical refactors, doc fixes, simple navigation. Reasoning bumps amplify «over-editing» (the model rewrites more than the bug needs); on small fixes a lower level yields a cleaner diff and is often faster.
+
+Persist non-default values via `~/.claude/settings.json: "effortLevel"` or env `CLAUDE_CODE_EFFORT_LEVEL` (env wins). `max` does not persist across sessions — set it explicitly each time.
+
+**Subagent invocations.** Subagents do not inherit the main session's effort. Always pass an explicit `model:` via the Agent tool. Where the agent definition or invocation also exposes an effort parameter — pass it explicitly, matched to task complexity (planning / architecture → `xhigh`+; implementation / review → `medium` / `high`; mechanical lookups → `low`). When the parameter is not exposed — note it, do not assume the parent's level carried over.
+
 ## Plan mode compatibility
 
 In plan mode the harness restricts the available agents to Explore (Phase 1) and Plan (Phase 2). The routing above is compatible: Explore defaults to haiku; Plan defaults to opus. These orchestration rules apply after `ExitPlanMode`.
