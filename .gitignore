@@ -38,3 +38,4 @@ mcp-needs-auth-cache.json
 credentials.md
 *.jsonl
 *.remote
+swarm-report/
