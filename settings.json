@@ -505,7 +505,8 @@
     "developer-workflow-kotlin@krozov-ai-tools": true,
     "firebase@firebase": true,
     "context-mode@context-mode": true,
-    "kotlin-lsp@claude-plugins-official": true
+    "kotlin-lsp@claude-plugins-official": true,
+    "lazyweb@lazyweb": true
   },
   "extraKnownMarketplaces": {
     "ast-index-marketplace": {
@@ -539,6 +540,12 @@
         "repo": "mksglu/context-mode"
       },
       "autoUpdate": true
+    },
+    "lazyweb": {
+      "source": {
+        "source": "git",
+        "url": "https://github.com/aboul3ata/lazyweb-skill.git"
+      }
     }
   },
   "language": "Russian",
