@@ -36,6 +36,12 @@ if [ -n "$GIT_ROOT" ] && [ "$(cd "$GIT_ROOT" 2>/dev/null && pwd -P)" = "$(cd "$H
     exit 0
 fi
 
+# Skip for GitHub Wiki repos — they always use master and cannot have feature branches
+REMOTE_URL=$(git -C "$CHECK_DIR" remote get-url origin 2>/dev/null)
+if [[ "$REMOTE_URL" == *.wiki.git ]]; then
+    exit 0
+fi
+
 # Check if we're in a git repo
 BRANCH=$(git -C "$CHECK_DIR" branch --show-current 2>/dev/null)
 if [ $? -ne 0 ]; then
