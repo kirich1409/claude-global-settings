@@ -322,15 +322,7 @@
       "Bash(gh repo delete *)",
       "Bash(gh ssh-key delete *)",
       "Bash(gh gpg-key delete *)",
-      "Bash(gh auth logout *)",
-      "Bash(adb uninstall *)",
-      "Bash(adb shell pm uninstall *)",
-      "Bash(adb shell pm clear *)",
-      "Bash(adb shell rm *)",
-      "Bash(adb shell sqlite3 *)",
-      "Bash(adb disable-verity *)",
-      "Bash(adb root)",
-      "Bash(adb unroot)"
+      "Bash(gh auth logout *)"
     ],
     "ask": [
       "Bash(rm -rf *)",
@@ -368,7 +360,15 @@
       "Bash(adb install-multiple *)",
       "Bash(adb reboot *)",
       "Bash(adb emu kill)",
-      "Bash(adb shell svc *)"
+      "Bash(adb shell svc *)",
+      "Bash(adb uninstall *)",
+      "Bash(adb shell pm uninstall *)",
+      "Bash(adb shell pm clear *)",
+      "Bash(adb shell rm *)",
+      "Bash(adb shell sqlite3 *)",
+      "Bash(adb disable-verity *)",
+      "Bash(adb root)",
+      "Bash(adb unroot)"
     ],
     "defaultMode": "auto"
   },
