@@ -21,6 +21,7 @@
       "Read(~/.gradle/**)",
       "Bash(ast-index:*)",
       "Bash(command:adb)",
+      "Bash(command:rtk)",
       "Bash(command:gradle)",
       "Bash(command:./gradlew)",
       "Bash(command:gradlew)",
