@@ -534,9 +534,9 @@
     "ast-index@ast-index-marketplace": true,
     "developer-workflow-kotlin@krozov-ai-tools": true,
     "firebase@firebase": true,
-    "context-mode@context-mode": true,
     "kotlin-lsp@claude-plugins-official": true,
-    "lazyweb@lazyweb": true
+    "lazyweb@lazyweb": true,
+    "context-mode@context-mode": true
   },
   "extraKnownMarketplaces": {
     "ast-index-marketplace": {
