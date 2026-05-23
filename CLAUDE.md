@@ -68,6 +68,8 @@ Rules that are not open for discussion. Violating these is an error, not a judgm
 
 The `developer-workflow` plugin family is a toolbox of on-demand skills, not a forced pipeline. Pick what the task needs; let plan mode drive sequencing.
 
+**Mandatory quality gate:** `/finalize` is required after every implementation where code was written — before declaring the task done. It iterates until no findings above Minor severity remain, or exits with ESCALATE requiring a user decision. Exceptions: pure documentation edits, config-only changes with no logic, single-line mechanical changes with an obvious result.
+
 For non-trivial features:
 1. Plan mode → optional `/multiexpert-review` for high-risk plans, optional `/write-spec` when the change is too big to hold in head.
 2. Implement on a feature branch in a worktree. Open draft PR early via `/create-pr --draft`.
@@ -159,7 +161,23 @@ For Android projects (or any Android-platform question), Google's `android` CLI 
 
 ## Testing
 
-Write tests only when explicitly asked. Do not add tests proactively or offer to write them unprompted.
+For every task that modifies code, a testing strategy must be defined during planning. The strategy is mandatory — the only way to skip testing is to provide strong justification (e.g. "only documentation was changed, no code modified", "variable renamed inside a test file, no behavior change"). Weak reasons ("the task is simple", "it's obvious", "quick fix") are not accepted.
+
+### Testing verification pyramid
+
+**Build gate (prerequisite):** The project must compile before any testing. If it doesn't build, nothing else is verified.
+
+**Pyramid levels — strictly sequential. Each level requires the previous to pass before proceeding:**
+
+- **L1 — Static analysis:** lint, type check, code review, dependency audit. Always applied.
+- **L2 — Unit tests:** fast, no device required, pure logic.
+- **L3 — UI tests:** require emulator/device, automated.
+- **L4 — E2E tests:** full automated flow, the most expensive among automated options.
+- **L5 — Manual verification:** mobile MCP / `manual-tester` — real interaction with the running app, like a human tester.
+
+**Principle:** always cover with the lowest sufficient level. Move up only with explicit justification. L1 is always applied; the strategy defines how high to go.
+
+**L5 is mandatory for:** library version bumps, technology/framework migrations, infrastructure layer changes (network, storage, auth, DI), and any task claimed to "not affect behavior" — precisely these require runtime confirmation that behavior is unchanged, not just trust.
 
 Detailed rules — public-API coverage gate, P0–P3 priority framework, non-UI lightweight test plans, author-fixes-broken-tests rule, infrastructure detection markers — live in `rules/qa-and-testing.md`.
 
@@ -303,6 +321,7 @@ Never silently pick an approach when alternatives exist.
 - **Git hooks:** never bypass (`--no-verify`, `--no-gpg-sign`, etc.) without explicit user instruction. Hook fail → investigate root cause.
 - **Checkpoint before large refactors.** Before letting an agent touch multiple files, rewrite a function/module, or run any multi-step transformation — first commit a checkpoint: `git add -A && git commit -m "checkpoint: <what's about to change>"`. If the agent makes a mess, recovery is `Esc Esc` in the Claude Code prompt (undo recent edits) or `git reset --hard HEAD` (drop everything since the checkpoint). Goal: never more than 10 seconds away from a working state.
 - **Local verification before push:** push only what passes the checks relevant to what changed (build changed → build; tests changed → tests; lint config changed → lint; build system changed → release build). Draft status is not an excuse. The only acceptable reason to skip a check is explicit awareness that it's incomplete work.
+- **Feature branch push without confirmation:** when working on a dedicated `feature/`, `fix/`, or `chore/` branch (not main/master/develop) — branch creation, commits at each stage, and push to remote are routine operations and do not require confirmation. Confirmation is still required for: force push (even `--force-with-lease`), PR creation/promotion, merge into the default branch.
 - **Stale gone branches:** `commit-commands:clean_gone` skill cleans up local branches whose remotes are gone.
 
 ### Worktree cleanup prompts

@@ -2,6 +2,28 @@
 
 Project-wide rules for testing decisions. Applies to all projects regardless of stack.
 
+## 0. Mandatory testing strategy
+
+For every task that modifies code, a testing strategy is defined during planning. It specifies what pyramid levels are applied and what tools are used. Skipping requires a strong justification (e.g. "no code modified, only markdown"). Weak justifications ("simple", "quick fix", "obvious") are not accepted.
+
+### Verification pyramid
+
+**Build gate (prerequisite):** the project must compile before any other verification.
+
+**Pyramid levels — strictly sequential. Each level requires the previous to pass:**
+
+| Level | Name | Description |
+|---|---|---|
+| L1 | Static analysis | lint, type check, code review, dependency audit. Always applied. |
+| L2 | Unit tests | fast, no device, pure logic |
+| L3 | UI tests | automated, require emulator/device |
+| L4 | E2E tests | full automated flow |
+| L5 | Manual verification | mobile MCP / `manual-tester`, real interaction with the running app |
+
+Strategy always starts at L1. Moving up requires justification.
+
+**L5 is mandatory for:** library version bumps (even patch), technology or framework migrations, infrastructure layer changes (network, storage, auth, DI), and any task described as "shouldn't affect behavior" — the claim must be verified at runtime, not assumed.
+
 ## 1. Public-API coverage gate
 
 When code modifies a public symbol, a test must exercise it. "Public" means: Kotlin without `@internal`/`private`, Swift `public`/`open`, TypeScript `export`. Every other definition is internal until proven otherwise.
