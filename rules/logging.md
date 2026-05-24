@@ -1,5 +1,35 @@
 # Logging
 
+## Scope
+
+Applies to **application and library source code** in mainstream coding languages:
+
+| Stack | Extensions |
+|---|---|
+| Kotlin / Java / Android / KMP | `.kt`, `.java` |
+| Swift / Objective-C / iOS | `.swift`, `.m`, `.mm` |
+| JavaScript / TypeScript | `.js`, `.jsx`, `.ts`, `.tsx` |
+| Python | `.py` (modules, not throwaway scripts) |
+| Go | `.go` |
+| Rust | `.rs` |
+| C# | `.cs` |
+| C / C++ | `.c`, `.cc`, `.cpp`, `.h`, `.hpp` |
+| Ruby | `.rb` |
+| PHP | `.php` |
+
+Does **not** apply to:
+
+- Documentation, configs, schemas — `.md`, `.rst`, `.txt`, `.json`, `.yaml`/`.yml`, `.toml`, `.xml`, `.properties`, `.ini`, `.env*`, `.sql`.
+- Build scripts treated as configuration — `build.gradle*`, `settings.gradle*`, `*.gradle.kts` (when used purely declaratively), `Cargo.toml`, `package.json`, `pyproject.toml`, `Podfile`, `Makefile`, `CMakeLists.txt`.
+- Shell / batch scripts — `.sh`, `.bash`, `.zsh`, `.fish`, `.ps1`, `.bat`. `echo` / `printf` are the native output mechanism — using them is correct, not a violation.
+- One-off CLI scripts where `print` *is* the user-facing output (small Python utility, a node `bin/` entry, a Go `cmd/` with no library reuse). The `println` ban targets diagnostic logging inside reusable code, not user-facing output.
+- Generated code (`build/generated/**`, `*.g.kt`, `*.pb.go`, etc.).
+- Test fixtures and sample data files.
+
+Inside in-scope files, **every** rule below applies. Outside scope — the rule is silent.
+
+## Two modes
+
 Two modes of logging coexist in the codebase and must not be mixed up:
 
 - **Permanent logs** — part of the product, ship to production, help debug live incidents.
