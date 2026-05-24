@@ -70,14 +70,18 @@ The `developer-workflow` plugin family is a toolbox of on-demand skills, not a f
 
 **Mandatory quality gate:** `/finalize` is required after every implementation where code was written — before declaring the task done. It iterates until no findings above Minor severity remain, or exits with ESCALATE requiring a user decision. Exceptions: pure documentation edits, config-only changes with no logic, single-line mechanical changes with an obvious result.
 
+**Mandatory acceptance gate:** `/acceptance` runs after `/finalize` — before PR promotion. Verifies the implementation against the source of truth (spec, test plan, design, or behavioral baseline) and runs runtime checks including `manual-tester` for UI surfaces. Same exceptions as `/finalize`.
+
+**PR promotion gate:** `/create-pr --promote` (draft → ready for review) requires explicit user confirmation. Opening a draft PR is routine; promotion signals the task is complete and makes it visible to reviewers — that is a shared-state action.
+
 For non-trivial features:
-1. Plan mode → optional `/multiexpert-review` for high-risk plans, optional `/write-spec` when the change is too big to hold in head.
+1. Plan mode → identify verification source of truth (spec, Figma, AC list, or behavioral baseline for migrations) → optional `/multiexpert-review` for high-risk plans, optional `/write-spec` when the change is too big to hold in head.
 2. Implement on a feature branch in a worktree. Open draft PR early via `/create-pr --draft`.
-3. `/check` → `/finalize` → `/create-pr --promote` → `/drive-to-merge`.
+3. `/check` → `/finalize` → `/acceptance` → `/create-pr --promote` (user confirmation required) → `/drive-to-merge`.
 
 For bug fixes:
-1. Plan mode (debug + fix in the plan).
-2. Implement → optional `/write-tests` for regression → `/check` → `/finalize` → PR.
+1. Plan mode (debug + fix in the plan). Capture reproduction steps in `swarm-report/<slug>-debug.md` — this is the source of truth for `/acceptance`.
+2. Implement → optional `/write-tests` for regression → `/check` → `/finalize` → `/acceptance` → PR.
 
 For exploratory QA without a spec — call the `manual-tester` agent directly via the Task tool (no skill needed).
 
@@ -178,6 +182,8 @@ For every task that modifies code, a testing strategy must be defined during pla
 **Principle:** always cover with the lowest sufficient level. Move up only with explicit justification. L1 is always applied; the strategy defines how high to go.
 
 **L5 is mandatory for:** library version bumps, technology/framework migrations, infrastructure layer changes (network, storage, auth, DI), and any task claimed to "not affect behavior" — precisely these require runtime confirmation that behavior is unchanged, not just trust.
+
+**Verification source of truth:** identifying the source of truth is a mandatory output of the planning stage — before implementation begins, not discovered missing at acceptance time. For migrations and "shouldn't affect behavior" tasks — capture the before-state (screenshots, behavioral flows, E2E scenario snapshot) before making any changes; this becomes the comparison baseline. Taxonomy of valid sources and the absent-source justification requirement — in `rules/qa-and-testing.md` § 6.
 
 Detailed rules — public-API coverage gate, P0–P3 priority framework, non-UI lightweight test plans, author-fixes-broken-tests rule, infrastructure detection markers — live in `rules/qa-and-testing.md`.
 
@@ -321,7 +327,7 @@ Never silently pick an approach when alternatives exist.
 - **Git hooks:** never bypass (`--no-verify`, `--no-gpg-sign`, etc.) without explicit user instruction. Hook fail → investigate root cause.
 - **Checkpoint before large refactors.** Before letting an agent touch multiple files, rewrite a function/module, or run any multi-step transformation — first commit a checkpoint: `git add -A && git commit -m "checkpoint: <what's about to change>"`. If the agent makes a mess, recovery is `Esc Esc` in the Claude Code prompt (undo recent edits) or `git reset --hard HEAD` (drop everything since the checkpoint). Goal: never more than 10 seconds away from a working state.
 - **Local verification before push:** push only what passes the checks relevant to what changed (build changed → build; tests changed → tests; lint config changed → lint; build system changed → release build). Draft status is not an excuse. The only acceptable reason to skip a check is explicit awareness that it's incomplete work.
-- **Feature branch push without confirmation:** when working on a dedicated `feature/`, `fix/`, or `chore/` branch (not main/master/develop) — branch creation, commits at each stage, and push to remote are routine operations and do not require confirmation. Confirmation is still required for: force push (even `--force-with-lease`), PR creation/promotion, merge into the default branch.
+- **Feature branch push without confirmation:** when working on a dedicated `feature/`, `fix/`, or `chore/` branch (not main/master/develop) — branch creation, commits at each stage, push to remote, and opening a draft PR are routine operations and do not require confirmation. Confirmation is still required for: force push (even `--force-with-lease`), PR promotion (draft → ready for review), merge into the default branch.
 - **Stale gone branches:** `commit-commands:clean_gone` skill cleans up local branches whose remotes are gone.
 
 ### Worktree cleanup prompts

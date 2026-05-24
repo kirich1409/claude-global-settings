@@ -90,3 +90,38 @@ Detect the test runner from these marker files at repo root, in priority order:
 - Xcode — never guess the scheme; if no `.xcscheme` is conventional, ask.
 - Python — derive runner config; do not invent flags.
 - Multiple markers in same repo (monorepo) — pick the one that owns the changed files; ask if ambiguous.
+
+## 6. Verification source of truth
+
+Identifying the source of truth is a mandatory output of the planning stage — before implementation begins, not discovered missing at acceptance time. It defines what "done" means and is the contract against which `/acceptance` verifies the result.
+
+### Valid source types
+
+| Type | Use when | Artifact |
+|---|---|---|
+| Task / requirements | User provided explicit AC or a clear task description | Plan-mode notes or AC list in spec |
+| Spec | Feature is too large to hold in head; ACs must be traceable | `/write-spec` → `docs/specs/<slug>-spec.md` |
+| Test plan | Executable test cases needed for structured QA | `/generate-test-plan` → `docs/testplans/<slug>-test-plan.md` |
+| Design mockups | UI/UX task with visual acceptance criteria | Figma link in spec frontmatter `design.figma`, or attached screenshots |
+| Debug artifact | Bug-fix task only — reproduction steps serve as the verification contract | `swarm-report/<slug>-debug.md` |
+| Behavioral baseline | Migration or "should not affect behavior" task | Captured before implementation; see below |
+
+### Behavioral baseline for migrations
+
+When a task is described as "should not affect behavior", "migrate without breaking", or "preserve existing behavior" — the before-state IS the source of truth. Capture it before making any changes:
+
+1. Record the current behavior: screenshots, `manual-tester` exploration session, or an `e2e-scenario.md` snapshot.
+2. Save to `swarm-report/<slug>-baseline.md` (screenshots attached or referenced).
+3. After migration, `/acceptance` verifies the after-state matches the baseline 1:1.
+
+Skipping baseline capture means there is no evidence behavior was preserved — "it should be fine" is not a source of truth.
+
+### Absent source of truth
+
+If no source of truth exists and creating one is not feasible, document explicitly in the plan:
+
+- What was the intended behavior (one paragraph).
+- Why a formal source cannot be created.
+- What proxy will be used (e.g. manual walkthrough against the task description).
+
+`/acceptance` Step 1.5 blocks automatically when no source is found and proposes the correct upstream skill. The absence justification provides the proxy input that allows acceptance to proceed; it does not bypass the gate.
