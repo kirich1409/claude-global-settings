@@ -537,7 +537,8 @@
     "firebase@firebase": true,
     "kotlin-lsp@claude-plugins-official": true,
     "lazyweb@lazyweb": true,
-    "context-mode@context-mode": true
+    "context-mode@context-mode": true,
+    "kotlin-agent-skills@Kotlin": true
   },
   "extraKnownMarketplaces": {
     "ast-index-marketplace": {
@@ -576,6 +577,12 @@
       "source": {
         "source": "git",
         "url": "https://github.com/aboul3ata/lazyweb-skill.git"
+      }
+    },
+    "Kotlin": {
+      "source": {
+        "source": "github",
+        "repo": "Kotlin/kotlin-agent-skills"
       }
     }
   },

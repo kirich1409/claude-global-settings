@@ -8,6 +8,7 @@
 | `ksrc` | Reading JVM/Gradle dep sources | Project-internal code |
 | DeepWiki | Specific *public* GitHub repo, arch/behavior/docs level | Current project, non-GitHub, general concepts. Verify the repo is on public GitHub before trying. |
 | Context7 | Published library/framework docs (React, Spring, Ktor…), current API/migration | Project code, debugging your own code, libraries you haven't `resolve-library-id`'d (one fail → stop, don't chase synonyms) |
+| `~/.android/cli/skills/**/SKILL.md` | Bundled Android CLI skills (Google, курируемые) — structured workflows: миграции (CameraX, Navigation 3, XML→Compose, AGP 9, PBL), узкие области (Wear M3, XR Glimmer, edge-to-edge, Compose adaptive/styles, R8, Perfetto, testing-setup, AppFunctions, Engage SDK). Discovery: `android skills find <keyword>` → `Read` нужный `SKILL.md`. См. `rules/android-cli.md` | API truth для библиотек; не-Android задачи |
 | `WebSearch` / `WebFetch` | Default for everything else not covered above | — |
 | Raw README via `raw.githubusercontent.com` | Last-resort for a specific repo | — |
 | Perplexity MCP | Only when user explicitly asks ("через perplexity") or research stage in dev-workflow | Default web research |
@@ -44,8 +45,8 @@ Never fetch rendered GitHub pages (`https://github.com/...`) with WebFetch — H
 
 **Android (Jetpack / Compose / AGP / SDK / Play / KTX):**
 - API truth: `ksrc` + `android docs search` — параллельно. `ksrc` показывает реальный API из jar, `android docs` подтверждает текущую рекомендованную форму. Не «или/или».
-- Guides: `android docs search` — primary. Триггер: «как», «какой подход», «migration», «best practice», незнакомый компонент.
-- Fallback (только если оба молчат): Context7 → DeepWiki → WebSearch.
+- Guides: `android docs search` + **bundled Android CLI skills** — параллельно. `android skills find <keyword>` для discovery → `Read ~/.android/cli/skills/**/SKILL.md` для содержимого. Skills дают **structured 10-step workflows** для целых областей (миграции, upgrade-ы, узкие фичи Wear/XR/Compose Styles/edge-to-edge/R8/Perfetto), `android docs` — точечные guides и codelabs. Триггер для skill discovery: миграция / upgrade / незнакомая область. Триггер для `docs search`: «как», «какой подход», конкретное API.
+- Fallback (только если все три молчат): Context7 → DeepWiki → WebSearch.
 
 **JVM / Kotlin / KMP / Gradle (не-Android):**
 - API truth: `ksrc` primary. Fallback: Context7 → DeepWiki → WebSearch.
