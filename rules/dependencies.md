@@ -32,15 +32,7 @@ No such block → the plan is not ready. Implementation must not begin.
 
 ### Implementation-stage check
 
-By the time `libs.versions.toml` / `build.gradle*` / `pom.xml` / `package.json` / `Cargo.toml` / `module.yaml` is edited, the version is already approved in the plan. The implementing agent's only job at this point is: confirm the resolved version still matches the plan (no day-of bump needed) and write the edit. Do **not** silently swap versions; if the freshness check needs re-running, report it back to the main session.
-
-### Kotlin Toolchain projects (`module.yaml`)
-
-Для проектов на Kotlin Toolchain (присутствует `module.yaml`) применяется тот же четырёхпунктовый Plan-stage gate. Уточнения:
-
-- **Identity / Freshness / Vulnerabilities:** зависимости в `module.yaml` — Maven coordinates, поэтому `maven-mcp` family остаётся primary (`latest-version`, `check-deps`, `check-deps-vulnerabilities`, `dependency-changes`). Не пытаться искать «Toolchain-specific scanner».
-- **API surface study:** `ksrc` primary (как и для Gradle Kotlin). `kotlin-toolchain.org` НЕ источник API truth для библиотеки — он только для синтаксиса объявления зависимости в `module.yaml` и build-config обвязки.
-- **Plan-stage block:** дополнительно к четырём стандартным пунктам — отметить целевой раздел `module.yaml`, куда добавляется coordinate (например, `dependencies` / `test-dependencies` / `compose-dependencies` если такой существует на текущей версии Toolchain).
+By the time `libs.versions.toml` / `build.gradle*` / `pom.xml` / `package.json` / `Cargo.toml` is edited, the version is already approved in the plan. The implementing agent's only job at this point is: confirm the resolved version still matches the plan (no day-of bump needed) and write the edit. Do **not** silently swap versions; if the freshness check needs re-running, report it back to the main session.
 
 ### Ecosystem fallback (no maven-mcp)
 
