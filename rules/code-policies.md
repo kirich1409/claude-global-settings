@@ -17,7 +17,7 @@ Format: one or two lines, lead with the surprising fact, follow with the reason.
 
 ## Logging
 
-Log only what's genuinely useful for production debugging: inputs at system boundaries, errors with context, key state transitions. No speculative logging "just in case". Follow the log levels already used in the project.
+See `rules/logging.md` — covers permanent vs temporary diagnostic logs, the `// TEMP-LOG` marker convention, mandatory logger system (no `println` / `console.log`), per-level semantics, and what never goes into a log.
 
 ## Feature flags and configuration
 
