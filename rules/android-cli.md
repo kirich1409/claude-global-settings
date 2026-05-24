@@ -1,6 +1,8 @@
 # Android CLI Rules
 
-Google's `android` CLI (https://developer.android.com/tools/agents/android-cli) is an agent-oriented tool bundling official Android docs search/fetch, project metadata, AVD management, SDK packages, device screen/layout capture, and APK deploy. When available, it is the **primary** tool for Android-platform tasks.
+Google's `android` CLI (https://developer.android.com/tools/agents/android-cli) is an agent-oriented tool bundling official Android docs search/fetch, project metadata, AVD management, SDK packages, device screen/layout capture, APK deploy, and (v1.0+) integration with a running Android Studio instance (Compose preview render, find-declaration / find-usages, file analysis, version lookup). When available, it is the **primary** tool for Android-platform tasks.
+
+Rules tested against Android CLI `v1.0.x` (released ~2026-05). The `studio *` subgroup requires Android Studio **Quail 1** or newer running locally — older stable channels (Meerkat / Ladybug / Koala / Narwhal) do not expose the IPC endpoint and `android studio check` returns *No running Studio instances found*.
 
 ## Scope
 
@@ -34,6 +36,22 @@ On first relevant invocation per session: run `command -v android`. Cache the re
 | New project scaffold (only on explicit request) | `android create [template] --name <n> --minSdk <v>` |
 | List bundled skills (read-only) | `android skills list` |
 | Find a bundled skill (read-only) | `android skills find <keyword>` |
+| Install a specific skill (per-user) | `android skills add <skill-name> --agent=<agent>` |
+| Install a specific skill (per-project) | `android skills add <skill-name> --agent=<agent> --project=<path>` |
+
+### Android Studio integration (v1.0+, requires Studio Quail 1+ running)
+
+All commands below connect to a running Android Studio instance over IPC. First run `android studio check` to discover available `<pid>` / `<project>` values; pass `--pid=<pid>` when more than one Studio is running and `--project=<name|path>` when more than one project is open.
+
+| Task | Command |
+|------|---------|
+| Probe running Studio instances and their projects | `android studio check` |
+| Open a file in Studio | `android studio open-file <path> [--project=<name>]` |
+| Go to declaration of a symbol | `android studio find-declaration <args>` |
+| Find usages of a symbol | `android studio find-usages <args>` |
+| Run Studio inspections on a file (Lint + code analysis) | `android studio analyze-file <path> [--project=<name>]` |
+| Render a `@Preview` composable + accessibility semantics tree | `android studio render-compose-preview <file> <composable> [--output-image-file=<png>] [--print-semantics]` |
+| Latest stable+preview version of Maven artifact / AGP / Kotlin / Compose BOM / Gradle / NDK / SDK / Studio | `android studio version-lookup <id...>` (e.g. `androidx.window:window agp kotlin compose`) |
 
 ## Priority versus existing tools
 
@@ -45,12 +63,20 @@ On first relevant invocation per session: run `command -v android`. Cache the re
 - **SDK / AVD management**: `android sdk` / `android emulator` is primary over raw `sdkmanager` / `avdmanager` / `emulator`.
 - **Build & deploy**: project's Gradle (`./gradlew assembleDebug`, `installDebug`) remains primary for the build itself. `android run` is preferred for the deploy-and-launch step when an APK already exists — it handles `--activity` / `--type` declaratively.
 - **Project scaffolding**: `android create` only when the user explicitly asks for a fresh project. Never invoke during normal feature work.
+- **Studio integration vs существующие инструменты (v1.0+):**
+  - `android studio find-declaration` / `find-usages` — **fallback**, не primary. Default остаётся `ast-index` (быстро, не требует IDE) → LSP (когда нужна type-resolution и язсервер есть). `android studio` использовать только если Studio уже открыт с этим проектом **и** запрос реально требует Studio-индекса (KSP-сгенерированные символы, cross-module references, которые ast-index/LSP не разрешает).
+  - `android studio version-lookup` — **fallback** для `maven-mcp:latest-version`. `maven-mcp` standalone и не требует Studio, поэтому остаётся primary для `latest-version` / `check-deps` / vulnerability сканов. `version-lookup` использовать только когда нужна сводка по «не-Maven» идентификаторам в одном запросе (`agp` + `kotlin` + `compose` + `gradle` + `sdk` сразу) и Studio уже запущен.
+  - `android studio analyze-file` — **fallback** для `./gradlew lint <module>`. Gradle lint — primary (детерминирован, в CI). `analyze-file` использовать когда нужны полные IDE-инспекции (включая non-Lint, например `kotlin-inspections`), а Studio уже открыт.
+  - `android studio render-compose-preview` — **primary**, аналога нет. Рендерит `@Preview` без запуска эмулятора, опционально печатает semantics tree для агентского assertion-based UI-теста. Использовать когда нужно подтвердить визуал отдельного композаблa быстрее, чем через `manual-tester` + emulator.
+  - `android studio open-file` — convenience, не блокер. Использовать только когда user явно просит «открой файл в Studio».
+  - **Проба перед использованием.** Перед первым вызовом любой `studio *` команды в сессии выполнить `android studio check`. Если вернулось *No running Studio instances found* — не пытаться повторно, использовать fallback (или сказать пользователю, что нужно запустить Quail 1+).
 
 ## Hard rules
 
 - **Never run `android init`** and **never run `android skills add --all`** automatically. Bundled skills (`migrate-xml-views-to-jetpack-compose`, `agp-9-upgrade`, `camera1-to-camerax`, `r8-analyzer`, `play-billing-library-version-upgrade`, `display-ai-glasses-with-jetpack-compose-glimmer`, `edge-to-edge`, `navigation-3`, `base`) overlap with existing global skills (`developer-workflow-kotlin:migrate-to-compose`, `kotlin-tooling-agp9-migration`, etc.) and would create skill-routing conflicts.
-- **When the user explicitly asks for a specific Android-CLI skill**, install it scoped to Claude Code only: `android skills add --skill=<name> --agent=claude-code`. Verify the exact `--agent` value via the CLI's usage output before running.
-- **Never auto-update**: if any CLI invocation prints "A new version of Android CLI is available" — surface a one-line notice to the user once per session and ask before running `android update`.
+- **When the user explicitly asks for a specific Android-CLI skill** — install it via the v1.0 positional syntax: `android skills add <skill-name> --agent=<agent>`. Note: in v1.0 the skill name is **positional** (the older `--skill=<name>` flag is removed). Add `--project=<path>` to install scoped to a project instead of the user-global location. The exact `--agent` value (e.g. `CLAUDE`, `GEMINI`, `CODEX`) must be verified against the CLI's data-collection note or by reading `android skills add` usage output — do not guess.
+- **`studio *` commands require a probe.** Before invoking any `android studio <cmd>` in a session, run `android studio check`. If it returns *No running Studio instances found* — do not retry; surface to the user (one line) that Android Studio **Quail 1+** must be running, and fall back per the matrix above.
+- **Never auto-update**: if any CLI invocation prints "A new version of Android CLI is available" — surface a one-line notice to the user once per session and ask before running `android update`. Note: in v1.0 `android info` exposes two version fields (`version` for the core, `launcher_version` for the wrapper) — a launcher lag behind the core is normal and not by itself a reason to update.
 - **Do not retry `android` after one negative `command -v` in the same session.** Use the fallback path until the user confirms installation.
 
 ## Fallback when CLI is missing
@@ -69,4 +95,6 @@ Notify the user once: "Android CLI not installed. Install per https://developer.
 
 ## Output handling note
 
-`android skills list` (and similar) emit a long ANSI progress bar before the result. When scripted (piped/captured), treat trailing non-progress lines as the payload. For interactive Bash use, output is fine as-is. A few subcommands (`info`, `sdk`, `init`, `skills`) do not support `--help` and print usage on error instead — invoke without args to see usage.
+`android skills list` (and similar) emit a long ANSI progress bar before the result. When scripted (piped/captured), treat trailing non-progress lines as the payload. For interactive Bash use, output is fine as-is.
+
+**`--help` quirks (v1.0):** the top-level groups `sdk` and `skills`, plus all `skills` subcommands (`add`, `remove`, `list`, `find`), and the standalone `info` / `init` commands do **not** accept `--help` — they print `Unknown option: '--help'` and a usage line. Invoke without args to see usage. By contrast, `docs`, `emulator`, `screen`, `studio`, `create`, `describe`, `run`, `layout` and all of their subcommands do accept `--help` normally.
