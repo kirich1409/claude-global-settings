@@ -8,6 +8,7 @@
 | `ksrc` | Reading JVM/Gradle dep sources | Project-internal code |
 | DeepWiki | Specific *public* GitHub repo, arch/behavior/docs level | Current project, non-GitHub, general concepts. Verify the repo is on public GitHub before trying. |
 | Context7 | Published library/framework docs (React, Spring, Ktor…), current API/migration | Project code, debugging your own code, libraries you haven't `resolve-library-id`'d (one fail → stop, don't chase synonyms) |
+| `kotlin-toolchain.org` | Kotlin Toolchain build-config: `module.yaml` schema, `kotlin` CLI, Gradle→Toolchain migration, Compose MP setup в Toolchain. См. `rules/kotlin-toolchain.md` | API truth для библиотек (используй `ksrc` / `android docs`); Gradle-проекты без `module.yaml` |
 | `WebSearch` / `WebFetch` | Default for everything else not covered above | — |
 | Raw README via `raw.githubusercontent.com` | Last-resort for a specific repo | — |
 | Perplexity MCP | Only when user explicitly asks ("через perplexity") or research stage in dev-workflow | Default web research |
@@ -34,6 +35,7 @@ Never fetch rendered GitHub pages (`https://github.com/...`) with WebFetch — H
 | `ksrc` | ✓ primary для JVM/Kotlin/KMP | — | — | реальный source jar из Gradle-кэша, без интерпретации |
 | `android docs search` / `fetch` | ✓ primary для Android/Jetpack/Compose/AGP/SDK | ✓ **primary для Android** — training, guide, codelabs, migration notes | — | курируемый developer.android.com, без HTML-шума |
 | Context7 | ✓ для библиотек с курируемой docs (в основном JS/web; Kotlin неравномерно) | ✓ когда у библиотеки есть guides секция | — | требует успешный `resolve-library-id`; один промах → не подбирать синонимы |
+| `kotlin-toolchain.org` | — | ✓ primary для Kotlin Toolchain build-config (`module.yaml`, `kotlin` CLI, KMP/Compose MP setup в Toolchain) | — | T2 (JetBrains official), Alpha v0.11.x; не API truth для библиотек. Триггер: `module.yaml` в проекте или явный запрос про Toolchain. См. `rules/kotlin-toolchain.md` |
 | DeepWiki | частично — архитектурные вопросы | ✓ для публичных GitHub-репо | — | не для точных сигнатур; только публичные GitHub |
 | WebSearch / WebFetch | last-resort | last-resort | — | никогда на рендеренные github.com страницы |
 | Memorized signatures | никогда | никогда | — | — |
@@ -52,6 +54,11 @@ Never fetch rendered GitHub pages (`https://github.com/...`) with WebFetch — H
 - Guides: Context7 (если у библиотеки есть guides секция) → DeepWiki → WebSearch.
 - Для Kotlin/JVM `ksrc` даёт только сорсы — для «как принято» всё равно нужен второй канал.
 
+**Kotlin Toolchain (проект с `module.yaml` или явный запрос про Toolchain):**
+- API truth для библиотек: без изменений — `ksrc` primary, как для любого JVM/Kotlin.
+- **Build-config guides** (`module.yaml` schema, `kotlin` CLI, миграция с Gradle, KMP/Compose MP setup в Toolchain): `kotlin-toolchain.org` — **primary**. Fallback: Context7 → DeepWiki → WebSearch.
+- Полные правила маршрутизации, hard-rules для CLI (`publish`/`init`/`update` — только по запросу), disambiguation против legacy `kotlin` REPL — `rules/kotlin-toolchain.md`.
+
 **Frontend / JS / TS / web framework:**
 - API truth: Context7 primary → DeepWiki → WebSearch.
 - Guides: Context7 → DeepWiki → WebSearch.
@@ -62,7 +69,7 @@ Never fetch rendered GitHub pages (`https://github.com/...`) with WebFetch — H
 
 ### High-staleness libraries
 
-Training data устарела чаще всего здесь — оба канала (API truth + guides) обязательны: Ktor 3.x, Room (KMP `@Upsert`, multiplatform), SQLDelight, kotlinx.serialization, kotlinx.datetime, Hilt, Koin, Compose Multiplatform, Compose Material3, AGP 8+/9, KSP, Firebase Android (BoM v34+ убрал KTX), Navigation 3.
+Training data устарела чаще всего здесь — оба канала (API truth + guides) обязательны: Ktor 3.x, Room (KMP `@Upsert`, multiplatform), SQLDelight, kotlinx.serialization, kotlinx.datetime, Hilt, Koin, Compose Multiplatform, Compose Material3, AGP 8+/9, KSP, Firebase Android (BoM v34+ убрал KTX), Navigation 3, **Kotlin Toolchain (`module.yaml`, `kotlin` CLI; Alpha v0.11.x — синтаксис и команды могут меняться между релизами)**.
 
 ### Trust assessment — оценивай источник до того, как поверить
 

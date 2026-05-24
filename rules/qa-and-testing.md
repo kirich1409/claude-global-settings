@@ -78,6 +78,7 @@ Detect the test runner from these marker files at repo root, in priority order:
 | Marker | Stack | Default test command |
 |---|---|---|
 | `build.gradle*`, `libs.versions.toml`, `settings.gradle*` | JVM / Android / KMP | `./gradlew test` (`testDebugUnitTest` for Android) |
+| `module.yaml` | Kotlin Toolchain (JVM / KMP / Compose MP) | `kotlin test` — после disambiguation от legacy REPL CLI; см. `rules/kotlin-toolchain.md`. Если присутствует одновременно с `build.gradle*` → ask user. |
 | `Package.swift` | Swift SPM | `swift test` |
 | `*.xcodeproj`, `*.xcworkspace` | Xcode | `xcodebuild test` — escalate: needs explicit scheme + destination |
 | `package.json` | Node | read `scripts.test`; fallback to `npm test` |
@@ -90,6 +91,8 @@ Detect the test runner from these marker files at repo root, in priority order:
 - Xcode — never guess the scheme; if no `.xcscheme` is conventional, ask.
 - Python — derive runner config; do not invent flags.
 - Multiple markers in same repo (monorepo) — pick the one that owns the changed files; ask if ambiguous.
+- `module.yaml` + `build.gradle*` одновременно (миграционная фаза) — ask user, на какую build-систему направлять текущий вызов.
+- `module.yaml` без подтверждённого Toolchain CLI (`kotlin` указывает на legacy REPL или не установлен) — ask user про установку Toolchain или использовать docs-only fallback (см. `rules/kotlin-toolchain.md`).
 
 ## 6. Verification source of truth
 
