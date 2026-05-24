@@ -37,7 +37,10 @@ On first relevant invocation per session: run `command -v android`. Cache the re
 
 ## Priority versus existing tools
 
-- **Android docs**: `android docs` is **primary** over Context7, DeepWiki, WebSearch, WebFetch — it returns curated official content without HTML noise. Other doc sources only when `android docs search` returns nothing relevant.
+- **Android docs — две роли, обе primary, работают параллельно с `ksrc`:**
+  - *Guides / recommended approaches / migrations / codelabs / training.* `android docs search` — единственный курируемый источник для «как принято делать X», «migration guide для Y», «best practice для Z». `ksrc` здесь не помогает — сорсы показывают что есть, а не как это применять. Триггер: любой Android-вопрос вида «как», «какой подход», «migration», «best practice», незнакомый компонент / API.
+  - *API truth для Jetpack / Compose / AGP / SDK.* `android docs search` + `ksrc` запускаются **параллельно**, не «или/или»: `ksrc` даёт реальный API из source jar, `android docs` подтверждает текущую рекомендованную форму. Расхождение — сигнал что в проекте устаревшая версия или legacy-паттерн.
+  - Context7 / DeepWiki / WebSearch / WebFetch — fallback **только** когда оба основных канала молчат. Не альтернатива им.
 - **Device introspection**: `android layout` / `android screen` is primary over raw `adb shell uiautomator dump` / `adb exec-out screencap`. Drop to raw `adb` only when a needed flag is missing in the CLI.
 - **SDK / AVD management**: `android sdk` / `android emulator` is primary over raw `sdkmanager` / `avdmanager` / `emulator`.
 - **Build & deploy**: project's Gradle (`./gradlew assembleDebug`, `installDebug`) remains primary for the build itself. `android run` is preferred for the deploy-and-launch step when an APK already exists — it handles `--activity` / `--type` declaratively.
