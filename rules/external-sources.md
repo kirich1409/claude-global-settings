@@ -16,25 +16,52 @@ Never fetch rendered GitHub pages (`https://github.com/...`) with WebFetch — H
 
 ## Verify library API before code
 
-Обязательно перед Edit/Write кода, использующего внешнюю библиотеку. Тренировочные данные устаревают; existing project code показывает только используемый срез API и может быть legacy/антипаттерном. Два независимых канала с непересекающимися ролями:
+Обязательно перед Edit/Write кода, использующего внешнюю библиотеку. Тренировочные данные устаревают; existing project code показывает только используемый срез API и может быть legacy/антипаттерном.
 
-| Source | Используй для | НЕ используй для |
+### Три роли источников — каналы дополняют, а не исключают друг друга
+
+У источников разные роли. На одну задачу часто нужно запустить **несколько каналов параллельно**, а не выбирать «один из». Цепочка «→» ниже — это fallback внутри одной роли (если первый источник не дал ответа), а не приоритет между ролями.
+
+| Роль | Что даёт | Когда нужна |
 |---|---|---|
-| Existing project code | стиль, конвенции, pinned версии, какие модули подключены | API truth — сигнатуры, семантика, альтернативы |
-| `ksrc` | API truth для JVM/Kotlin/KMP из реального source jar Gradle-кэша | стек без Gradle |
-| `android docs search` | API truth для Jetpack/Compose/AGP/SDK | не-Android библиотеки |
-| Context7 | API truth для библиотек с курируемой документацией (в основном JS/web; Kotlin покрытие неравномерное) | библиотеки без `resolve-library-id` hit |
-| DeepWiki | архитектурные/поведенческие вопросы по публичным GitHub-репо | сигнатуры API |
-| Memorized signatures | никогда | — |
+| **API truth** | сигнатуры, семантика, типы, альтернативы | всегда, когда пишется/правится код с этой библиотекой |
+| **Guides & recommended approaches** | рекомендуемые паттерны, migration guides, training, codelabs, troubleshooting, «как принято» | задачи вида «как сделать X», «какой подход», «migration с A на B», незнакомая часть стека, не-тривиальная интеграция |
+| **Project style & versions** | стиль, конвенции, pinned версии, какие модули уже подключены | всегда — параллельно с внешними каналами |
 
-**API-truth priority chain по стекам:**
-- **JVM / Kotlin / KMP / Gradle:** `ksrc` → Context7 → DeepWiki → WebSearch
-- **Android (Jetpack / Compose / AGP / SDK):** `android docs search` → `ksrc` → Context7 → DeepWiki
-- **Frontend / JS / TS / web framework:** Context7 → DeepWiki → WebSearch
-- **Other (Python / Go / Rust / C# / Swift / …):** Context7 → DeepWiki → WebSearch; экосистемный аналог ksrc если есть
+| Источник | API truth | Guides | Project style | Особенности |
+|---|---|---|---|---|
+| Existing project code | — | — | ✓ primary | стиль и pinned версии, **не** API truth |
+| `ksrc` | ✓ primary для JVM/Kotlin/KMP | — | — | реальный source jar из Gradle-кэша, без интерпретации |
+| `android docs search` / `fetch` | ✓ primary для Android/Jetpack/Compose/AGP/SDK | ✓ **primary для Android** — training, guide, codelabs, migration notes | — | курируемый developer.android.com, без HTML-шума |
+| Context7 | ✓ для библиотек с курируемой docs (в основном JS/web; Kotlin неравномерно) | ✓ когда у библиотеки есть guides секция | — | требует успешный `resolve-library-id`; один промах → не подбирать синонимы |
+| DeepWiki | частично — архитектурные вопросы | ✓ для публичных GitHub-репо | — | не для точных сигнатур; только публичные GitHub |
+| WebSearch / WebFetch | last-resort | last-resort | — | никогда на рендеренные github.com страницы |
+| Memorized signatures | никогда | никогда | — | — |
 
-**High-staleness libraries — всегда проверяй через API-truth канал** (training data тут чаще всего устарела): Ktor 3.x, Room (KMP `@Upsert`, multiplatform), SQLDelight, kotlinx.serialization, kotlinx.datetime, Hilt, Koin, Compose Multiplatform, Compose Material3, AGP 8+/9, KSP, Firebase Android (BoM v34+ убрал KTX), Navigation 3.
+### Композиция каналов по стекам
 
-Existing project code читается **параллельно** с API-truth каналом — для стиля и pinned версий, не как замена.
+Для каждой задачи — **запускай оба канала параллельно** (API truth + Guides, если задача нетривиальна). Existing project code читается всегда поверх — отдельным проходом, не как замена внешних источников.
+
+**Android (Jetpack / Compose / AGP / SDK / Play / KTX):**
+- API truth: `ksrc` + `android docs search` — параллельно. `ksrc` показывает реальный API из jar, `android docs` подтверждает текущую рекомендованную форму. Не «или/или».
+- Guides: `android docs search` — primary. Триггер: «как», «какой подход», «migration», «best practice», незнакомый компонент.
+- Fallback (только если оба молчат): Context7 → DeepWiki → WebSearch.
+
+**JVM / Kotlin / KMP / Gradle (не-Android):**
+- API truth: `ksrc` primary. Fallback: Context7 → DeepWiki → WebSearch.
+- Guides: Context7 (если у библиотеки есть guides секция) → DeepWiki → WebSearch.
+- Для Kotlin/JVM `ksrc` даёт только сорсы — для «как принято» всё равно нужен второй канал.
+
+**Frontend / JS / TS / web framework:**
+- API truth: Context7 primary → DeepWiki → WebSearch.
+- Guides: Context7 → DeepWiki → WebSearch.
+
+**Other (Python / Go / Rust / C# / Swift / …):**
+- API truth: Context7 → DeepWiki → WebSearch; экосистемный аналог `ksrc` если есть.
+- Guides: Context7 → DeepWiki → WebSearch.
+
+### High-staleness libraries
+
+Training data устарела чаще всего здесь — оба канала (API truth + guides) обязательны: Ktor 3.x, Room (KMP `@Upsert`, multiplatform), SQLDelight, kotlinx.serialization, kotlinx.datetime, Hilt, Koin, Compose Multiplatform, Compose Material3, AGP 8+/9, KSP, Firebase Android (BoM v34+ убрал KTX), Navigation 3.
 
 Для удобной ручной инвокации workflow — `~/.claude/skills/library-verify/`.
