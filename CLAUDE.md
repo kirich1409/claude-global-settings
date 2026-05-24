@@ -183,7 +183,7 @@ For every task that modifies code, a testing strategy must be defined during pla
 
 **L5 is mandatory for:** library version bumps, technology/framework migrations, infrastructure layer changes (network, storage, auth, DI), and any task claimed to "not affect behavior" — precisely these require runtime confirmation that behavior is unchanged, not just trust.
 
-**Verification source of truth:** identifying the source of truth is a mandatory output of the planning stage — before implementation begins, not discovered missing at acceptance time. For migrations and "shouldn't affect behavior" tasks — capture the before-state (screenshots, behavioral flows, E2E scenario snapshot) before making any changes; this becomes the comparison baseline. Taxonomy of valid sources and the absent-source justification requirement — in `rules/qa-and-testing.md` § 6.
+**Verification source of truth:** identifying the source of truth is a mandatory output of the planning stage — before implementation begins, not discovered missing at acceptance time. For migrations and "shouldn't affect behavior" tasks — capture the before-state before making any changes; this becomes the comparison baseline.
 
 Detailed rules — public-API coverage gate, P0–P3 priority framework, non-UI lightweight test plans, author-fixes-broken-tests rule, infrastructure detection markers — live in `rules/qa-and-testing.md`.
 
