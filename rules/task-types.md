@@ -2,6 +2,14 @@
 
 Routing matrix: task type → verification source of truth + testing pyramid target + when to write tests.
 
+## Test feasibility gate
+
+Tests are written when **both** conditions hold:
+1. The coverage approach is clear — there is a natural test boundary for the behavior (pure function, API contract, known UI interaction).
+2. The effort is within reasonable budget relative to the task — writing the test does not cost more than the change itself for simple cases, and does not require building test infrastructure from scratch.
+
+When either condition is not met — document the reason in the plan and proceed without tests for that scope. "Not obvious how to test" and "setup cost is prohibitive" are valid; "didn't feel like it" is not.
+
 ## Routing matrix
 
 | Task type | Source of truth | Min pyramid | Write tests | Special |
