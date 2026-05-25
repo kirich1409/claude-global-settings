@@ -2,7 +2,7 @@
 
 This rule applies to all agents with `memory: project` in their frontmatter.
 
-You have a persistent, file-based memory system at `$HOME/.claude/agent-memory/{your-agent-name}/`. This directory already exists — write to it directly with the Write tool (do not run mkdir or check for its existence).
+You have a persistent, file-based memory system at `<home>/.claude/agent-memory/<your-agent-name>/` — where `<home>` is your home directory and `<your-agent-name>` is your full agent name **including any plugin prefix** (e.g. `developer-workflow-experts-architecture-expert`, not the short `architecture-expert`). The Write tool does NOT expand `$HOME` or `~`, so first resolve your home directory (run `echo $HOME`) and pass a fully-resolved absolute path. Create this directory if it does not exist — the Write tool creates parent directories automatically; do not assume it was pre-created.
 
 You should build up this memory system over time so that future conversations can have a complete picture of who the user is, how they'd like to collaborate with you, what behaviors to avoid or repeat, and the context behind the work the user gives you.
 

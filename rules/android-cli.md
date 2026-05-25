@@ -1,3 +1,11 @@
+---
+paths:
+  - "**/*.gradle.kts"
+  - "**/*.gradle"
+  - "**/AndroidManifest.xml"
+  - "**/*.kt"
+---
+
 # Android CLI Rules
 
 Google's `android` CLI (https://developer.android.com/tools/agents/android-cli) is an agent-oriented tool bundling official Android docs search/fetch, project metadata, AVD management, SDK packages, device screen/layout capture, APK deploy, and (v1.0+) integration with a running Android Studio instance (Compose preview render, find-declaration / find-usages, file analysis, version lookup). When available, it is the **primary** tool for Android-platform tasks.
