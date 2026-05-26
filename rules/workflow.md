@@ -4,9 +4,9 @@ The `developer-workflow` plugin family is a toolbox of on-demand skills, not a f
 
 ## Mandatory gates
 
-**Quality gate — `/finalize`.** Required after every implementation where code was written — before declaring the task done. It iterates until no findings above Minor severity remain, or exits with ESCALATE requiring a user decision. Exceptions: pure documentation edits, config-only changes with no logic, single-line mechanical changes with an obvious result.
+**Quality gate — `/finalize`.** Required after every implementation where code was written — before declaring the task done. Finalize owns *how the code is written*: it is a full review→fix→simplify loop that iterates until no findings above Minor severity remain, or exits with ESCALATE requiring a user decision. `code-reviewer` is one component the loop orchestrates — **a standalone run of code-reviewer does NOT close this gate**: review alone leaves the fix and simplify steps unperformed. «Код уже отревьюен» is not grounds to skip `/finalize`. Exceptions: pure documentation edits, config-only changes with no logic, single-line mechanical changes with an obvious result.
 
-**Acceptance gate — `/acceptance`.** Runs after `/finalize` — before PR promotion. Verifies the implementation against the source of truth (spec, test plan, design, or behavioral baseline) and runs runtime checks including `manual-tester` for UI surfaces. Same exceptions as `/finalize`.
+**Acceptance gate — `/acceptance`.** Runs after `/finalize` — before PR promotion. Verifies the implementation against the source of truth (spec, test plan, design, or behavioral baseline) and runs runtime checks including `manual-tester` for UI surfaces. The two gates are orthogonal: `/finalize` checks *how the code is written* (cleanliness), `/acceptance` checks *what the code does* (it works as intended) — neither replaces the other, both are mandatory. Same exceptions as `/finalize`.
 
 **PR promotion gate — `/create-pr --promote`** (draft → ready for review) requires explicit user confirmation. Opening a draft PR is routine; promotion signals the task is complete and makes it visible to reviewers — that is a shared-state action.
 

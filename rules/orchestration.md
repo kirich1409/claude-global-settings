@@ -49,7 +49,7 @@ If the task needs N edits in production code, that is not "many small ones from 
 
 If a task matches an installed skill — use the skill. Skills already know the right sequence of agents and models. Direct Agent invocation is a fallback when no skill fits.
 
-Examples: implementation flow → `/check` + `/finalize` + `/create-pr` + `/drive-to-merge`; new spec → `/write-spec`; UI migration → `/migrate-to-compose`; tests → `/write-tests`.
+Examples: implementation flow → `/check` + `/finalize` + `/acceptance` + `/create-pr` + `/drive-to-merge`; new spec → `/write-spec`; UI migration → `/migrate-to-compose`; tests → `/write-tests`.
 
 ## Routing matrix (task type → agent → model)
 
@@ -121,4 +121,5 @@ The user can explicitly cancel delegation: "do it yourself", "don't delegate", "
 - Bypassing an existing skill in favor of a direct Agent.
 - Skipping the STOP check before `Edit` / `Write` / `Grep` / `Glob` / a non-trivial `Bash` and jumping straight to the tool.
 - Doing a review (security / performance / code review) inside the main session instead of with an expert agent.
+- Подмена гейта `/finalize` разовым вызовом `code-reviewer`. `/finalize` — это полный review→fix→simplify loop; одиночное ревью оставляет его наполовину незавершённым (fix и simplify не выполнены). «Код уже отревьюен» гейт не закрывает.
 - Сокращение profile-triggered reviewer panel. Если skill / профиль определяет panel правилами (`primary` + regex-matched `optional_if`) — использовать **весь** triggered set. «Эта область уже разобрана в прошлом ревью другого артефакта» — не основание для пропуска: research / spec / test-plan — разные тексты, разные failure modes, разные перспективы. Cost extra agent: 2-5 минут; cost пропуска: gap который вылезет после approval (свежий кейс — `desktop-v2-spec`: сократил panel 5→3, пропустил drag-positioning gap, который UX/perf ревьюер увидел бы сразу). Полный triggered set применять всегда, даже если кажется дублированием.
