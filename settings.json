@@ -310,7 +310,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "ast-index update 2>/dev/null || true"
+            "command": "ast-index update 2>/dev/null || ast-index rebuild 2>/dev/null || true"
           }
         ]
       },
@@ -319,7 +319,16 @@
         "hooks": [
           {
             "type": "command",
-            "command": "ast-index update 2>/dev/null || true"
+            "command": "ast-index update 2>/dev/null || ast-index rebuild 2>/dev/null || true"
+          }
+        ]
+      },
+      {
+        "matcher": "EnterWorktree",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$HOME/.claude/hooks/ast-index-bootstrap-worktree.sh"
           }
         ]
       },
