@@ -429,7 +429,7 @@
     "plugin-dev@claude-plugins-official": true,
     "hookify@claude-plugins-official": true,
     "rust-analyzer-lsp@claude-plugins-official": true,
-    "developer-workflow@krozov-ai-tools": true,
+    "developer-workflow@krozov-ai-tools": false,
     "developer-workflow-experts@krozov-ai-tools": true,
     "code-review@claude-plugins-official": true,
     "pr-review-toolkit@claude-plugins-official": true,
