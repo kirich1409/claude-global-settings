@@ -1,0 +1,4 @@
+- [Orchestrators gap analysis](project_orchestrators_gap_2026_04.md) — feature-flow/bugfix-flow missing stages and state-machine edges identified 2026-04-20
+- [Layering audit 2026-05](project_layering_audit_2026_05.md) — harness/agents/refs layering OK; SSoT-violation в feature-flow vs ORCHESTRATION.md
+- [Issue orchestrator design](project_issue_orchestrator_design_2026_05.md) — рекомендация: Skill (не subagent/MCP), dual-SSoT state, batch-level gates, tracker adapter
+- [CC Config Wizard](project_cc-config-wizard.md) — greenfield CLI-мастер настройки Claude Code; движок = установленный Claude Code; граничные факты headless/SDK
