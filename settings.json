@@ -344,15 +344,6 @@
     ],
     "PreToolUse": [
       {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "$HOME/.claude/hooks/rtk-rewrite.sh"
-          }
-        ]
-      },
-      {
         "matcher": "Edit",
         "hooks": [
           {
@@ -384,6 +375,15 @@
           {
             "type": "command",
             "command": "$HOME/.claude/hooks/stash-reminder.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "rtk hook claude"
           }
         ]
       }
