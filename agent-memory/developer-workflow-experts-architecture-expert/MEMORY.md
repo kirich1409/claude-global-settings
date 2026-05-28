@@ -2,3 +2,5 @@
 - [Layering audit 2026-05](project_layering_audit_2026_05.md) — harness/agents/refs layering OK; SSoT-violation в feature-flow vs ORCHESTRATION.md
 - [Issue orchestrator design](project_issue_orchestrator_design_2026_05.md) — рекомендация: Skill (не subagent/MCP), dual-SSoT state, batch-level gates, tracker adapter
 - [CC Config Wizard](project_cc-config-wizard.md) — greenfield CLI-мастер настройки Claude Code; движок = установленный Claude Code; граничные факты headless/SDK
+- [ScreenRecorder macOS app](project_screenrecorder_macos.md) — greenfield native macOS 26+ multi-source recorder; goals, codec lever, clock model
+- [Apple media clock APIs](reference_apple_media_clock_apis.md) — verified sync API facts: synchronizationClock read-only, host clock is the shared timeline
