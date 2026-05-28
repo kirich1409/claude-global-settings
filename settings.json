@@ -439,7 +439,8 @@
     "kotlin-lsp@claude-plugins-official": true,
     "lazyweb@lazyweb": true,
     "context-mode@context-mode": true,
-    "kotlin-agent-skills@Kotlin": true
+    "kotlin-agent-skills@Kotlin": true,
+    "warp@claude-code-warp": true
   },
   "extraKnownMarketplaces": {
     "ast-index-marketplace": {
@@ -484,6 +485,12 @@
       "source": {
         "source": "github",
         "repo": "Kotlin/kotlin-agent-skills"
+      }
+    },
+    "claude-code-warp": {
+      "source": {
+        "source": "github",
+        "repo": "warpdotdev/claude-code-warp"
       }
     }
   },
