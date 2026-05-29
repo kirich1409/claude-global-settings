@@ -137,7 +137,20 @@
       "Bash(gh issue:*)",
       "Bash(gh repo view:*)",
       "Bash(gh auth status:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(echo:*)",
+      "Bash(cat:*)",
+      "Bash(head:*)",
+      "Bash(tail:*)",
+      "Bash(wc:*)",
+      "Bash(sort:*)",
+      "Bash(uniq:*)",
+      "Bash(pwd)",
+      "Bash(true)",
+      "Bash(false)",
+      "Bash(test:*)",
+      "Bash([:*)",
+      "Bash(git check-ignore:*)"
     ],
     "deny": [
       "Read(./.env)",
