@@ -453,11 +453,9 @@
     "code-review@claude-plugins-official": true,
     "pr-review-toolkit@claude-plugins-official": true,
     "ast-index@ast-index-marketplace": true,
-    "developer-workflow-kotlin@krozov-ai-tools": true,
     "kotlin-lsp@claude-plugins-official": true,
     "lazyweb@lazyweb": true,
     "context-mode@context-mode": true,
-    "kotlin-agent-skills@Kotlin": true,
     "warp@claude-code-warp": true
   },
   "extraKnownMarketplaces": {
