@@ -30,6 +30,10 @@
 !skills/*/*
 !skills/*/**
 
+# === SCRIPTS ===
+!scripts/
+!scripts/**
+
 
 # === FORCE EXCLUDE ===
 .credentials.json
