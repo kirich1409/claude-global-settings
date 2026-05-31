@@ -592,5 +592,6 @@
         "mcp-maven-deps"
       ]
     }
-  }
+  },
+  "tui": "fullscreen"
 }
