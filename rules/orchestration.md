@@ -82,6 +82,11 @@ The model is passed explicitly via the Agent tool's `model:` parameter.
 | GitLab / GitHub admin (open an issue, attach a label, leave a comment) | general-purpose | haiku |
 | Lookups via MCP / web / docs (one page + summary) | general-purpose | haiku |
 
+For any PR/MR, issue, or Projects-board work (incl. delegated `gh`/`glab` calls): use the idempotent,
+timeout-safe toolkit in `$HOME/.claude/scripts/gh/` and follow `rules/github-ops.md` (mechanics) +
+`rules/github-merge-policy.md` (autonomy / anti-stall / per-project policy). Never block the main
+session on `gh run watch` / `gh pr checks --watch`.
+
 ## Model selection rules (when the task is not in the table)
 
 - `opus` — reasoning, planning, synthesis, multi-factor analysis, security / perf / UX / architecture review, debugging root cause.
