@@ -578,6 +578,7 @@
   "alwaysThinkingEnabled": true,
   "advisorModel": "opus",
   "showClearContextOnPlanAccept": true,
+  "tui": "fullscreen",
   "channelsEnabled": true,
   "autoMemoryEnabled": true,
   "skipDangerousModePermissionPrompt": true,
@@ -592,6 +593,5 @@
         "mcp-maven-deps"
       ]
     }
-  },
-  "tui": "fullscreen"
+  }
 }
