@@ -458,7 +458,8 @@
     "lazyweb@lazyweb": true,
     "context-mode@context-mode": true,
     "kotlin-agent-skills@Kotlin": true,
-    "warp@claude-code-warp": true
+    "warp@claude-code-warp": true,
+    "ruby-lsp@claude-plugins-official": true
   },
   "extraKnownMarketplaces": {
     "ast-index-marketplace": {
