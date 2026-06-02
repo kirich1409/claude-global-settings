@@ -456,7 +456,8 @@
     "kotlin-lsp@claude-plugins-official": true,
     "lazyweb@lazyweb": true,
     "context-mode@context-mode": true,
-    "warp@claude-code-warp": true
+    "warp@claude-code-warp": true,
+    "developer-workflow-kotlin@krozov-ai-tools": true
   },
   "extraKnownMarketplaces": {
     "ast-index-marketplace": {
