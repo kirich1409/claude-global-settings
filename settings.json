@@ -433,7 +433,6 @@
   },
   "enabledPlugins": {
     "context7@claude-plugins-official": true,
-    "figma@claude-plugins-official": true,
     "ksrc@respawn-tools": true,
     "maven-mcp@krozov-ai-tools": true,
     "security-guidance@claude-plugins-official": true,
@@ -444,7 +443,6 @@
     "claude-md-management@claude-plugins-official": true,
     "skill-creator@claude-plugins-official": true,
     "playwright@claude-plugins-official": false,
-    "plugin-dev@claude-plugins-official": true,
     "hookify@claude-plugins-official": true,
     "rust-analyzer-lsp@claude-plugins-official": true,
     "developer-workflow@krozov-ai-tools": true,
@@ -455,7 +453,6 @@
     "developer-workflow-kotlin@krozov-ai-tools": true,
     "firebase@firebase": true,
     "kotlin-lsp@claude-plugins-official": true,
-    "lazyweb@lazyweb": true,
     "context-mode@context-mode": true,
     "kotlin-agent-skills@Kotlin": true,
     "warp@claude-code-warp": true,
