@@ -5,3 +5,4 @@
 - [ScreenRecorder macOS app](project_screenrecorder_macos.md) — greenfield native macOS 26+ multi-source recorder; goals, codec lever, clock model
 - [Apple media clock APIs](reference_apple_media_clock_apis.md) — verified sync API facts: synchronizationClock read-only, host clock is the shared timeline
 - [Onset layering](project-onset-layering.md) — module dependency contract (#10); Permissions is a separate UI-free layer; EffectivePermissions is the Recording seam
+- [Capture source template](project-capture-source-template.md) — actor+shim VideoFrameSource pattern from ScreenSource (#28) that CameraSource (#29) mirrors; T0/AC-7 seam; open #29 decisions
