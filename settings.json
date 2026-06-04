@@ -20,18 +20,6 @@
       "NotebookEdit",
       "Read(~/.gradle/**)",
       "Bash(ast-index:*)",
-      "Bash(rtk ls:*)",
-      "Bash(rtk tree:*)",
-      "Bash(rtk read:*)",
-      "Bash(rtk smart:*)",
-      "Bash(rtk json:*)",
-      "Bash(rtk deps:*)",
-      "Bash(rtk env:*)",
-      "Bash(rtk diff:*)",
-      "Bash(rtk log:*)",
-      "Bash(rtk grep:*)",
-      "Bash(rtk wc:*)",
-      "Bash(rtk:*)",
       "WebFetch(domain:github.com)",
       "WebFetch(domain:gist.github.com)",
       "WebFetch(domain:raw.githubusercontent.com)",
@@ -446,7 +434,8 @@
     "kotlin-lsp@claude-plugins-official": true,
     "kotlin-agent-skills@Kotlin": true,
     "warp@claude-code-warp": true,
-    "ruby-lsp@claude-plugins-official": true
+    "ruby-lsp@claude-plugins-official": true,
+    "context-mode@context-mode": true
   },
   "extraKnownMarketplaces": {
     "ast-index-marketplace": {

@@ -5,7 +5,7 @@ Shared [Claude Code](https://claude.ai/claude-code) configuration synced across 
 ## What's synced
 
 - `settings.json` -- hooks, permissions, enabled plugins, marketplace sources
-- `CLAUDE.md`, `RTK.md` -- global instructions loaded every session
+- `CLAUDE.md` -- global instructions loaded every session
 - `hooks/` -- shell hooks for session automation and safety guards
 - `agents/`, `agent-memory/` -- custom agent definitions (when present)
 - `skills/` -- custom skills (directories only, not symlinks)
