@@ -395,15 +395,6 @@
             "command": "$HOME/.claude/hooks/stash-reminder.sh"
           }
         ]
-      },
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "rtk hook claude"
-          }
-        ]
       }
     ],
     "UserPromptSubmit": [
@@ -453,7 +444,6 @@
     "developer-workflow-kotlin@krozov-ai-tools": true,
     "firebase@firebase": true,
     "kotlin-lsp@claude-plugins-official": true,
-    "context-mode@context-mode": true,
     "kotlin-agent-skills@Kotlin": true,
     "warp@claude-code-warp": true,
     "ruby-lsp@claude-plugins-official": true

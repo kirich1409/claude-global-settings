@@ -25,5 +25,3 @@ Rules that are not open for discussion. Violating these is an error, not a judgm
 - Quality and security over speed. Never accept "we'll fix it later" or "it's temporary". Temporary solutions become permanent.
 - Long-term maintainability over quick result.
 - **Minimal diff in existing code.** When fixing a bug or making a targeted change, touch only what the task requires. Don't rename variables, don't add input validation, don't restructure functions «for clarity», don't modernize patterns unless explicitly asked. Structural improvements live in a separate refactor commit with the user's consent. Reasoning bumps (`/effort high` and above) amplify the urge to over-edit — push back harder there. Green tests do not justify a bloated diff: over-editing is invisible to the test suite but visible to every reviewer.
-
-@RTK.md
