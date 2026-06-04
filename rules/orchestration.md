@@ -51,6 +51,14 @@ If a task matches an installed skill — use the skill. Skills already know the 
 
 Examples: implementation flow → `/check` + `/finalize` + `/acceptance` + `/create-pr` + `/drive-to-merge`; new spec → `/write-spec`; UI migration → `/migrate-to-compose`; tests → `/write-tests`.
 
+## Subagent code-search instructions
+
+Subagents do **not** inherit `~/.claude/rules/**` (including `rules/ast-index.md`) — they default to Grep/Read unless told otherwise. When delegating any task that searches or reads code (Explore, general-purpose, specialists), include an explicit ast-index directive in the prompt:
+
+> Use `ast-index` via Bash for code search before Grep: `search "q"`, `file "Name"`, `class "Name"`, `usages "Name"`, `implementations "Name"`, `callers "fn"`. Grep only when ast-index returns empty or for regex / string-literal search. Before `Read` on a file longer than ~500 lines, run `ast-index outline <file>` and Read only the targeted slice via `offset`/`limit`. On "Index not found" → `ast-index rebuild`, never fall back to Grep.
+
+The index itself is kept fresh automatically by hooks (see `rules/ast-index.md` → Index Freshness); this rule only ensures the subagent *uses* it.
+
 ## Routing matrix (task type → agent → model)
 
 The model is passed explicitly via the Agent tool's `model:` parameter.
