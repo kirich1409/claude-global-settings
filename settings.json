@@ -398,30 +398,19 @@
   },
   "enabledPlugins": {
     "context7@claude-plugins-official": true,
-    "ksrc@respawn-tools": false,
-    "maven-mcp@krozov-ai-tools": false,
     "security-guidance@claude-plugins-official": true,
     "claude-code-setup@claude-plugins-official": true,
-    "swift-lsp@claude-plugins-official": false,
     "remember@claude-plugins-official": true,
     "code-simplifier@claude-plugins-official": true,
     "claude-md-management@claude-plugins-official": true,
-    "skill-creator@claude-plugins-official": false,
-    "playwright@claude-plugins-official": false,
     "hookify@claude-plugins-official": true,
-    "rust-analyzer-lsp@claude-plugins-official": false,
     "developer-workflow@krozov-ai-tools": true,
     "developer-workflow-experts@krozov-ai-tools": true,
     "code-review@claude-plugins-official": true,
     "pr-review-toolkit@claude-plugins-official": true,
     "ast-index@ast-index-marketplace": true,
-    "kotlin-lsp@claude-plugins-official": false,
-    "kotlin-agent-skills@Kotlin": false,
     "warp@claude-code-warp": true,
-    "ruby-lsp@claude-plugins-official": false,
-    "context-mode@context-mode": true,
-    "lazyweb@lazyweb": false,
-    "developer-workflow-kotlin@krozov-ai-tools": false
+    "context-mode@context-mode": true
   },
   "extraKnownMarketplaces": {
     "ast-index-marketplace": {
