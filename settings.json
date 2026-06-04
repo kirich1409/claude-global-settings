@@ -274,6 +274,7 @@
     ],
     "defaultMode": "auto"
   },
+  "model": "opus",
   "hooks": {
     "SessionStart": [
       {
@@ -429,13 +430,13 @@
     "code-review@claude-plugins-official": true,
     "pr-review-toolkit@claude-plugins-official": true,
     "ast-index@ast-index-marketplace": true,
-    "developer-workflow-kotlin@krozov-ai-tools": true,
-    "firebase@firebase": true,
     "kotlin-lsp@claude-plugins-official": true,
     "kotlin-agent-skills@Kotlin": true,
     "warp@claude-code-warp": true,
     "ruby-lsp@claude-plugins-official": true,
-    "context-mode@context-mode": true
+    "context-mode@context-mode": true,
+    "lazyweb@lazyweb": true,
+    "developer-workflow-kotlin@krozov-ai-tools": true
   },
   "extraKnownMarketplaces": {
     "ast-index-marketplace": {
