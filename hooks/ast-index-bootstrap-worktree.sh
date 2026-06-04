@@ -48,3 +48,11 @@ fi
 # no-op in a non-code repo. Synchronous on purpose: the index must be ready before
 # the orchestrator delegates code search to subagents.
 ast-index update 2>/dev/null || ast-index rebuild 2>/dev/null || true
+
+# Keep the worktree index fresh for all subsequent edits (subagent / IDE / terminal)
+# via a detached watcher. watch self-enforces a single instance per project, so a
+# duplicate launch exits cleanly — no PID bookkeeping needed. Guarded on an existing
+# index so it stays a no-op in non-code repos.
+if ast-index stats >/dev/null 2>&1; then
+  ( nohup ast-index watch >/dev/null 2>&1 & ) || true
+fi

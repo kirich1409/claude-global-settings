@@ -41,6 +41,10 @@ Three tools cover all code navigation. Pick the right one — run `ast-index --h
 - If ast-index reports "Index not found" — stop and bootstrap it: run `ast-index rebuild` via Bash (works from any agent, including Explore, which has no Skill tool), or the matching `ast-index:initialize-*` skill if the Skill tool is available. Then retry. Do NOT fall back to Grep, and do NOT skip the search.
 - Grep is permitted ONLY for: string literals in code, regex patterns, comment text, config values, log messages.
 
+## Large-File Reads
+
+- Before `Read` on any file longer than ~500 lines, run `ast-index outline <file>` first, then `Read` only the needed slice via `offset` / `limit`. The outline gives the symbol map to target the exact range — do not bulk-read large files.
+
 ## Session Start Check
 
 If the session reminder contains `⚠ AST INDEX NOT AVAILABLE` — the index is not initialized for this project. Before any code search:
@@ -48,6 +52,13 @@ If the session reminder contains `⚠ AST INDEX NOT AVAILABLE` — the index is 
 2. Bootstrap the index: `ast-index rebuild` via Bash, or the matching `ast-index:initialize-*` skill if the Skill tool is available
 3. Only then proceed with code navigation
 
-## Worktree Note
+## Index Freshness — Automated
 
-ast-index is per-worktree and does not carry over. A `PostToolUse:EnterWorktree` hook (`hooks/ast-index-bootstrap-worktree.sh`) auto-rebuilds the index when a worktree is entered, and the `PostToolUse:Edit/Write` hooks rebuild on first edit — so a delegated subagent normally finds a ready index. If a subagent still hits "Index not found" in a code worktree, it must `ast-index rebuild` (it has Bash) — never skip to Grep. Config-only repos (e.g. `~/.claude`) have no index; `rebuild` fails silently there, which is expected.
+The index is kept current by hooks; no manual `update` is needed in normal work:
+
+- **SessionStart** runs `ast-index update` (incremental reconcile) or `rebuild` if the index is missing, then launches a detached, single-instance `ast-index watch` daemon for the project. The watcher catches **all** file changes — editor, subagent, terminal, `git pull`/`checkout`/`rebase`, build output — and updates incrementally. `watch` self-enforces one instance per project, so re-launch is a safe no-op. The `~/.claude` config repo is deliberately excluded from the watcher (its index is still built for searching hooks/scripts).
+- **PostToolUse:EnterWorktree** (`hooks/ast-index-bootstrap-worktree.sh`) bootstraps a freshly-entered worktree's index and launches its own watcher — ast-index is per-worktree and does not carry over.
+
+The watcher persists after the session ends (it is not auto-reaped), so several lightweight watchers may accumulate across a day until reboot; a duplicate launch exits cleanly.
+
+If a subagent still hits "Index not found" in a code worktree, it must `ast-index rebuild` (it has Bash) — never skip to Grep.

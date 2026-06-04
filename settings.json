@@ -285,7 +285,8 @@
           },
           {
             "type": "command",
-            "command": "ast-index update 2>/dev/null || ast-index rebuild 2>/dev/null || echo '⚠ AST INDEX NOT AVAILABLE — run the matching ast-index:initialize-* skill before any code search'"
+            "command": "ast-index update >/dev/null 2>&1 || ast-index rebuild >/dev/null 2>&1; if ast-index stats >/dev/null 2>&1; then [ \"$(git rev-parse --show-toplevel 2>/dev/null)\" = \"$HOME/.claude\" ] || ( nohup ast-index watch >/dev/null 2>&1 & ); else echo '⚠ AST INDEX NOT AVAILABLE — run the matching ast-index:initialize-* skill before any code search'; fi",
+            "timeout": 120
           },
           {
             "type": "command",
@@ -303,33 +304,6 @@
       }
     ],
     "PostToolUse": [
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "python3 -c \"import json,sys,subprocess; d=json.load(sys.stdin); cmd=d.get('tool_input',{}).get('command',''); any(op in cmd for op in ['git pull','git checkout','git merge','git rebase','git stash','git switch','git cherry-pick','git am','git bisect']) and subprocess.run(['ast-index','update'],capture_output=True)\" 2>/dev/null || true"
-          }
-        ]
-      },
-      {
-        "matcher": "Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "ast-index update 2>/dev/null || ast-index rebuild 2>/dev/null || true"
-          }
-        ]
-      },
-      {
-        "matcher": "Edit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "ast-index update 2>/dev/null || ast-index rebuild 2>/dev/null || true"
-          }
-        ]
-      },
       {
         "matcher": "EnterWorktree",
         "hooks": [
