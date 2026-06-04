@@ -446,7 +446,8 @@
     "kotlin-lsp@claude-plugins-official": true,
     "kotlin-agent-skills@Kotlin": true,
     "warp@claude-code-warp": true,
-    "ruby-lsp@claude-plugins-official": true
+    "ruby-lsp@claude-plugins-official": true,
+    "context-mode@context-mode": true
   },
   "extraKnownMarketplaces": {
     "ast-index-marketplace": {
