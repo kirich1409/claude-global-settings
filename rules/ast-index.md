@@ -58,7 +58,8 @@ The index is kept current by hooks; no manual `update` is needed in normal work:
 
 - **SessionStart** runs `ast-index update` (incremental reconcile) or `rebuild` if the index is missing, then launches a detached, single-instance `ast-index watch` daemon for the project. The watcher catches **all** file changes — editor, subagent, terminal, `git pull`/`checkout`/`rebase`, build output — and updates incrementally. `watch` self-enforces one instance per project, so re-launch is a safe no-op. The `~/.claude` config repo is deliberately excluded from the watcher (its index is still built for searching hooks/scripts).
 - **PostToolUse:EnterWorktree** (`hooks/ast-index-bootstrap-worktree.sh`) bootstraps a freshly-entered worktree's index and launches its own watcher — ast-index is per-worktree and does not carry over.
+- **SessionEnd** (`hooks/ast-index-stop-watch.sh`) stops the session project's watcher — it matches the `ast-index watch` process by working directory (the watch lock's stored PID is unreliable) and terminates it. Best-effort: Claude Code's SessionEnd does **not** fire on `/exit` or `/clear` and can be skipped on a hard terminal kill, so a watcher may still outlive a session.
 
-The watcher persists after the session ends (it is not auto-reaped), so several lightweight watchers may accumulate across a day until reboot; a duplicate launch exits cleanly.
+Watchers are self-bounded regardless: `watch` enforces one instance per project, so re-opening a project reuses the existing watcher instead of spawning a second. Worst case is one lightweight watcher per distinct project opened since reboot; a leaked watcher's stale lock self-heals on the next relaunch.
 
 If a subagent still hits "Index not found" in a code worktree, it must `ast-index rebuild` (it has Bash) — never skip to Grep.
