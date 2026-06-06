@@ -421,7 +421,8 @@
     "ruby-lsp@claude-plugins-official": false,
     "context-mode@context-mode": true,
     "lazyweb@lazyweb": false,
-    "developer-workflow-kotlin@krozov-ai-tools": true
+    "developer-workflow-kotlin@krozov-ai-tools": true,
+    "developer-workflow-swift@krozov-ai-tools": true
   },
   "extraKnownMarketplaces": {
     "ast-index-marketplace": {
@@ -472,7 +473,15 @@
       "source": {
         "source": "github",
         "repo": "warpdotdev/claude-code-warp"
-      }
+      },
+      "autoUpdate": true
+    },
+    "claude-in-mobile": {
+      "source": {
+        "source": "git",
+        "url": "https://github.com/AlexGladkov/claude-in-mobile.git"
+      },
+      "autoUpdate": true
     }
   },
   "language": "Russian",
