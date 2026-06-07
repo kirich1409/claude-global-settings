@@ -5,7 +5,7 @@
 #   transition_status.sh <issue-ref> <target-status> [OPTIONS]
 #
 # <issue-ref>      Plain number, owner/repo#number, or full URL.
-# <target-status>  One of: todo | in-progress | in-review | blocked | done | open | closed
+# <target-status>  One of: backlog | todo | ready | in-progress | in-review | blocked | done | open | closed
 #                  Canonical form is lowercase-with-hyphens.
 #                  Aliases accepted: "in_progress" → "in-progress", "In Progress" → "in-progress",
 #                  "in_review"/"review"/"In Review" → "in-review", etc.
@@ -26,15 +26,21 @@
 #   Always reads current status before writing. Writes ONLY if current != target.
 #
 # STATUS MAPPING:
-#   target          Project v2 option    Open/closed + label
-#   todo            Todo                 open (no status label)
-#   in-progress     In Progress          open + label "status:in-progress"
-#   in-review       In Review            open + label "status:in-review"
-#                   (if the board has no "In Review" option, falls back to the label)
-#   blocked         (none — label only)  open + label "status:blocked"
-#   done            Done                 closed
-#   open            (→ todo)             open
-#   closed          (→ done)             closed
+#   target          Project v2 option (candidates, case-insensitive)   Open/closed + label
+#   backlog         Backlog → Todo                                     open (no status label)
+#   todo            Todo → Backlog                                     open (no status label)
+#   ready           Ready                                              open + label "status:ready"
+#   in-progress     In Progress                                        open + label "status:in-progress"
+#   in-review       In Review                                          open + label "status:in-review"
+#                   (if the board has no matching option, falls back to the label)
+#   blocked         (none — label only)                                open + label "status:blocked"
+#   done            Done                                               closed
+#   open            (→ todo)                                           open
+#   closed          (→ done)                                           closed
+#
+#   Option names are matched CASE-INSENSITIVELY ("In progress" == "In Progress") and the first
+#   existing candidate wins. In labels mode "backlog" and "todo" are indistinguishable (both =
+#   open, no status label).
 #
 # All `gh` calls are wrapped in gh_with_timeout (see _common.sh) so a hung API aborts instead of
 # freezing the caller.
@@ -96,6 +102,8 @@ im_normalize_status() {
   raw=$(printf '%s' "$1" | tr '[:upper:]' '[:lower:]' | sed 's/[_ ]/-/g')
   case "$raw" in
     todo|open)         printf 'todo' ;;
+    backlog)           printf 'backlog' ;;
+    ready)             printf 'ready' ;;
     in-progress)       printf 'in-progress' ;;
     in-review|review)  printf 'in-review' ;;
     blocked)           printf 'blocked' ;;
@@ -134,8 +142,8 @@ TARGET_STATUS=$(im_normalize_status "$RAW_TARGET")
 
 # Validate target
 case "$TARGET_STATUS" in
-  todo|in-progress|in-review|blocked|done) ;;
-  *) im_error "Unknown target status: $RAW_TARGET (accepted: todo|in-progress|in-review|blocked|done)" "invalid_status"; exit 1 ;;
+  backlog|todo|ready|in-progress|in-review|blocked|done) ;;
+  *) im_error "Unknown target status: $RAW_TARGET (accepted: backlog|todo|ready|in-progress|in-review|blocked|done)" "invalid_status"; exit 1 ;;
 esac
 
 # ---------------------------------------------------------------------------
@@ -194,6 +202,8 @@ elif printf '%s' "$ISSUE_LABELS" | grep -qi 'status:in-review'; then
   CURRENT_LABELS_STATUS="in-review"
 elif printf '%s' "$ISSUE_LABELS" | grep -qi 'status:blocked'; then
   CURRENT_LABELS_STATUS="blocked"
+elif printf '%s' "$ISSUE_LABELS" | grep -qi 'status:ready'; then
+  CURRENT_LABELS_STATUS="ready"
 else
   CURRENT_LABELS_STATUS="todo"
 fi
@@ -225,20 +235,25 @@ detect_project() {
     '.data.node.fields.nodes[] | select(.name=="Status") | .id' 2>/dev/null || true)
   [[ -z "$status_field_id" ]] && return 1
 
-  # Map target_status to option id
-  local option_name
+  # Map target_status to candidate option names (first existing wins). Matching is
+  # case-insensitive: boards name options freely ("In progress" vs "In Progress").
+  local option_candidates
   case "$TARGET_STATUS" in
-    todo)        option_name="Todo" ;;
-    in-progress) option_name="In Progress" ;;
-    in-review)   option_name="In Review" ;;
-    blocked)     option_name="Todo" ;; # no Blocked option in project; fall through to labels
-    done)        option_name="Done" ;;
+    backlog)     option_candidates='["Backlog","Todo"]' ;;
+    todo)        option_candidates='["Todo","Backlog"]' ;;
+    ready)       option_candidates='["Ready"]' ;;
+    in-progress) option_candidates='["In Progress"]' ;;
+    in-review)   option_candidates='["In Review"]' ;;
+    blocked)     option_candidates='[]' ;; # no Blocked option convention; fall through to labels
+    done)        option_candidates='["Done"]' ;;
   esac
 
   local option_id
   option_id=$(printf '%s' "$fields_out" | jq -r \
-    --arg name "$option_name" \
-    '.data.node.fields.nodes[] | select(.name=="Status") | .options[]? | select(.name==$name) | .id' \
+    --argjson names "$option_candidates" \
+    '[.data.node.fields.nodes[] | select(.name=="Status") | .options[]?] as $opts
+     | [ $names[] | ascii_downcase as $want | $opts[] | select((.name | ascii_downcase) == $want) | .id ]
+     | first // empty' \
     2>/dev/null || true)
 
   # Check if issue is linked to this project
@@ -335,9 +350,10 @@ else
   # Labels mechanism — determine state change and label changes
   TARGET_OPEN="true"
   TARGET_ADD_LABELS=()
-  TARGET_REMOVE_LABELS=("status:in-progress" "status:in-review" "status:blocked")
+  TARGET_REMOVE_LABELS=("status:ready" "status:in-progress" "status:in-review" "status:blocked")
   case "$TARGET_STATUS" in
-    todo)        TARGET_OPEN="true" ;;
+    backlog|todo) TARGET_OPEN="true" ;;
+    ready)       TARGET_OPEN="true"; TARGET_ADD_LABELS+=("status:ready") ;;
     in-progress) TARGET_OPEN="true"; TARGET_ADD_LABELS+=("status:in-progress") ;;
     in-review)   TARGET_OPEN="true"; TARGET_ADD_LABELS+=("status:in-review") ;;
     blocked)     TARGET_OPEN="true"; TARGET_ADD_LABELS+=("status:blocked") ;;
@@ -396,7 +412,7 @@ else
 
   # Remove old status labels only after the new one is in place.
   # Skip any label that is in TARGET_ADD_LABELS (just added — do not remove it).
-  for lbl in "status:in-progress" "status:in-review" "status:blocked"; do
+  for lbl in "status:ready" "status:in-progress" "status:in-review" "status:blocked"; do
     # Check if lbl is in TARGET_ADD_LABELS
     _skip=false
     for _added in "${TARGET_ADD_LABELS[@]+"${TARGET_ADD_LABELS[@]}"}"; do
