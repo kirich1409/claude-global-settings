@@ -7,4 +7,5 @@
 - [Onset layering](project-onset-layering.md) — module dependency contract (#10); Permissions is a separate UI-free layer; EffectivePermissions is the Recording seam
 - [Capture source template](project-capture-source-template.md) — actor+shim VideoFrameSource pattern from ScreenSource (#28) that CameraSource (#29) mirrors; T0/AC-7 seam; open #29 decisions
 - [Onset pipeline architecture](project-onset-pipeline-architecture.md) — Epic 3 leaf-actor + AsyncStream + pure-core pattern, Source→Encode→Storage layering, raw-append PTS seam contract (#32/#35)
+- [Onset persistence seam](project-onset-persistence-seam.md) — #109 device-selection: protocol+UserDefaults-struct store seam, resolver-extraction + role-param gaps for #92 reuse
 - [String Resource Inversion](project_string_resource_inversion.md) — alfa-business: ВЕРДИКТ Fork B (чистая семантика), резолв только в feature-ui; StringResource-в-логике ОТВЕРГНУТ владельцем; StringManager = Android-шим, вытеснение = KMP-предусловие
