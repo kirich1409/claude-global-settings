@@ -13,6 +13,8 @@
 
 ## Worktree cleanup prompts
 
+**Disk-lean policy (default): do not keep idle worktrees.** Disk space is limited (512 GB SSD, Android multi-module worktrees cost tens of GB each with build caches). As soon as the work is pushed and review-ready/merged, the default is to **remove** the worktree (and the local branch — it is recreatable from remote in seconds); recreate on demand when review fixes arrive. "Might need it later" is not a reason to keep one. The prompts below stay (deletion still requires confirmation), but the recommended option is always "remove".
+
 When working in a git worktree (not the main checkout), prompt the user about its fate at these moments — once per moment, do not nag:
 
 - **PR/MR merged or branch pushed and review-ready, and the worktree has no uncommitted changes** → ask: keep the worktree (more work expected), or remove it and the local branch (work is done). If user picks "remove", run `git worktree remove <path>` and `git branch -D <branch>` (only after confirming the branch is fully merged or its remote is gone).
