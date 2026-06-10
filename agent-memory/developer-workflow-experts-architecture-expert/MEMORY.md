@@ -10,3 +10,4 @@
 - [Onset persistence seam](project-onset-persistence-seam.md) — #109 device-selection: protocol+UserDefaults-struct store seam, resolver-extraction + role-param gaps for #92 reuse
 - [String Resource Inversion](project_string_resource_inversion.md) — alfa-business: ВЕРДИКТ Fork B (чистая семантика), резолв только в feature-ui; StringResource-в-логике ОТВЕРГНУТ владельцем; StringManager = Android-шим, вытеснение = KMP-предусловие
 - [Insync DI seam](project_insnc_di_seam.md) — insnc-android гибрид Hilt(app, 1005 файлов)+изолированный Koin(feature/, 589); мост через protocol/dependency: HasDependencies/DependenciesMap, ~91 seam-сайтов в :app, KMP-плагин уже есть
+- [UI/logic split DI seam](project_ui_logic_split_di_seam.md) — alfa-business: каскад 150 public-флипов лечится Koin-расколом (биндинги logic-типов в logic, не в entry), не оракулом видимости; граница ui→logic→api корректна
