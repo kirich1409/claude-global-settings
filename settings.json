@@ -482,6 +482,12 @@
         "url": "https://github.com/AlexGladkov/claude-in-mobile.git"
       },
       "autoUpdate": true
+    },
+    "koin-migration": {
+      "source": {
+        "source": "github",
+        "repo": "InsertKoinIO/koin-migration"
+      }
     }
   },
   "language": "Russian",
