@@ -12,3 +12,4 @@
 - [Insync DI seam](project_insnc_di_seam.md) — insnc-android гибрид Hilt(app, 1005 файлов)+изолированный Koin(feature/, 589); мост через protocol/dependency: HasDependencies/DependenciesMap, ~91 seam-сайтов в :app, KMP-плагин уже есть
 - [UI/logic split DI seam](project_ui_logic_split_di_seam.md) — alfa-business: каскад 150 public-флипов лечится Koin-расколом (биндинги logic-типов в logic, не в entry), не оракулом видимости; граница ui→logic→api корректна
 - [amazing module architecture](amazing-architecture.md) — ios-install :amazing Decompose+MVIKotlin+Metro; IpaFile.toFile() seam, BundledApps, nav stack Connect→SelectIpa→Install→Done
+- [Insync KMP Phase-1 boundary](project_insnc_kmp_phase1_boundary.md) — :protocol common/android split; src/main=androidMain под KMP-плагином; ApiUrlProvider seam verdict + seam-scaling risk; cycle-free
