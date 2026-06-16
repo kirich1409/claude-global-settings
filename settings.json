@@ -481,6 +481,12 @@
         "url": "https://github.com/AlexGladkov/claude-in-mobile.git"
       },
       "autoUpdate": true
+    },
+    "ponytail": {
+      "source": {
+        "source": "github",
+        "repo": "DietrichGebert/ponytail"
+      }
     }
   },
   "language": "Russian",
@@ -553,6 +559,7 @@
   "autoMemoryEnabled": true,
   "skipDangerousModePermissionPrompt": true,
   "remoteControlAtStartup": true,
+  "inputNeededNotifEnabled": true,
   "agentPushNotifEnabled": true,
   "skipAutoPermissionPrompt": true,
   "voiceEnabled": false,
@@ -563,6 +570,5 @@
         "mcp-maven-deps"
       ]
     }
-  },
-  "inputNeededNotifEnabled": true
+  }
 }
