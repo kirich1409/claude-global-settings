@@ -19,10 +19,12 @@ A fourth file, `<slug>-report.md`, is the final report (see Reports below).
 Goal: <one sentence>
 
 ## Steps
-- [x] 1. <done step> ✅
-- [ ] 2. <next step>
+- [x] 1. <done step> → verify: <check that proved it> ✅
+- [ ] 2. <next step> → verify: <check that will prove it>
 - [ ] 3. ...
 ```
+
+Every step carries an explicit `→ verify: <check>` — the concrete signal that proves the step is done (a passing test, a command exit code, an observed UI state). A step without a verifiable check is a weak goal: it forces a clarification round mid-task instead of letting the loop close on its own. Turn vague asks into checks up front — "add validation" → "test for invalid input passes", "fix the bug" → "regression test reproducing it now passes".
 
 `<slug>-e2e-scenario.md`:
 
