@@ -563,5 +563,6 @@
         "mcp-maven-deps"
       ]
     }
-  }
+  },
+  "inputNeededNotifEnabled": true
 }
