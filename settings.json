@@ -572,13 +572,6 @@
   "agentPushNotifEnabled": true,
   "skipAutoPermissionPrompt": true,
   "voiceEnabled": false,
-  "mcpServers": {
-    "maven-deps-server": {
-      "command": "npx",
-      "args": [
-        "mcp-maven-deps"
-      ]
-    }
-  },
+  "mcpServers": {},
   "inputNeededNotifEnabled": true
 }
