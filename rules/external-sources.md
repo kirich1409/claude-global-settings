@@ -26,7 +26,7 @@ Never WebFetch rendered GitHub pages (`https://github.com/...`) — HTML noisy/e
 `→` ниже = fallback внутри одной роли, **не** приоритет между ролями. Memorized signatures — **никогда** как источник.
 
 **Композиция по стекам** (API truth + Guides — параллельно, если задача нетривиальна):
-- **Android:** API truth = `ksrc` + `android docs` параллельно (jar + текущая рекомендация, не «или/или»). Guides = `android docs` + bundled Android CLI skills параллельно (skills = structured workflows для миграций/областей; docs = точечные guides/codelabs). Fallback: Context7 → DeepWiki → WebSearch.
+- **Android:** API truth = `ksrc` + `android docs` параллельно (jar + текущая рекомендация, не «или/или»). Guides = `android docs` + bundled Android CLI skills параллельно (skills = structured workflows для миграций/областей; docs = точечные guides/codelabs). Fallback: Context7 → WebSearch.
 - **JVM/Kotlin/KMP/Gradle (не-Android):** API truth = `ksrc` primary → Context7 → WebSearch. Guides = Context7 (Kotlin покрыт неравномерно) → WebSearch. `ksrc` даёт только сорсы — для «как принято» нужен второй канал.
 - **Frontend/JS/TS:** оба канала — Context7 primary → WebSearch.
 - **Other (Python/Go/Rust/C#/Swift…):** оба канала — Context7 → WebSearch; экосистемный аналог `ksrc` если есть.

@@ -67,7 +67,7 @@ All commands below connect to a running Android Studio instance over IPC. First 
 - **Android docs — две роли, обе primary, работают параллельно с `ksrc`:**
   - *Guides / recommended approaches / migrations / codelabs / training.* `android docs search` — единственный курируемый источник для «как принято делать X», «migration guide для Y», «best practice для Z». `ksrc` здесь не помогает — сорсы показывают что есть, а не как это применять. Триггер: любой Android-вопрос вида «как», «какой подход», «migration», «best practice», незнакомый компонент / API.
   - *API truth для Jetpack / Compose / AGP / SDK.* `android docs search` + `ksrc` запускаются **параллельно**, не «или/или»: `ksrc` даёт реальный API из source jar, `android docs` подтверждает текущую рекомендованную форму. Расхождение — сигнал что в проекте устаревшая версия или legacy-паттерн.
-  - Context7 / DeepWiki / WebSearch / WebFetch — fallback **только** когда оба основных канала молчат. Не альтернатива им.
+  - Context7 / WebSearch / WebFetch — fallback **только** когда оба основных канала молчат. Не альтернатива им.
 - **Bundled Android skills как guidance (без install) — третий primary канал для Android guides:**
   - **Где живут.** Все skills бандлятся с CLI в `~/.android/cli/skills/**/SKILL.md` (19 штук на v1.0). Файлы — обычные markdown с YAML frontmatter (`name`, `description`, `keywords`, `last-updated`, `author: Google LLC`). Установка для использования как guidance **не нужна** — `Read` работает напрямую.
   - **Discovery → Read pattern.** Триггер: миграция / upgrade / незнакомая узкая область Android (Wear M3, XR Glimmer, CameraX, Navigation 3, edge-to-edge, Compose Styles/adaptive, R8, Perfetto, testing-setup, PBL, Engage SDK, AppFunctions, XML→Compose, AGP 9). Шаги: `android skills find <keyword>` для списка кандидатов с описаниями → выбрать релевантный → `Read ~/.android/cli/skills/**/<name>/SKILL.md` → использовать как structured workflow (типично 10 steps: planning → dependency setup → migration → validation → cleanup).
@@ -101,7 +101,7 @@ Notify the user once: "Android CLI not installed. Install per https://developer.
 
 | Task | Fallback |
 |------|----------|
-| Documentation | Context7 (`resolve-library-id` for the relevant Jetpack lib) → DeepWiki for `androidx/*` GitHub repos → WebSearch on `developer.android.com` → WebFetch the specific page |
+| Documentation | Context7 (`resolve-library-id` for the relevant Jetpack lib) → WebSearch on `developer.android.com` → WebFetch the specific page |
 | Project metadata | Read `app/build.gradle*` and `settings.gradle*` directly; `ksrc` for dependency sources |
 | Layout dump | `adb shell uiautomator dump` + `adb pull /sdcard/window_dump.xml` |
 | Screenshot | `adb exec-out screencap -p > shot.png` |
