@@ -1,3 +1,13 @@
+# This rule targets subagents (memory: project), NOT the main session.
+# Subagent delivery ignores `paths:` (empirically verified) — agents still
+# receive this rule in full. The main session DOES respect `paths:`, so the
+# deliberately never-matching glob below keeps this file out of the main
+# session's always-on context (~3.4K tokens) while subagents are unaffected.
+---
+paths:
+  - "**/*.__agent_memory_sentinel_never_match__"
+---
+
 # Agent Memory System
 
 This rule applies to all agents with `memory: project` in their frontmatter.
