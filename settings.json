@@ -487,6 +487,12 @@
         "source": "github",
         "repo": "InsertKoinIO/koin-migration"
       }
+    },
+    "ponytail": {
+      "source": {
+        "source": "github",
+        "repo": "DietrichGebert/ponytail"
+      }
     }
   },
   "language": "Russian",
