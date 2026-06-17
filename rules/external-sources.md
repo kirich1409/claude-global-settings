@@ -9,7 +9,6 @@
 | `android docs search`/`fetch` | API truth + guides for Android/Jetpack/Compose/AGP/SDK (curated developer.android.com) | non-Android libs |
 | `~/.android/cli/skills/**/SKILL.md` | Bundled Android CLI skills — structured workflows (migrations; узкие области: Wear/XR/edge-to-edge/Compose styles/R8/Perfetto…). Discovery: `android skills find <kw>` → Read the SKILL.md. См. `rules/android-cli.md` | API truth для библиотек; не-Android задачи |
 | Context7 | Published library/framework docs, current API/migration | Project code, debugging own code; one `resolve-library-id` fail → stop, don't chase synonyms |
-| DeepWiki | Specific *public* GitHub repo, arch/behavior level | Current project, non-GitHub, general concepts |
 | `WebSearch`/`WebFetch` | Default for everything not covered above | — |
 | Raw README via `raw.githubusercontent.com` | Last-resort for a specific repo | — |
 
@@ -28,9 +27,9 @@ Never WebFetch rendered GitHub pages (`https://github.com/...`) — HTML noisy/e
 
 **Композиция по стекам** (API truth + Guides — параллельно, если задача нетривиальна):
 - **Android:** API truth = `ksrc` + `android docs` параллельно (jar + текущая рекомендация, не «или/или»). Guides = `android docs` + bundled Android CLI skills параллельно (skills = structured workflows для миграций/областей; docs = точечные guides/codelabs). Fallback: Context7 → DeepWiki → WebSearch.
-- **JVM/Kotlin/KMP/Gradle (не-Android):** API truth = `ksrc` primary → Context7 → DeepWiki → WebSearch. Guides = Context7 (Kotlin покрыт неравномерно) → DeepWiki → WebSearch. `ksrc` даёт только сорсы — для «как принято» нужен второй канал.
-- **Frontend/JS/TS:** оба канала — Context7 primary → DeepWiki → WebSearch.
-- **Other (Python/Go/Rust/C#/Swift…):** оба канала — Context7 → DeepWiki → WebSearch; экосистемный аналог `ksrc` если есть.
+- **JVM/Kotlin/KMP/Gradle (не-Android):** API truth = `ksrc` primary → Context7 → WebSearch. Guides = Context7 (Kotlin покрыт неравномерно) → WebSearch. `ksrc` даёт только сорсы — для «как принято» нужен второй канал.
+- **Frontend/JS/TS:** оба канала — Context7 primary → WebSearch.
+- **Other (Python/Go/Rust/C#/Swift…):** оба канала — Context7 → WebSearch; экосистемный аналог `ksrc` если есть.
 
 **High-staleness (оба канала обязательны):** Ktor 3.x, Room (KMP `@Upsert`, multiplatform), SQLDelight, kotlinx.serialization, kotlinx.datetime, Hilt, Koin, Compose Multiplatform, Compose Material3, AGP 8+/9, KSP, Firebase Android (BoM v34+ убрал KTX), Navigation 3.
 
