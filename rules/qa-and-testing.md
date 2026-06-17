@@ -22,11 +22,17 @@ Every code-modifying task defines a testing strategy at planning time — which 
 
 **L5 — close it yourself, autonomously.** Not "for the user to run." Drive the app via mobile MCP (`mcp__mobile__*`) / `manual-tester` on an emulator/simulator **by default**; physical device only when the change needs real hardware an emulator can't reproduce (biometric HAL, camera, NFC, GPS, sensor fusion). Check availability empirically (`adb devices -l`, `emulator -list-avds`, `xcrun simctl list`) — never declare L5 infeasible from theory; if a needed AVD/image isn't installed but is easy to get, install and run. Build/install the APK yourself, drive the flow, emulate inputs. User involvement is **last resort** — only genuine walls: credentials you can't obtain, a backend on a closed/VPN network you're not on, or behavior that exists only on physical hardware.
 
+### Disposable verification tests
+
+Tests don't have to be permanent. To confirm a migration or a one-off / temporary behavior at implementation time, it is valid to **write a test, run it (confirm it actually passes green), then delete it** — verification without committing the test. Distinct from §4: §4 forbids skipping or deleting tests you *broke* (others' coverage); a disposable test is scaffolding you authored and own. Keep a test permanent when the behavior deserves ongoing coverage; use a disposable one when the check is genuinely one-off.
+
 ## 1. Public-API coverage gate
 
 A modified public symbol must be exercised by a test. "Public" = Kotlin without `@internal`/`private`, Swift `public`/`open`, TS `export`; everything else is internal.
 
 **Trivial — no test needed:** pure data carriers (`data class`, Swift `struct` with only stored props, TS interfaces, enums, type aliases); builder DSLs with no logic; types re-exporting an already-tested symbol.
+
+**No behavior change → no new test.** A pure file move/rename, repackaging, relocating a symbol, or import-only edit is **not** "modifying" the symbol — existing tests + a green build already cover it. Never add unit tests on top of a no-logic move; that is over-testing, the same noise as over-editing. The gate triggers on changed behavior or signature, not on a symbol merely changing location.
 
 **Test-matching (priority order):** (1) file-name `Foo.kt` ↔ `FooTest.kt` / `FooTests.swift` / `Foo.test.ts`; (2) symbol name appears in any test file in the same module; (3) explicit annotation (`@CoveredBy("...")`). None resolves → gate fails: write a test or annotate trivial before `/check` passes.
 
