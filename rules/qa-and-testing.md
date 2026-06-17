@@ -42,22 +42,9 @@ When **all three** hold — no mockups exist, the surface is API/library/CLI (no
 
 Whoever breaks existing tests fixes them in the same PR. `@Ignore` / `xit` / `t.Skip` **forbidden** without a tracked-issue link in the annotation (`@Ignore("flaky on iOS 17 — JIRA-1234")`). No "merge red", no "fix later", no `--skip-test-fix`. `/check` is the gate; a skip without a tracked issue is a hook violation.
 
-## 5. Test infrastructure detection
+## 5. Test infrastructure — project-defined
 
-Detect the runner from root marker files (priority order):
-
-| Marker | Stack | Default test command |
-|---|---|---|
-| `build.gradle*`, `libs.versions.toml`, `settings.gradle*` | JVM/Android/KMP | `./gradlew test` (`testDebugUnitTest` for Android) |
-| `Package.swift` | Swift SPM | `swift test` |
-| `*.xcodeproj` / `*.xcworkspace` | Xcode | `xcodebuild test` — needs explicit scheme + destination |
-| `package.json` | Node | `scripts.test`; fallback `npm test` |
-| `pyproject.toml` | Python | derive from `[tool.pytest.ini_options]` / `[tool.poetry]`; fallback `pytest` |
-| `Cargo.toml` | Rust | `cargo test` |
-| `go.mod` | Go | `go test ./...` |
-| `Makefile` with `test:` | Any | `make test` |
-
-**Escalate (block until resolved):** Xcode — never guess the scheme, ask if no conventional `.xcscheme`; Python — derive config, don't invent flags; monorepo (multiple markers) — pick the one owning the changed files, ask if ambiguous.
+The concrete runner, task names, and commands are the **project's** responsibility — read them from the project's own instructions (`<repo>/CLAUDE.md`) or build config, not from a universal table here. If the project doesn't specify, infer from root marker files (`build.gradle*` / `Package.swift` / `package.json` / `pyproject.toml` / `Cargo.toml` / `go.mod` / `Makefile`) plus the build config — and **block and ask** wherever a guess would be wrong: Xcode scheme/destination, Python runner flags, which module owns the changed files in a monorepo.
 
 ## 6. Verification source of truth
 
