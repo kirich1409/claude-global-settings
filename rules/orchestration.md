@@ -1,6 +1,6 @@
 # Orchestration Rules
 
-Main session = orchestrator on the most capable (expensive) model — its value is reasoning, planning, synthesis. Hands-on coding goes to cheaper Sonnet/Haiku specialists; keep the main session for decisions.
+Main session = orchestrator on the most capable (expensive) model — its value is reasoning, planning, synthesis. Hands-on coding goes to specialists, dispatched at the right **model × effort**; keep the main session for decisions.
 
 **May:** orientation research (Reads until focus drifts, targeted Bash, `git status`/`log`/`ls`/`pwd`, single-page MCP/web lookups like `mcp__plugin_context7_*` / `WebFetch`); edit process working files (state/report/debug/plan, `~/.claude/**`); plan synthesis from Explore/specialist summaries; final synthesis + the user-facing answer; Skill/Agent invocation with the right model.
 **Must not:** edit project production code, do heavy multi-file code search, or wait on long-running build/test/CI in its own context.
@@ -38,44 +38,32 @@ Subagents do **not** inherit `~/.claude/rules/**` — they default to Grep/Read.
 
 (The index is kept fresh by hooks — see `rules/ast-index.md`; this only ensures the subagent *uses* it.)
 
-## Routing matrix (task type → agent → model)
+## Model & effort — two independent levers
 
-The model is passed explicitly via the Agent tool's `model:` parameter.
+Dispatch is a **(model × effort)** choice, not a model downgrade. Tune both to reach the result efficiently — running Opus everywhere at *lower* effort is a valid strategy when intelligence matters but cost/latency don't.
 
-| Task type | Agent | Model |
-|---|---|---|
-| Code research, navigation, "find X / where is Y used" | Explore | haiku |
-| Architectural design, decomposition, API design between layers | `developer-workflow-experts:architecture-expert` / Plan | opus |
-| Security review (auth, crypto, storage, network) | `developer-workflow-experts:security-expert` | opus |
-| Performance review (profiling, hot paths, recomposition) | `developer-workflow-experts:performance-expert` | opus |
-| UX review (screens, flows, a11y) | `developer-workflow-experts:ux-expert` | opus |
-| Debugging investigation (root cause, stack traces, binary search over changes) | `developer-workflow-experts:debugging-expert` | opus |
-| Build engineering (Gradle, AGP, KMP, version catalogs) | `developer-workflow-experts:build-engineer` | sonnet (opus for complex restructuring) |
-| DevOps (CI/CD, packaging, dependency scanning) | `developer-workflow-experts:devops-expert` | sonnet |
-| Business / product analysis (scope, MVP, ACs, trade-offs) | `developer-workflow-experts:business-analyst` | opus |
-| Code review (semantic, pre-PR) | `developer-workflow-experts:code-reviewer` / `pr-review-toolkit:code-reviewer` | sonnet (opus for security-sensitive PRs) |
-| Comment-quality review | `pr-review-toolkit:comment-analyzer` | sonnet |
-| Test coverage review | `pr-review-toolkit:pr-test-analyzer` | sonnet |
-| Silent failure / error-handling hunt | `pr-review-toolkit:silent-failure-hunter` | sonnet |
-| Type design review | `pr-review-toolkit:type-design-analyzer` | sonnet |
-| Implementation Kotlin / Android (ViewModel/UseCase/Repository/DI/mappers/unit tests) | `developer-workflow-kotlin:kotlin-engineer` | sonnet |
-| Compose UI (composables, theme, navigation, modifiers, previews) | `developer-workflow-kotlin:compose-developer` | sonnet |
-| Refactor / simplification pass | `code-simplifier:code-simplifier` / `pr-review-toolkit:code-simplifier` | sonnet |
-| Manual QA against a running app | `developer-workflow:manual-tester` | sonnet |
-| Plugin / skill / agent authoring | `plugin-dev:plugin-validator` / `plugin-dev:agent-creator` / `plugin-dev:skill-reviewer` | sonnet |
-| Hook authoring analysis | `hookify:conversation-analyzer` | sonnet |
-| Claude Code / SDK / API "how do I" | `claude-code-guide` | sonnet |
-| Build / test / CI runs (idempotent, long-running) | general-purpose | sonnet (haiku if pure shell + log assembly) |
-| GitLab / GitHub admin (open an issue, attach a label, leave a comment) | general-purpose | haiku |
-| Lookups via MCP / web / docs (one page + summary) | general-purpose | haiku |
+**Mechanics (what's actually settable):**
+- **Model** — per call via the Agent tool's `model:` (`sonnet` / `opus` / `haiku` / `fable` / full id / `inherit`; default `inherit` = the main model). Set it explicitly — `inherit` silently keeps the expensive main model.
+- **Effort** — `low | medium | high | xhigh | max`, but **only on Opus 4.x / Sonnet 4.6 / Fable; Haiku has no effort knob** (assigning effort to a Haiku agent errors). Effort is **not** a per-call Agent param — it comes from the agent definition's `effort:` frontmatter or the inherited session `/effort` (subagents inherit the session level as baseline; frontmatter overrides). For per-task effort control, pin `effort:` in the agent's frontmatter or use a Workflow (`agent({effort})`). `max` is session-only and never persists.
 
-For any PR/MR, issue, or Projects-board work (incl. delegated `gh`/`glab` calls): use the idempotent, timeout-safe toolkit in `$HOME/.claude/scripts/gh/` and follow `rules/github-ops.md` (mechanics) + `rules/github-merge-policy.md` (autonomy / anti-stall / per-project policy). Never block the main session on `gh run watch` / `gh pr checks --watch`.
+**Heuristic:**
+- Mechanical / search / lookup / admin CRUD → **haiku** (no thinking; effort N/A).
+- Substantive but bounded (implementation, refactor, code review, manual QA, build engineering) → **sonnet**, or **opus at low–medium**.
+- Hard reasoning (planning, architecture, security/perf/UX review, debugging root cause, ambiguous trade-offs) → **opus at high–xhigh/max**.
+- Unclear model between two adjacent tiers → pick the **smaller**, bump on first failure. Unclear effort → start **lower**, bump if the result comes back thin.
 
-## Model & effort
+## Routing — choose from what's available
 
-**Model (when not in the table):** `opus` — reasoning, planning, synthesis, multi-factor analysis, security/perf/UX/architecture review, debugging root cause; `sonnet` — implementation, refactor, code review, manual QA, build engineering, mid-complexity specialist tasks; `haiku` — search, lookups, admin CRUD, file discovery, mechanical transforms. Unclear between two adjacent models → pick the **smaller**, bump on first failure / poor result.
+No fixed task→agent table. The harness already lists the agents available **in this project** with descriptions — match the task to the best-fit available agent by reading those, then apply the model/effort heuristic above. This stays correct as the available set changes per project (plugins enabled/disabled) instead of pointing at agents that aren't loaded.
 
-**Effort (`/effort`, main session only — subagents do not inherit it):** levels `low | medium | high | xhigh | max`. `xhigh`/`max` — planning, architecture, security review, debugging root cause, ambiguous trade-offs; `high`/`medium` — day-to-day orchestration/routing; `low` — narrow targeted edits, mechanical refactors, doc fixes, simple navigation (reasoning bumps amplify over-editing → on small fixes a lower level yields a cleaner diff, often faster). Persist via `~/.claude/settings.json: "effortLevel"` or env `CLAUDE_CODE_EFFORT_LEVEL` (env wins); `max` never persists across sessions. **Subagents:** always pass an explicit `model:`; where an effort param is exposed, pass it (planning/architecture → `xhigh`+; implementation/review → `medium`/`high`; mechanical lookups → `low`), else note it — never assume the parent's level carried over.
+**Non-obvious routing & guardrails** (won't be inferred from agent descriptions):
+- **Planning / architecture / synthesis → keep in the main session** (or the `Plan` agent). Never delegate planning — it is the orchestrator's core value.
+- Security / performance / UX / code review → the matching **expert agent**, never the main session.
+- Code research / "find X / where is Y used" → **Explore** (haiku).
+- Long-running build / test / CI → **general-purpose in the background**, never blocking the main session.
+- Implementation in a stack → the stack specialist (Kotlin/Compose/Swift engineer) **when its plugin is available**; else general-purpose.
+- Skill-first: if an installed skill covers the task, use it over a direct Agent.
+- PR/MR, issue, or Projects-board work (incl. delegated `gh`/`glab`): the idempotent, timeout-safe toolkit in `$HOME/.claude/scripts/gh/` + `rules/github-ops.md` / `rules/github-merge-policy.md`. Never block on `gh run watch` / `gh pr checks --watch`.
 
 ## Plan mode
 
@@ -87,7 +75,7 @@ The user can cancel delegation ("do it yourself", "don't delegate", "write it by
 
 ## Anti-patterns (beyond the Forbidden list)
 
-- Passing a default `inherit` model to an agent without an explicit choice — the Haiku/Sonnet savings are lost.
+- Leaving `model:` at default `inherit` without an explicit choice — the Haiku/Sonnet savings are lost.
 - Delegating planning — the main session's synthesis power is wasted.
 - Подмена гейта `/finalize` разовым вызовом `code-reviewer`. `/finalize` — это полный review→fix→simplify loop; одиночное ревью оставляет его наполовину незавершённым (fix и simplify не выполнены). «Код уже отревьюен» гейт не закрывает.
 - Сокращение profile-triggered reviewer panel. Если skill / профиль определяет panel правилами (`primary` + regex-matched `optional_if`) — использовать **весь** triggered set. «Эта область уже разобрана в прошлом ревью другого артефакта» — не основание для пропуска: research / spec / test-plan — разные тексты, разные failure modes, разные перспективы. Cost extra agent: 2-5 минут; cost пропуска: gap который вылезет после approval (свежий кейс — `desktop-v2-spec`: сократил panel 5→3, пропустил drag-positioning gap, который UX/perf ревьюер увидел бы сразу). Полный triggered set применять всегда, даже если кажется дублированием.
