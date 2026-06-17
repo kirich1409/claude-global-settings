@@ -19,16 +19,17 @@ Google's `android` CLI (https://developer.android.com/tools/agents/android-cli) 
 | Task | Command |
 |------|---------|
 | Search Android / Jetpack / Compose / AGP / SDK docs | `android docs search "<query>"` |
-| Fetch a doc page | `android docs fetch <url>` |
+| Fetch a doc page (url returned by `docs search`) | `android docs fetch <url>` |
 | Project metadata (build targets, APK output paths) | `android describe --project_dir=.` |
 | Live device UI tree | `android layout --pretty` |
 | UI tree diff after action | `android layout -d` |
 | Device screenshot | `android screen capture -o <path>` |
 | Visual UI element targeting (no stable id) | `android screen capture -a` then `android screen resolve --screenshot <p> --string "tap on #3"` |
 | List AVDs | `android emulator list` |
-| Start / stop / create / remove AVD | `android emulator start|stop|create|remove` |
+| Start / stop / remove AVD | `android emulator start <avd> [--cold]` / `stop` / `remove` |
+| Create AVD from a profile (watch / phone / XR…) | `android emulator create <profile>` (`--list-profiles` to enumerate) |
 | SDK package install / update / remove / list | `android sdk install|update|remove|list` |
-| Deploy a built APK | `android run --apks <path> --activity <name> --type <debug\|release> --device <id>` |
+| Deploy a built APK | `android run --apks <p1,p2…> --activity <name> --device <id> [--debug]` — `--type` = component type (ACTIVITY/SERVICE…), **not** build variant |
 | Environment info (SDK path, CLI version) | `android info` |
 | New project scaffold (only on explicit request) | `android create [template] --name <n> --minSdk <v>` |
 | List / find bundled skills (read-only) | `android skills list` / `android skills find <keyword>` |
@@ -43,17 +44,17 @@ Commands connect to a running Studio over IPC. Run `android studio check` first 
 |------|---------|
 | Probe running Studio instances and their projects | `android studio check` |
 | Open a file in Studio | `android studio open-file <path> [--project=<name>]` |
-| Go to declaration / find usages of a symbol | `android studio find-declaration <args>` / `find-usages <args>` |
+| Go to declaration / find usages of a symbol | `android studio find-declaration <symbol> [--context-file=<f>] [--short]` / `find-usages <symbol>` (`--context-file` disambiguates overloads) |
 | Run inspections on a file (Lint + code analysis) | `android studio analyze-file <path> [--project=<name>]` |
 | Render a `@Preview` composable + a11y semantics tree | `android studio render-compose-preview <file> <composable> [--output-image-file=<png>] [--print-semantics]` |
-| Latest stable+preview of Maven artifact / AGP / Kotlin / Compose BOM / Gradle / NDK / SDK / Studio | `android studio version-lookup <id...>` |
+| Latest stable+preview versions, space-separated ids | `android studio version-lookup <id...>` — ids: `group:artifact`, Gradle pluginId, `gradle` `studio` `agp` `kotlin` `compose` `ndk` `sdk` `emulator` `adb` `android`(platform) `platform-tools` `cmdline-tools` `build-tools` |
 
 ## Priority versus existing tools
 
 - **Android docs — primary, две роли, параллельно с `ksrc`:** `android docs search` — единственный курируемый источник для guides (как принято / migration / best practice; триггер: «как», «какой подход», «migration», незнакомый компонент). Для API truth `android docs` + `ksrc` гоняются **параллельно** (jar даёт реальный API, docs — текущую рекомендованную форму; расхождение = устаревшая версия / legacy в проекте). Context7 / WebSearch / WebFetch — fallback только когда оба молчат.
 - **Bundled skills — третий primary канал guides.** 19 markdown-файлов в `~/.android/cli/skills/**/SKILL.md` (frontmatter: `name`, `description`, `keywords`, `last-updated`, `author: Google LLC`). Использование как guidance **install не требует** — `Read` напрямую. Pattern: `android skills find <keyword>` → выбрать → `Read SKILL.md` → следовать structured workflow (типично 10 шагов). Триггер: миграция / upgrade / узкая область (Wear M3, XR Glimmer, CameraX, Navigation 3, edge-to-edge, Compose Styles/adaptive, R8, Perfetto, testing-setup, PBL, Engage SDK, AppFunctions, XML→Compose, AGP 9). Tier T2; `last-updated` старше года в evolving стеке → понизить вес. Запускать параллельно с `android docs search` (skills = end-to-end workflow области, docs = точечные references). **Не используется**, когда глобальный Claude Code skill покрывает задачу 1:1 (`migrate-xml-views-to-jetpack-compose` ↔ `developer-workflow-kotlin:migration`, `agp-9-upgrade` ↔ `kotlin-tooling-agp9-migration`) — глобальный имеет приоритет (routable через Skill tool, интегрирован с workflow gates).
 - **Device / SDK / AVD:** `android layout` / `android screen` / `android sdk` / `android emulator` — primary над raw `adb` / `sdkmanager` / `avdmanager` / `emulator`. Падать на raw только при отсутствующем флаге.
-- **Build & deploy:** проектный Gradle (`./gradlew assembleDebug`, `installDebug`) — primary для самой сборки. `android run` — для deploy-and-launch уже собранного APK (декларативно `--activity` / `--type`).
+- **Build & deploy:** проектный Gradle (`./gradlew assembleDebug`, `installDebug`) — primary для самой сборки. `android run` — для deploy-and-launch уже собранного APK: `--apks` (CSV), `--activity`, `--device`, булев `--debug`; `--type` = тип компонента (ACTIVITY/SERVICE…), **не** build variant.
 - **Scaffolding:** `android create` — только по явной просьбе, никогда в обычной работе.
 - **Studio integration vs существующие инструменты:** `find-declaration` / `find-usages` — **fallback** (default `ast-index` → LSP; `studio` только если он уже открыт И нужен Studio-индекс: KSP-генерация, cross-module refs, что ast-index/LSP не разрешает). `version-lookup` — **fallback** для `maven-mcp:latest-version` (maven-mcp standalone, остаётся primary; `version-lookup` — когда нужна сводка по не-Maven id `agp`+`kotlin`+`compose`+`gradle`+`sdk` сразу и Studio запущен). `analyze-file` — **fallback** для `./gradlew lint` (Gradle lint primary, детерминирован, в CI; `analyze-file` — для полных IDE-инспекций при открытом Studio). `render-compose-preview` — **primary**, аналога нет (рендер `@Preview` без эмулятора + опц. semantics tree для assertion-based UI-теста). `open-file` — convenience, только по явной просьбе.
 
@@ -80,4 +81,4 @@ Edge case (CLI отсутствует на машине). Notify once: "Android 
 ## Operational notes
 
 - `android skills list` (and similar) emit a long ANSI progress bar before the result — when piped/captured, treat trailing non-progress lines as the payload.
-- **`--help` quirks (v1.0):** groups `sdk`/`skills` (+ all `skills` subcommands) and standalone `info`/`init` reject `--help` (`Unknown option`) — invoke without args for usage. `docs`, `emulator`, `screen`, `studio`, `create`, `describe`, `run`, `layout` accept `--help` normally.
+- **`--help` quirks (v1.0):** groups `sdk`/`skills` (+ `skills` subcommands), `info`/`init`, and `screen capture` reject `--help` (`Unknown option`, but still print a usage line); the `screen` **group** `--help` errors out entirely (i/o error) — call `screen capture`/`screen resolve` directly. `docs`(+`search`/`fetch`), `emulator`, `studio` (+ subcommands), `create`, `describe`, `run`, `layout` accept `--help` normally. First invocation per session may prepend `Unpacking embedded installation…` noise.
