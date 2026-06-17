@@ -56,5 +56,3 @@ Never WebFetch rendered GitHub pages (`https://github.com/...`) — HTML noisy/e
 - **T1 vs T2** — следовать T1 (реально доступно в проекте), отметить расхождение пользователю; при существенном gap — предложить bump через plan-stage gate.
 - **T1/T2 vs T3/T4** — T1/T2 выигрывают безусловно.
 - **T2 vs T2** (два официальных расходятся) — свежий вендорский changelog > старая docs-страница; непонятно → поднять вопрос, не выбирать молча.
-
-Ручная инвокация workflow: `~/.claude/skills/library-verify/`.
