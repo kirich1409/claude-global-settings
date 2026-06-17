@@ -12,7 +12,6 @@
 | DeepWiki | Specific *public* GitHub repo, arch/behavior level | Current project, non-GitHub, general concepts |
 | `WebSearch`/`WebFetch` | Default for everything not covered above | — |
 | Raw README via `raw.githubusercontent.com` | Last-resort for a specific repo | — |
-| Perplexity MCP | Only when user asks ("через perplexity") or dev-workflow research stage | Default web research |
 
 Never WebFetch rendered GitHub pages (`https://github.com/...`) — HTML noisy/expensive; use raw or DeepWiki.
 
