@@ -8,10 +8,11 @@ Every code-modifying task defines a testing strategy at planning time — which 
 
 ### Verification pyramid
 
-**Build gate (prerequisite):** must compile before any verification. Levels are strictly sequential — each requires the previous to pass. Start at L1; moving up needs justification.
+Levels are strictly sequential — each requires the previous to pass. Start at L0; moving up needs justification.
 
 | Level | Name | Description |
 |---|---|---|
+| L0 | Build | the project — or just the necessary part (the relevant app/module, not always the whole repo) — compiles. Without this, going further is pointless. |
 | L1 | Static analysis | lint, type check, code review, dependency audit — always applied |
 | L2 | Unit tests | fast, no device, pure logic |
 | L3 | UI tests | automated, need emulator/device |
