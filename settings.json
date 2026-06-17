@@ -396,7 +396,7 @@
     "command": "bash $HOME/.claude/statusline-command.sh"
   },
   "enabledPlugins": {
-    "context7@claude-plugins-official": true,
+    "context7@claude-plugins-official": false,
     "ksrc@respawn-tools": true,
     "maven-mcp@krozov-ai-tools": true,
     "security-guidance@claude-plugins-official": false,
