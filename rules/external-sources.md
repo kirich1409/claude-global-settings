@@ -12,7 +12,7 @@
 | `WebSearch`/`WebFetch` | Default for everything not covered above | — |
 | Raw README via `raw.githubusercontent.com` | Last-resort for a specific repo | — |
 
-Never WebFetch rendered GitHub pages (`https://github.com/...`) — HTML noisy/expensive; use raw or DeepWiki.
+Never WebFetch rendered GitHub pages (`https://github.com/...`) — HTML noisy/expensive; use raw README.
 
 ## Verify library API before code
 
@@ -41,7 +41,7 @@ Never WebFetch rendered GitHub pages (`https://github.com/...`) — HTML noisy/e
 |---|---|---|
 | **T1** ground truth | артефакт без интерпретации | `ksrc`, existing project code, official release artifact |
 | **T2** official docs | курируемая вендорская docs, releases/changelogs | `android docs`, Context7 для официальных либ, vendor changelog |
-| **T3** aggregated/AI | может галлюцинировать | DeepWiki, Context7 для community либ без вендорской docs |
+| **T3** aggregated/AI | может галлюцинировать | Context7 для community либ без вендорской docs |
 | **T4** random web | блоги, StackOverflow, Medium, tutorials | WebSearch, случайный WebFetch |
 
 **Default: T1 + T2 параллельно** для любого Edit/Write с внешней библиотекой — базовый режим, не «при сомнении». T1-only допустим **только** с явным обоснованием в reasoning: стабильная Java/Kotlin stdlib (не evolving либа); уже виденный символ на той же pinned версии, `ksrc` подтверждает форму, локальный helper / data class без поведения; тривиальное использование (конструктор data class, enum value, константа). «Кажется очевидным» — не обоснование.
@@ -49,7 +49,7 @@ Never WebFetch rendered GitHub pages (`https://github.com/...`) — HTML noisy/e
 **Валидация перед использованием:**
 - Версия источника = версии в проекте? Нет → флаг, не использовать без cross-check, отметить в reasoning (T1 = pinned, T2 = current; расхождение = проект отстал или docs про другую major).
 - T3/T4 старше года в evolving стеке (Compose/Ktor/AGP/KMP/Hilt/kotlinx.*) — подозрительно, понизить вес.
-- AI-generated (DeepWiki) — никогда единственный источник для сигнатур/версий; только в паре с T1 или T2.
+- T3 aggregated/AI — никогда единственный источник для сигнатур/версий; только в паре с T1 или T2.
 - Red flags (понизить tier на 1): источник не указывает версию; сигнатура не воспроизводится в `ksrc`; текст «выглядит сгенерированным» (общие фразы, размытые типы); tutorial/блог без даты.
 
 **Конфликты:**
