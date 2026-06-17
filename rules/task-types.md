@@ -23,6 +23,8 @@ When either condition is not met — document the reason in the plan and proceed
 | UI / design task | Figma / screenshots | L1 + L3 + L5 | After implementation | Visual comparison against mockup |
 | Investigation / research | Research output document | L1 only if code produced | N/A when no code changes | No pyramid when no code is written |
 
+**L0 (Build) is the implicit entry gate for every row** — the affected part (relevant app/module, not always the whole repo) must compile before any L1+ level runs. The "Min pyramid" column lists levels *above* L0; it never repeals it. No code change → no L0 (e.g. research). See `qa-and-testing.md` → verification pyramid.
+
 ## Before-state baseline
 
 A durable snapshot of the system's current behavior, created **before any changes**, detailed enough to verify the modified system behaves identically.
