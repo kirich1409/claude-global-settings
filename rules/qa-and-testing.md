@@ -23,6 +23,14 @@ Levels are strictly sequential — each requires the previous to pass. Start at 
 
 **L5 — close it yourself, autonomously.** Not "for the user to run." Drive the app via mobile MCP (`mcp__mobile__*`) / `manual-tester` on an emulator/simulator **by default**; physical device only when the change needs real hardware an emulator can't reproduce (biometric HAL, camera, NFC, GPS, sensor fusion). Check availability empirically (`adb devices -l`, `emulator -list-avds`, `xcrun simctl list`) — never declare L5 infeasible from theory; if a needed AVD/image isn't installed but is easy to get, install and run. Build/install the APK yourself, drive the flow, emulate inputs. User involvement is **last resort** — only genuine walls: credentials you can't obtain, a backend on a closed/VPN network you're not on, or behavior that exists only on physical hardware.
 
+### L5 log capture — filter, scope, redact
+
+When L5 reads runtime logs of the app under test (logcat / `os_log` / server logs) as a verification signal, three rules are non-negotiable:
+
+- **Anchor on a deterministic verifier, not the log text.** pass/fail comes from a test exit code, build result, or screenshot/`assert_visible`. The log is a *diagnostic hypothesis* that explains **why** — never the sole pass/fail signal (logs are noisy and flaky). Crash scan complements the deterministic check, it does not replace it.
+- **Filter and scope before ingesting into context.** Never pipe raw logs into the conversation — it overflows context and buries signal in noise. Level ≥ ERROR for the pass/fail scan; scope by package/PID on Android (`--pid=$(adb shell pidof -s PKG)`, `get_logs(level="E", package=…)`), by `subsystem` on iOS (`simctl log show --predicate 'subsystem=="<bundleId>"'`); cap volume (`-m N` / `tail` / last-N); large output → a file or `ctx_batch_execute`, agent reads the path, not the bytes. Crash patterns: Android `FATAL EXCEPTION` / `AndroidRuntime: FATAL` / ANR / unhandled NPE; iOS `fault`/`error`.
+- **Redact secrets before injection.** Logs the agent *reads* are bound by the same "what never goes into a log" rule as logs it writes ([[logging]]): never feed raw `.env`, `curl -v`, or `Authorization` headers into context; mask `Bearer .*`, `*_TOKEN`, `*_KEY`, PII. OWASP LLM06 — captured logs reach the model provider.
+
 ### Disposable verification tests
 
 Tests don't have to be permanent. To confirm a migration or a one-off / temporary behavior at implementation time, it is valid to **write a test, run it (confirm it actually passes green), then delete it** — verification without committing the test. Distinct from §4: §4 forbids skipping or deleting tests you *broke* (others' coverage); a disposable test is scaffolding you authored and own. Keep a test permanent when the behavior deserves ongoing coverage; use a disposable one when the check is genuinely one-off.
