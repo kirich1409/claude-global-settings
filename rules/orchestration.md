@@ -10,7 +10,7 @@ Main session = orchestrator on the most capable (expensive) model — its value 
 | Category | Examples |
 |---|---|
 | State / reports / debug logs | `swarm-report/<slug>-{state,report,debug,e2e-scenario}.md` |
-| Plan files | `docs/plans/<slug>/` produced by `/plan` (`plan.md`, `tasks.md`, `progress.md`); `progress.md` is the live execution ledger |
+| Plan files | `docs/plans/<slug>/` produced by `/plan` (`plan.md`, `tasks.md`, `progress.md`); `progress.md` is the live execution ledger. Transient — `/drive-to-merge` removes them after merge |
 | Session notes | `MEMORY.md`, files in `memory/`, scratch files for the task |
 | Global rules and configs | `~/.claude/CLAUDE.md`, `~/.claude/rules/**`, `~/.claude/settings*.json`, hooks |
 | Process docs | READMEs/docs inside `~/.claude`, plugin tooling for agents |

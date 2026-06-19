@@ -22,13 +22,31 @@ Reach for built-in plan mode only for throwaway, codebase-only scratch planning 
 
 ## Flows
 
-**Non-trivial features:**
-1. `/plan` → identify verification source of truth (spec, Figma, AC list, or behavioral baseline for migrations) → optional `/write-spec` first when the change is too big to hold in head (the plan then references the spec). `/plan` already runs its own mandatory multiexpert-review loop over the plan; reach for a standalone `/multiexpert-review` only outside that flow.
-2. Implement on a feature branch in a worktree. Open draft PR early via `/create-pr --draft`.
-3. `/check` → `/finalize` → `/acceptance` → `/create-pr --promote` (user confirmation required) → `/drive-to-merge`.
+Maximum autonomy at every stage: the per-artifact review loops replace human approval, so the pipeline runs end-to-end without confirmation pauses. The one deliberate exception is the PR promotion gate above. Every skill is on-demand — skip the ones a simple task doesn't need; the structure below is the *full* flow, not a mandatory minimum.
 
-**Bug fixes:**
-1. `/plan` (debug + fix in the plan). Capture reproduction steps in `swarm-report/<slug>-debug.md` — this is the source of truth for `/acceptance`.
-2. Implement → optional `/write-tests` for regression → `/check` → `/finalize` → `/acceptance` → PR.
+### Phase 1 — Sources of truth ("is this even worth building, and against what is it verified?")
+
+1. `research` — when the approach / feasibility / options are undecided (skip for routine tasks where the *what* is already clear). New findings may send the loop back here.
+2. `/write-spec` — turn an already-decided feature into an implementation contract (skip for simple tasks). Clarifications are gathered inline as it runs.
+3. **Mandatory multi-review of the spec.** The spec is not a source of truth until a multiexpert panel has reviewed it. Clarifications surfaced in review are folded in inline; a serious gap may restart `research`.
+4. `/generate-test-plan` — when the change needs structured executable cases → **mandatory multi-review of the test plan** before it becomes the acceptance contract.
+
+The spec and the test plan are **permanent** sources of truth (`docs/specs/`, `docs/testplans/`) — they outlive the change.
+
+### Phase 2 — Implementation
+
+1. `/plan` — collect the implementation-level sources of truth, define which test-pyramid levels `/acceptance` must pass, and write clear per-task acceptance + test methods (skip for trivial changes). **The plan is mandatorily multi-reviewed before any implementation starts — an unreviewed plan must not be taken into work.** The plan lives in `docs/plans/<slug>/` in the repo throughout implementation and PR review, and is **transient scaffolding, not a permanent record**: `/drive-to-merge` removes it after the change merges (and it should not survive an abandoned/rejected change either).
+2. Implement on a feature branch in a worktree. Open a draft PR early via `/create-pr --draft`.
+3. `/check` → `/finalize`.
+
+### Phase 3 — Verification
+
+1. `/acceptance` — verify against the spec / test plan / behavioral baseline; run runtime checks including `manual-tester` for UI surfaces.
+2. On failure: a **fix loop** (`/finalize` → `/acceptance` again), or — if the failure invalidates the approach itself — **roll all the way back to Phase 1** and revise the spec / plan. Do not patch around a broken contract.
+3. `/create-pr --promote` (user confirmation required) → `/drive-to-merge` (merges, then removes the plan).
+
+### Variants
+
+**Bug fixes:** `/plan` captures debug + fix; reproduction steps go in `swarm-report/<slug>-debug.md` — the source of truth for `/acceptance`. Then implement → optional `/write-tests` for regression → `/check` → `/finalize` → `/acceptance` → PR.
 
 **Exploratory QA without a spec:** call the `manual-tester` agent directly via the Task tool (no skill needed).
