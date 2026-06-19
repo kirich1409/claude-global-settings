@@ -10,7 +10,7 @@ Main session = orchestrator on the most capable (expensive) model — its value 
 | Category | Examples |
 |---|---|
 | State / reports / debug logs | `swarm-report/<slug>-{state,report,debug,e2e-scenario}.md` |
-| Plan files in plan mode | files created in the current plan mode |
+| Plan files | `docs/plans/<slug>/` produced by `/plan` (`plan.md`, `tasks.md`, `progress.md`); `progress.md` is the live execution ledger |
 | Session notes | `MEMORY.md`, files in `memory/`, scratch files for the task |
 | Global rules and configs | `~/.claude/CLAUDE.md`, `~/.claude/rules/**`, `~/.claude/settings*.json`, hooks |
 | Process docs | READMEs/docs inside `~/.claude`, plugin tooling for agents |
@@ -65,9 +65,9 @@ No fixed task→agent table. The harness already lists the agents available **in
 - Skill-first: if an installed skill covers the task, use it over a direct Agent.
 - PR/MR, issue, or Projects-board work (incl. delegated `gh`/`glab`): the idempotent, timeout-safe toolkit in `$HOME/.claude/scripts/gh/` + `rules/github-ops.md` / `rules/github-merge-policy.md`. Never block on `gh run watch` / `gh pr checks --watch`.
 
-## Plan mode
+## Planning (`/plan`)
 
-Plan mode restricts agents to Explore (Phase 1, default haiku) and Plan (Phase 2, default opus) — compatible with the routing above. These rules apply after `ExitPlanMode`.
+Planning runs through the `/plan` skill, not built-in plan mode (`rules/workflow.md` explains why). `/plan` does read-only investigation via Explore (default haiku) and keeps plan synthesis in the main session / `Plan` agent (default opus) — compatible with the routing above — then runs a mandatory adversarial multiexpert-review loop as the approval gate and hands off to implementation autonomously. There is no `ExitPlanMode` pause, so these orchestration rules apply throughout the whole run, not only after an approval gate.
 
 ## Override
 
