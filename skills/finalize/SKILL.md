@@ -3,7 +3,7 @@ name: finalize
 description: >
   Run a code-quality pass over the current branch — multi-round review-and-fix loop that
   polishes how the code is written, not what it does. Runs a one-shot built-in /code-review
-  deep scan, then code-reviewer, /simplify, optional pr-review-toolkit trio, and conditional
+  deep scan, then code-reviewer, /simplify, optional pr-review-toolkit quartet, and conditional
   expert reviews with /check between rounds; exits PASS when no BLOCK findings remain or ESCALATE after max rounds.
   Triggers: "finalize", "run code quality pass", "clean up the code", "prepare for review",
   "polish the code", "tidy up", "harden the implementation".
@@ -13,7 +13,7 @@ description: >
 
 Code-quality pass over the current branch. Multi-round review-and-fix loop focused on **how** the code is written (quality, clarity, robustness), not **what** it does (functional acceptance, owned by `acceptance`) or **whether it works** (build/lint/tests, owned by `/check`).
 
-`finalize` orchestrates a one-shot built-in `/code-review` deep scan + `code-reviewer` + `/simplify` + the optional `pr-review-toolkit` trio + conditional expert reviews — none of those alone catches the full set of recurring patterns (removed-behavior regressions, cross-file breakage, wrong-altitude bandaids, over-engineered abstractions, silent failures, fragile types, weak coverage).
+`finalize` orchestrates a one-shot built-in `/code-review` deep scan + `code-reviewer` + `/simplify` + the optional `pr-review-toolkit` quartet + conditional expert reviews — none of those alone catches the full set of recurring patterns (removed-behavior regressions, cross-file breakage, wrong-altitude bandaids, over-engineered abstractions, silent failures, fragile types, weak coverage).
 
 **Author fixes broken tests** is enforced per `~/.claude/rules/qa-and-testing.md` § 4. A `/check` between phases that surfaces test failures triggers an inline fix in the same round — owned by the engineer agent that produced the change. Round-end exit is impossible while tests remain red.
 
@@ -47,7 +47,7 @@ Phase 0 (once, pre-loop) → built-in /code-review deep scan → dedup vs Phase 
 Round N:
   A  → code-reviewer          → fix BLOCK → /check
   B  → /simplify (auto-fixes) → /check
-  C  → pr-review-toolkit trio (parallel, if installed) → fix BLOCK → /check
+  C  → pr-review-toolkit quartet (parallel, if installed) → fix BLOCK → /check
   D  → expert reviews (conditional, parallel)          → fix BLOCK → /check
   Any unfixed BLOCK → round N+1 (up to max_rounds, default 3); else PASS
 ```
@@ -113,7 +113,7 @@ FAIL verdict → this phase has BLOCKs to address before continuing.
 
 **Why Phase A keeps a dedicated `code-reviewer` alongside Phase 0's `/code-review`.** Phase A's `code-reviewer` (from `developer-workflow-experts`) is **not** replaced by the built-in `/code-review`: it owns plan-conformance anchoring and the rule "a `CLAUDE.md` Non-negotiables violation is always BLOCK regardless of confidence" — neither of which the generic `/code-review` performs. The recall the built-in harness adds (removed-behavior, cross-file, altitude, line-by-line correctness) is captured separately by **Phase 0**, deduped against Phase A, rather than by swapping Phase A's reviewer.
 
-An earlier version of this gate omitted `/code-review` entirely, on the theory that "a third generic reviewer stacked on Phase A + Phase C only raises duplication." That was contradicted empirically — `/code-review` surfaces real findings the dedicated reviewer and the trio miss (removed guards, broken call sites, bandaid-altitude fixes) — so per `~/.claude/CLAUDE.md` (empirical claims beat armchair theory) the harness is now wired in as a **deduped one-shot (Phase 0)**, not stacked per round. The `code-review:code-review` marketplace plugin remains avoided by name (it needs a PR number and reviews no working tree); Phase 0 binds the **core** built-in and degrades gracefully if a foreign install shadows it (see Phase 0 Binding check). The cloud `/code-review ultra` stays a manual pre-merge escape OUTSIDE this gate.
+An earlier version of this gate omitted `/code-review` entirely, on the theory that "a third generic reviewer stacked on Phase A + Phase C only raises duplication." That was contradicted empirically — `/code-review` surfaces real findings the dedicated reviewer and the Phase C quartet miss (removed guards, broken call sites, bandaid-altitude fixes) — so per `~/.claude/CLAUDE.md` (empirical claims beat armchair theory) the harness is now wired in as a **deduped one-shot (Phase 0)**, not stacked per round. The `code-review:code-review` marketplace plugin remains avoided by name (it needs a PR number and reviews no working tree); Phase 0 binds the **core** built-in and degrades gracefully if a foreign install shadows it (see Phase 0 Binding check). The cloud `/code-review ultra` stays a manual pre-merge escape OUTSIDE this gate.
 
 ---
 
@@ -131,13 +131,16 @@ Invoke `/simplify`: parallel reuse / quality / efficiency pass that **applies fi
 
 Soft-reference to `pr-review-toolkit` (marketplace `claude-plugins-official`). Not a hard dep — that marketplace publishes plugin entries without `version` fields, breaking semver resolution.
 
-Before invoking, check whether the three agents are available (e.g. Task agent registry). Any missing → skip Phase C, log `phase: C, status: skipped, reason: pr-review-toolkit not installed`, continue to Phase D. All available → invoke in **parallel**:
+Before invoking, check whether the `pr-review-toolkit` agents are available (e.g. Task agent registry). Any missing → skip Phase C, log `phase: C, status: skipped, reason: pr-review-toolkit not installed`, continue to Phase D. Otherwise invoke the applicable agents in **parallel**:
 
-| Agent | Focus |
-|---|---|
-| `pr-review-toolkit:pr-test-analyzer` | Test quality in diff — edge cases, behavioral vs implementation testing |
-| `pr-review-toolkit:silent-failure-hunter` | Empty catch blocks, swallowed errors, overly broad catches, errors logged but not surfaced |
-| `pr-review-toolkit:type-design-analyzer` | Can invalid states be represented? Invariants in types? Missing nullability, unsafe unions |
+| Agent | Focus | Fires |
+|---|---|---|
+| `pr-review-toolkit:pr-test-analyzer` | Test quality in diff — edge cases, behavioral vs implementation testing | always |
+| `pr-review-toolkit:silent-failure-hunter` | Empty catch blocks, swallowed errors, overly broad catches, errors logged but not surfaced | always |
+| `pr-review-toolkit:type-design-analyzer` | Can invalid states be represented? Invariants in types? Missing nullability, unsafe unions | always |
+| `pr-review-toolkit:comment-analyzer` | Comment accuracy vs code, comment-rot, stale/misleading doc-comments | **only when the diff adds or modifies comments / doc-comments** — skip on pure-logic diffs to keep signal high |
+
+The three `always` agents cover dimensions no other phase owns; `comment-analyzer` is gated on comment/doc changes because comment-rot is lower-priority and noisier than the other three — it earns its slot only when there are comments to audit.
 
 Findings graded on the same 0–100 rubric as `code-reviewer` (inherited via prompt sharing). Apply Phase A fix-loop: BLOCK (critical/major ≥ 75) → fix → `/check`; WARN (minor ≥ 50) → report only; below threshold → drop. Test-quality fixes that need new test code → delegate to the matching engineer agent.
 
@@ -349,5 +352,5 @@ Never paste the report table into chat — the file is for reference.
 ## Dependencies
 
 - **Hard** (`plugin.json`): `developer-workflow-experts` — `code-reviewer`, `security-expert`, `performance-expert`, `architecture-expert`.
-- **Optional soft-ref** (Phase C auto-skips when absent): `pr-review-toolkit` (marketplace `claude-plugins-official`) — `pr-test-analyzer`, `silent-failure-hunter`, `type-design-analyzer`.
+- **Optional soft-ref** (Phase C auto-skips when absent): `pr-review-toolkit` (marketplace `claude-plugins-official`) — `pr-test-analyzer`, `silent-failure-hunter`, `type-design-analyzer` (always), `comment-analyzer` (only when the diff touches comments / doc-comments).
 - **Built-in:** `/code-review` (core recall harness — Phase 0; degrades gracefully if a marketplace shadow binds instead), `/simplify`, `/check`.
