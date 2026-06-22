@@ -115,7 +115,7 @@ Default to `internal` for everything that is not a public module API; `public` i
 
 For `@JvmInline value class` wrappers around primitives — add `init { require(...) }` when the wrapper enforces a constraint (non-blank, format, range).
 
-See `$HOME/.claude/agent-references/kotlin-style.md` for both rules and project-override behavior.
+See `$HOME/.claude/rules/kotlin-style.md` for both rules and project-override behavior.
 
 ```kotlin
 data class Order(
@@ -300,7 +300,7 @@ For `runTest`, `TestDispatcher`, `Turbine`, and cancellation testing patterns �
 
 | Topic | Reference |
 |---|---|
-| Visibility discipline (`internal` by default), value class validation, KMP `commonMain` constraints, Clean Architecture conventions | `$HOME/.claude/agent-references/kotlin-style.md` |
+| Visibility discipline (`internal` by default), value class validation, KMP `commonMain` constraints, Clean Architecture conventions | `$HOME/.claude/rules/kotlin-style.md` |
 | Coroutines, Flow, StateFlow/SharedFlow, dispatchers, cancellation, testing | `$HOME/.claude/agent-references/coroutines.md` |
 
 References are authoritative — when memory disagrees, trust them. **Project conventions discovered in Step 1 override both.**

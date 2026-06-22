@@ -4,9 +4,9 @@ paths:
   - "**/*.kts"
 ---
 
-# Kotlin Code Style Rules
+# Kotlin Rules
 
-Applies to `.kt` and `.kts` files only.
+Applies to `.kt` and `.kts` files. Covers code style (visibility, collections, named arguments, empty blocks) plus project conventions a modern model omits by default — value-class validation, parameter nullability, KMP `commonMain` constraints, Clean Architecture + MVI layering. Generic idiomatic Kotlin (null safety, naming, organization) is **not** documented here; trust the model and the [official Kotlin Coding Conventions](https://kotlinlang.org/docs/coding-conventions.html).
 
 ## Visibility — minimum by default
 
@@ -17,6 +17,8 @@ The visibility of every declaration must be the narrowest one that still works. 
 3. **`public`** — last resort. Only for declarations that are intentionally part of the module's external API surface.
 
 Do not leave declarations at default `public` visibility "just because it compiles". Default `public` is a deliberate API decision, not a fallback.
+
+If the project has a clearly different, established visibility convention, follow the project.
 
 ### How to apply
 
@@ -67,6 +69,7 @@ Use named arguments when **any** of the following hold:
 
 - The argument is a **primitive type** (`Boolean`, `Int`, `Long`, `String`, etc.) and its meaning is not obvious from the call site alone.
 - **Multiple parameters share the same type** — name every argument of that type. Other arguments in the same call may stay positional unless they fall under another rule.
+- A **lone boolean literal** is the worst offender — `setVisible(true)` tells the reader nothing. Name it even when it is the only argument: `setVisible(visible = true)`.
 
 ```kotlin
 // Bad — three Strings, meaning unclear
@@ -85,7 +88,7 @@ setRetry(enabled = true, maxAttempts = 3)
 ### When positional is fine
 
 - Non-primitive, domain-typed argument whose type already documents the meaning: `show(dialog)`, `navigate(destination)`.
-- Single-argument call where the function name makes the argument obvious: `listOf(items)`, `println(message)`.
+- Single-argument call where the function name makes the argument obvious: `listOf(items)`, `println(message)`, `delay(500)`. A lone **boolean** literal is never exempt — see above.
 - Well-known stdlib/operator-style calls: `maxOf(a, b)`, `Pair(key, value)`.
 
 The test: a reader who sees only the call site — not the function signature — must be able to infer what each argument means without guessing.
@@ -104,5 +107,47 @@ If a call ends with an empty `{}` block and the call exists only to satisfy a si
 - Empty lambda passed as a default-callback argument (`onClick = {}`) — keep only if the API requires non-null; prefer `null` + nullable type when the API allows it.
 
 The rule is about **calls that do nothing and mean nothing**. If the empty block expresses an intentional no-op at an API boundary, it stays — with a comment.
+
+## Value Class Validation
+
+Wrapping a primitive in `@JvmInline value class` is the obvious part. The non-obvious part: **add `init { require(...) }` when the wrapper enforces a constraint** — non-blank, valid format, range. The model often skips this without a reminder.
+
+```kotlin
+@JvmInline
+value class Email(val value: String) {
+    init { require("@" in value) { "Invalid email: $value" } }
+}
+
+@JvmInline
+value class FavoriteId(val value: String) {
+    init { require(value.isNotBlank()) { "FavoriteId must not be blank" } }
+}
+```
+
+If the wrapped value has no real constraint (e.g. opaque server-generated ID) — skip the `init` block. Validate where validation is meaningful, not as ceremony.
+
+## Parameter Nullability and Overloads
+
+A nullable parameter on an extension or top-level function is a **design smell**. It usually means the responsibility for handling the absent case belongs one level up, at the call site.
+
+- Extension and top-level functions take non-nullable receivers and parameters whenever possible — `fun String.parse()` not `fun String?.parse()`
+- If a caller may have a nullable value, provide an overload or let the caller use `?.` at the call site
+- Prefer overloads over a single function with nullable/default parameters when the two variants have meaningfully different behaviour — Kotlin overloads are idiomatic and cheap
+
+## KMP / commonMain
+
+- No imports from `android.*`, `java.*`, `javax.*`, `dalvik.*` in `commonMain`
+- Only Kotlin stdlib and KMP-compatible libraries in `commonMain`
+- `expect/actual` only for platform-specific implementation details — business logic belongs in `commonMain`
+- Prefer `kotlinx.*` equivalents over JVM-only alternatives (e.g., `kotlinx.datetime` over `java.time`, `kotlinx.serialization` over Gson/Moshi)
+
+## Architecture (Clean Architecture + MVI)
+
+- UseCases are single-responsibility: one public `operator fun invoke()` (or project's chosen convention)
+- Repository **interfaces** live in the domain layer; **implementations** live in the data layer
+- Domain models / entities have **no framework dependencies** (exception: `kotlinx.coroutines`, `kotlinx.datetime`, `kotlinx.serialization` annotations)
+- Mappers are explicit functions or classes — never put mapping logic inside data classes
+- Never expose data-layer types (DTOs, Entities) through repository interfaces — always map to domain models at the layer boundary
+- `viewModelScope` / `lifecycleScope` belong in the Android presentation layer only — not in UseCases or Repositories
 
 

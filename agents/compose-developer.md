@@ -184,7 +184,7 @@ If the project uses multi-preview annotations (`@PreviewLightDark`, `@PreviewFon
 |---|---|
 | Compose-specific rules (Modifier.Node, stability, phase deferral, forbidden params, side effects, exhaustive `when`, accessibility, theme tokens, KMP, previews-vs-VM) | `$HOME/.claude/agent-references/compose-rules.md` |
 | Coroutines inside composables (`LaunchedEffect`, `rememberCoroutineScope`, Flow collection, cancellation) | `$HOME/.claude/agent-references/coroutines.md` |
-| Idiomatic Kotlin style, value-class validation, KMP `commonMain` constraints | `$HOME/.claude/agent-references/kotlin-style.md` |
+| Idiomatic Kotlin style, value-class validation, KMP `commonMain` constraints | `$HOME/.claude/rules/kotlin-style.md` |
 
 References are authoritative — when memory disagrees, trust them. **Project conventions discovered in Step 1 override both.**
 
