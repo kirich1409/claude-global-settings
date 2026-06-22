@@ -1,0 +1,59 @@
+# Deny all by default
+*
+
+# === CONFIGURATION ===
+!.gitignore
+!.gitattributes
+!README.md
+!setup.sh
+!settings.json
+!CLAUDE.md
+!statusline-command.sh
+!.pre-commit-config.yaml
+
+# === CI / SECURITY ===
+!.github/
+!.github/**
+
+# === RULES ===
+!rules/
+!rules/**
+
+# === HOOKS ===
+!hooks/
+!hooks/**
+
+# === AGENTS ===
+!agents/
+!agents/**
+!agent-references/
+!agent-references/**
+
+# === SKILLS (local directories only, not symlinks) ===
+!skills/
+!skills/*/
+!skills/*/*
+!skills/*/**
+
+# === SCRIPTS ===
+!scripts/
+!scripts/**
+
+
+# === FORCE EXCLUDE ===
+.credentials.json
+agent-memory/
+channels/
+mcp-needs-auth-cache.json
+credentials.md
+*.jsonl
+*.remote
+swarm-report/
+
+# Private local tooling — never publish (hooks/** and scripts/** are allowlisted above)
+hooks/rtk-rewrite.sh
+hooks/.rtk-hook.sha256
+hooks/mempal_precompact_hook.sh
+hooks/mempal_save_hook.sh
+RTK.md
+projects/

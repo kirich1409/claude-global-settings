@@ -1,0 +1,585 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "respectGitignore": true,
+  "cleanupPeriodDays": 30,
+  "env": {
+    "ENABLE_CLAUDEAI_MCP_SERVERS": "false"
+  },
+  "permissions": {
+    "allow": [
+      "Read",
+      "Write",
+      "Edit",
+      "Glob",
+      "Grep",
+      "Task",
+      "TaskCreate",
+      "TaskUpdate",
+      "TaskList",
+      "TaskGet",
+      "WebSearch",
+      "EnterPlanMode",
+      "Skill",
+      "NotebookEdit",
+      "Read(~/.gradle/**)",
+      "Bash(ast-index:*)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:gist.github.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebFetch(domain:stackoverflow.com)",
+      "WebFetch(domain:kotlinlang.org)",
+      "WebFetch(domain:developer.android.com)",
+      "WebFetch(domain:android.com)",
+      "WebFetch(domain:source.android.com)",
+      "WebFetch(domain:cs.android.com)",
+      "WebFetch(domain:d.android.com)",
+      "WebFetch(domain:jetbrains.com)",
+      "WebFetch(domain:gradle.org)",
+      "WebFetch(domain:docs.gradle.org)",
+      "WebFetch(domain:maven.org)",
+      "WebFetch(domain:central.sonatype.org)",
+      "WebFetch(domain:repo.maven.apache.org)",
+      "WebFetch(domain:repo1.maven.org)",
+      "WebFetch(domain:jitpack.io)",
+      "WebFetch(domain:medium.com)",
+      "WebFetch(domain:habr.com)",
+      "WebFetch(domain:habr.ru)",
+      "WebFetch(domain:baeldung.com)",
+      "WebFetch(domain:docs.oracle.com)",
+      "WebFetch(domain:google.com)",
+      "WebFetch(domain:developers.google.com)",
+      "WebFetch(domain:cloud.google.com)",
+      "WebFetch(domain:firebase.google.com)",
+      "WebFetch(domain:youtube.com)",
+      "WebFetch(domain:youtu.be)",
+      "WebFetch(domain:reddit.com)",
+      "WebFetch(domain:gitlab.com)",
+      "WebFetch(domain:npmjs.com)",
+      "WebFetch(domain:docker.com)",
+      "WebFetch(domain:hub.docker.com)",
+      "WebFetch(domain:swift.org)",
+      "WebFetch(domain:developer.apple.com)",
+      "WebFetch(domain:pytorch.org)",
+      "WebFetch(domain:tensorflow.org)",
+      "WebFetch(domain:reactjs.org)",
+      "WebFetch(domain:react.dev)",
+      "WebFetch(domain:vuejs.org)",
+      "WebFetch(domain:angular.io)",
+      "WebFetch(domain:flutter.dev)",
+      "WebFetch(domain:dart.dev)",
+      "WebFetch(domain:rust-lang.org)",
+      "WebFetch(domain:go.dev)",
+      "WebFetch(domain:ruby-lang.org)",
+      "WebFetch(domain:php.net)",
+      "WebFetch(domain:laravel.com)",
+      "WebFetch(domain:symfony.com)",
+      "WebFetch(domain:djangoproject.com)",
+      "WebFetch(domain:fastapi.tiangolo.com)",
+      "WebFetch(domain:nestjs.com)",
+      "WebFetch(domain:spring.io)",
+      "WebFetch(domain:expressjs.com)",
+      "WebFetch(domain:platform.claude.com)",
+      "mcp__google-dev-knowledge__search_documents",
+      "mcp__deepwiki__read_wiki_contents",
+      "mcp__deepwiki__read_wiki_structure",
+      "mcp__google-dev-knowledge__get_documents",
+      "mcp__google-dev-knowledge__answer_query",
+      "mcp__plugin_context-mode_context-mode__ctx_execute",
+      "mcp__plugin_context-mode_context-mode__ctx_execute_file",
+      "mcp__plugin_context-mode_context-mode__ctx_batch_execute",
+      "mcp__plugin_context-mode_context-mode__ctx_search",
+      "mcp__plugin_context-mode_context-mode__ctx_fetch_and_index",
+      "Bash(ast-index help:*)",
+      "Bash(ast-index rebuild:*)",
+      "Bash(gh api:*)",
+      "Bash(./gradlew:*)",
+      "Skill(claude-md-management:revise-claude-md)",
+      "mcp__mobile__screenshot",
+      "mcp__mobile__list_devices",
+      "mcp__mobile__set_device",
+      "mcp__mobile__install_app",
+      "mcp__mobile__launch_app",
+      "mcp__mobile__get_logs",
+      "mcp__mobile__clear_logs",
+      "WebFetch(domain:formulae.brew.sh)",
+      "Bash(grep:*)",
+      "Bash(unzip:*)",
+      "Bash(jar tf:*)",
+      "Bash(git checkout:*)",
+      "Bash(git worktree:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(git fetch:*)",
+      "Bash(git pull:*)",
+      "Bash(git add:*)",
+      "Bash(git status:*)",
+      "Bash(git log:*)",
+      "Bash(git diff:*)",
+      "Bash(git branch:*)",
+      "Bash(git stash:*)",
+      "Bash(git rebase:*)",
+      "Bash(git merge:*)",
+      "Bash(git switch:*)",
+      "Bash(git show:*)",
+      "Bash(git tag:*)",
+      "Bash(git remote:*)",
+      "Bash(git restore:*)",
+      "Bash(git reset:*)",
+      "Bash(gh pr:*)",
+      "Bash(gh run:*)",
+      "Bash(gh issue:*)",
+      "Bash(gh repo view:*)",
+      "Bash(gh auth status:*)",
+      "Bash(find:*)",
+      "Bash(echo:*)",
+      "Bash(cat:*)",
+      "Bash(head:*)",
+      "Bash(tail:*)",
+      "Bash(wc:*)",
+      "Bash(sort:*)",
+      "Bash(uniq:*)",
+      "Bash(pwd)",
+      "Bash(true)",
+      "Bash(false)",
+      "Bash(test:*)",
+      "Bash([:*)",
+      "Bash(git check-ignore:*)"
+    ],
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(./secrets/**)",
+      "Read(~/.aws/**)",
+      "Read(~/.ssh/**)",
+      "Read(~/.gnupg/**)",
+      "Read(~/.kube/**)",
+      "Read(**/*.pem)",
+      "Read(**/*.key)",
+      "Read(**/*.cert)",
+      "Read(**/*.p12)",
+      "Read(**/*.pfx)",
+      "Bash(rm -rf /)",
+      "Bash(rm -rf /*)",
+      "Bash(rm -rf /bin*)",
+      "Bash(rm -rf /sbin*)",
+      "Bash(rm -rf /usr*)",
+      "Bash(rm -rf /etc*)",
+      "Bash(rm -rf /var*)",
+      "Bash(rm -rf /opt*)",
+      "Bash(rm -rf /private*)",
+      "Bash(rm -rf /System*)",
+      "Bash(rm -rf /Library*)",
+      "Bash(rm -rf /Applications*)",
+      "Bash(rm -rf /Volumes*)",
+      "Bash(rm -rf ~)",
+      "Bash(rm -rf ~/)",
+      "Bash(rm -rf ~/*)",
+      "Bash(rm -rf $HOME)",
+      "Bash(rm -rf $HOME/*)",
+      "Bash(rm -rf .)",
+      "Bash(rm -rf ./)",
+      "Bash(rm -rf ..)",
+      "Bash(rm -rf ../*)",
+      "Bash(rm -r /)",
+      "Bash(rm -r /*)",
+      "Bash(rm -r /bin*)",
+      "Bash(rm -r /sbin*)",
+      "Bash(rm -r /usr*)",
+      "Bash(rm -r /etc*)",
+      "Bash(rm -r /var*)",
+      "Bash(rm -r /opt*)",
+      "Bash(rm -r /private*)",
+      "Bash(rm -r /System*)",
+      "Bash(rm -r /Library*)",
+      "Bash(rm -r /Applications*)",
+      "Bash(rm -r /Volumes*)",
+      "Bash(rm -r ~)",
+      "Bash(rm -r ~/)",
+      "Bash(rm -r ~/*)",
+      "Bash(rm -r $HOME)",
+      "Bash(rm -r $HOME/*)",
+      "Bash(rm -r .)",
+      "Bash(rm -r ./)",
+      "Bash(rm -r ..)",
+      "Bash(rm -r ../*)",
+      "Bash(rm -fr /)",
+      "Bash(rm -fr /*)",
+      "Bash(rm -fr /bin*)",
+      "Bash(rm -fr /sbin*)",
+      "Bash(rm -fr /usr*)",
+      "Bash(rm -fr /etc*)",
+      "Bash(rm -fr /var*)",
+      "Bash(rm -fr /opt*)",
+      "Bash(rm -fr /private*)",
+      "Bash(rm -fr /System*)",
+      "Bash(rm -fr /Library*)",
+      "Bash(rm -fr /Applications*)",
+      "Bash(rm -fr /Volumes*)",
+      "Bash(rm -fr ~)",
+      "Bash(rm -fr ~/)",
+      "Bash(rm -fr ~/*)",
+      "Bash(rm -fr $HOME)",
+      "Bash(rm -fr $HOME/*)",
+      "Bash(rm -fr .)",
+      "Bash(rm -fr ./)",
+      "Bash(rm -fr ..)",
+      "Bash(rm -fr ../*)",
+      "Bash(dd *)",
+      "Bash(mkfs *)",
+      "Bash(format *)",
+      "Bash(shred *)",
+      "Bash(chmod 000 *)",
+      "Bash(chmod 777 *)",
+      "Bash(curl * | sh)",
+      "Bash(wget * | sh)",
+      "Bash(curl * | bash)",
+      "Bash(wget * | bash)",
+      "Bash(sudo *)",
+      "Bash(ssh *)",
+      "Bash(scp *)",
+      "Bash(kill *)",
+      "Bash(killall *)",
+      "Bash(pkill *)",
+      "Bash(brew uninstall *)",
+      "Bash(brew remove *)",
+      "Bash(git push --force *)",
+      "Bash(git push -f *)",
+      "Bash(gh repo delete *)",
+      "Bash(gh ssh-key delete *)",
+      "Bash(gh gpg-key delete *)",
+      "Bash(gh auth logout *)"
+    ],
+    "ask": [
+      "Bash(rm -rf *)",
+      "Bash(rm -r *)",
+      "Bash(rm -fr *)",
+      "Bash(curl -X DELETE *)",
+      "Bash(curl -X PUT *)",
+      "Bash(curl -X PATCH *)",
+      "Bash(git reset --hard)",
+      "Bash(git reset --hard HEAD)",
+      "Bash(git reset --hard HEAD~*)",
+      "Bash(git reset --hard HEAD^*)",
+      "Bash(git branch -D *)",
+      "Bash(git push --mirror *)",
+      "Bash(git push --delete *)",
+      "Bash(git push -d *)",
+      "Bash(git push * :*)",
+      "Bash(npm publish *)",
+      "Bash(yarn publish *)",
+      "Bash(docker push *)",
+      "Bash(pod trunk push *)",
+      "Bash(fastlane *)",
+      "Bash(firebase deploy *)",
+      "Bash(gh ssh-key add *)",
+      "Bash(gh gpg-key add *)",
+      "Bash(adb reboot *)",
+      "Bash(adb emu kill)",
+      "Bash(adb shell svc *)",
+      "Bash(adb shell rm *)",
+      "Bash(adb shell sqlite3 *)",
+      "Bash(adb disable-verity *)",
+      "Bash(adb root)",
+      "Bash(adb unroot)"
+    ],
+    "defaultMode": "auto"
+  },
+  "model": "opus",
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$HOME/.claude/hooks/auto-pull.sh"
+          },
+          {
+            "type": "command",
+            "command": "ast-index update >/dev/null 2>&1 || ast-index rebuild >/dev/null 2>&1; if ast-index stats >/dev/null 2>&1; then [ \"$(git rev-parse --show-toplevel 2>/dev/null)\" = \"$HOME/.claude\" ] || ( nohup ast-index watch >/dev/null 2>&1 & ); else echo '⚠ AST INDEX NOT AVAILABLE — run the matching ast-index:initialize-* skill before any code search'; fi",
+            "timeout": 120
+          },
+          {
+            "type": "command",
+            "command": "git rev-parse --is-inside-work-tree 2>/dev/null && { echo ''; echo '=== GIT STATE ==='; echo \"Current branch: $(git rev-parse --abbrev-ref HEAD 2>/dev/null)\"; git rev-parse --git-dir 2>/dev/null | grep -qE '/\\.git/worktrees/' && echo 'Is worktree: yes' || echo 'Is worktree: no'; DEFAULT=$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's|refs/remotes/origin/||'); echo \"Default branch: ${DEFAULT:-(unknown -- run: git remote set-head origin --auto)}\"; echo 'Existing worktrees:'; git worktree list 2>/dev/null; echo 'Local feature branches:'; git branch 2>/dev/null | grep -vE '\\b(main|master|develop)\\b' | head -20; echo 'Remote feature branches:'; git branch -r 2>/dev/null | grep -vE '(\\b(main|master|develop)\\b|HEAD)' | head -10; echo '================='; echo ''; } || true"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$HOME/.claude/hooks/context-mode-cache-heal.mjs\""
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$HOME/.claude/hooks/ast-index-stop-watch.sh",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "EnterWorktree",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$HOME/.claude/hooks/ast-index-bootstrap-worktree.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "[ -n \"$SUPERSET_HOME_DIR\" ] && [ -x \"$SUPERSET_HOME_DIR/hooks/notify.sh\" ] && \"$SUPERSET_HOME_DIR/hooks/notify.sh\" || true"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$HOME/.claude/hooks/cross-repo-guard.sh"
+          },
+          {
+            "type": "command",
+            "command": "$HOME/.claude/hooks/branch-guard.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$HOME/.claude/hooks/cross-repo-guard.sh"
+          },
+          {
+            "type": "command",
+            "command": "$HOME/.claude/hooks/branch-guard.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$HOME/.claude/hooks/stash-reminder.sh"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "[ -n \"$SUPERSET_HOME_DIR\" ] && [ -x \"$SUPERSET_HOME_DIR/hooks/notify.sh\" ] && \"$SUPERSET_HOME_DIR/hooks/notify.sh\" || true"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "[ -n \"$SUPERSET_HOME_DIR\" ] && [ -x \"$SUPERSET_HOME_DIR/hooks/notify.sh\" ] && \"$SUPERSET_HOME_DIR/hooks/notify.sh\" || true"
+          }
+        ]
+      }
+    ]
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "bash $HOME/.claude/statusline-command.sh"
+  },
+  "enabledPlugins": {
+    "context7@claude-plugins-official": true,
+    "ksrc@respawn-tools": true,
+    "maven-mcp@krozov-ai-tools": true,
+    "security-guidance@claude-plugins-official": true,
+    "claude-code-setup@claude-plugins-official": false,
+    "swift-lsp@claude-plugins-official": false,
+    "remember@claude-plugins-official": true,
+    "code-simplifier@claude-plugins-official": true,
+    "claude-md-management@claude-plugins-official": true,
+    "skill-creator@claude-plugins-official": false,
+    "playwright@claude-plugins-official": false,
+    "hookify@claude-plugins-official": true,
+    "rust-analyzer-lsp@claude-plugins-official": false,
+    "developer-workflow@krozov-ai-tools": true,
+    "developer-workflow-experts@krozov-ai-tools": true,
+    "code-review@claude-plugins-official": true,
+    "pr-review-toolkit@claude-plugins-official": true,
+    "ast-index@ast-index-marketplace": true,
+    "kotlin-lsp@claude-plugins-official": true,
+    "kotlin-agent-skills@Kotlin": true,
+    "ruby-lsp@claude-plugins-official": false,
+    "context-mode@context-mode": true,
+    "lazyweb@lazyweb": false,
+    "developer-workflow-kotlin@krozov-ai-tools": true,
+    "developer-workflow-swift@krozov-ai-tools": false,
+    "warp@claude-code-warp": true
+  },
+  "extraKnownMarketplaces": {
+    "ast-index-marketplace": {
+      "source": {
+        "source": "github",
+        "repo": "defendend/Claude-ast-index-search"
+      },
+      "autoUpdate": true
+    },
+    "krozov-ai-tools": {
+      "source": {
+        "source": "github",
+        "repo": "kirich1409/krozov-ai-tools"
+      }
+    },
+    "firebase": {
+      "source": {
+        "source": "github",
+        "repo": "firebase/firebase-tools"
+      }
+    },
+    "respawn-tools": {
+      "source": {
+        "source": "github",
+        "repo": "respawn-app/claude-plugin-marketplace"
+      }
+    },
+    "context-mode": {
+      "source": {
+        "source": "github",
+        "repo": "mksglu/context-mode"
+      },
+      "autoUpdate": true
+    },
+    "lazyweb": {
+      "source": {
+        "source": "git",
+        "url": "https://github.com/aboul3ata/lazyweb-skill.git"
+      }
+    },
+    "Kotlin": {
+      "source": {
+        "source": "github",
+        "repo": "Kotlin/kotlin-agent-skills"
+      }
+    },
+    "claude-in-mobile": {
+      "source": {
+        "source": "git",
+        "url": "https://github.com/AlexGladkov/claude-in-mobile.git"
+      },
+      "autoUpdate": true
+    },
+    "koin-migration": {
+      "source": {
+        "source": "github",
+        "repo": "InsertKoinIO/koin-migration"
+      }
+    },
+    "ponytail": {
+      "source": {
+        "source": "github",
+        "repo": "DietrichGebert/ponytail"
+      }
+    },
+    "claude-code-warp": {
+      "source": {
+        "source": "github",
+        "repo": "warpdotdev/claude-code-warp"
+      },
+      "autoUpdate": true
+    }
+  },
+  "language": "Russian",
+  "sandbox": {
+    "network": {
+      "allowedDomains": [
+        "anthropic.com",
+        "api.anthropic.com",
+        "claude.ai",
+        "platform.claude.com",
+        "github.com",
+        "api.github.com",
+        "raw.githubusercontent.com",
+        "objects.githubusercontent.com",
+        "codeload.github.com",
+        "gist.github.com",
+        "gitlab.com",
+        "registry.npmjs.org",
+        "npmjs.com",
+        "pypi.org",
+        "files.pythonhosted.org",
+        "crates.io",
+        "index.crates.io",
+        "static.crates.io",
+        "proxy.golang.org",
+        "sum.golang.org",
+        "go.dev",
+        "rubygems.org",
+        "repo1.maven.org",
+        "repo.maven.apache.org",
+        "central.sonatype.org",
+        "oss.sonatype.org",
+        "jitpack.io",
+        "dl.google.com",
+        "maven.google.com",
+        "registry-1.docker.io",
+        "auth.docker.io",
+        "hub.docker.com",
+        "formulae.brew.sh",
+        "developer.android.com",
+        "d.android.com",
+        "android.com",
+        "source.android.com",
+        "cs.android.com",
+        "developer.apple.com",
+        "swift.org",
+        "kotlinlang.org",
+        "jetbrains.com",
+        "gradle.org",
+        "services.gradle.org",
+        "plugins.gradle.org",
+        "docs.gradle.org",
+        "stackoverflow.com",
+        "docs.oracle.com",
+        "spring.io",
+        "react.dev",
+        "vuejs.org",
+        "flutter.dev",
+        "dart.dev",
+        "pub.dev",
+        "rust-lang.org",
+        "docs.rs"
+      ]
+    }
+  },
+  "alwaysThinkingEnabled": true,
+  "advisorModel": "opus",
+  "showClearContextOnPlanAccept": true,
+  "tui": "fullscreen",
+  "channelsEnabled": true,
+  "autoMemoryEnabled": true,
+  "skipDangerousModePermissionPrompt": true,
+  "remoteControlAtStartup": true,
+  "inputNeededNotifEnabled": true,
+  "agentPushNotifEnabled": true,
+  "skipAutoPermissionPrompt": true,
+  "voiceEnabled": false,
+  "mcpServers": {}
+}

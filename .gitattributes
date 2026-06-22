@@ -1,0 +1,5 @@
+# Structural 3-way merge for JSON config — avoids line-merge corruption of settings.json.
+# The `json` merge driver is registered per-clone in .git/config by setup.sh
+# (register_merge_driver). If a clone hasn't run setup, git falls back to the default
+# driver, which the loud sync path then surfaces as a conflict — never a silent bad merge.
+settings.json merge=json
