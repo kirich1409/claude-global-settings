@@ -33,6 +33,17 @@ Never WebFetch rendered GitHub pages (`https://github.com/...`) — HTML noisy/e
 
 **High-staleness (оба канала обязательны):** Ktor 3.x, Room (KMP `@Upsert`, multiplatform), SQLDelight, kotlinx.serialization, kotlinx.datetime, Hilt, Koin, Compose Multiplatform, Compose Material3, AGP 8+/9, KSP, Firebase Android (BoM v34+ убрал KTX), Navigation 3.
 
+## Context7 workflow
+
+Шаги при обращении к Context7 (когда именно — см. таблицу Source routing и композицию по стекам выше):
+
+1. Начни с `resolve-library-id` по имени библиотеки + вопросу пользователя — кроме случая, когда дан точный ID в формате `/org/project`.
+2. Выбери лучшее совпадение (ID `/org/project`) по: точному совпадению имени, релевантности описания, числу code-сниппетов, репутации источника (High/Medium), benchmark score (выше — лучше). Не туда — переформулируй (`next.js`, не `nextjs`) или используй версионный ID, если указана версия.
+3. `query-docs` с выбранным ID и полным вопросом пользователя (не одним словом).
+4. Отвечай по полученной docs.
+
+Один провал `resolve-library-id` → стоп, не гнаться за синонимами. Не использовать для: рефакторинга, написания скриптов с нуля, отладки бизнес-логики, code review, общих концепций программирования.
+
 ## Trust assessment
 
 Источник может быть формально primary, а content — устаревший / для другой версии / AI-галлюцинация. Оцени tier до того, как поверить.

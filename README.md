@@ -6,13 +6,17 @@ Shared [Claude Code](https://claude.ai/claude-code) configuration synced across 
 
 - `settings.json` -- hooks, permissions, enabled plugins, marketplace sources
 - `CLAUDE.md` -- global instructions loaded every session
-- `hooks/` -- shell hooks for session automation and safety guards
-- `agents/`, `agent-memory/` -- custom agent definitions (when present)
+- `rules/` -- modular rule files (orchestration, QA, external sources, style, git workflow, ...)
+- `hooks/` -- shell hooks for session automation and safety guards (private `rtk`/`mempal` hooks excluded)
+- `agents/` -- custom agent definitions
+- `agent-references/` -- reference docs read by agents (Kotlin / Compose / Swift)
 - `skills/` -- custom skills (directories only, not symlinks)
+- `scripts/` -- helper scripts (`gh` toolkit, ...)
+- `setup.sh`, `statusline-command.sh`, `.pre-commit-config.yaml`, `.github/` -- bootstrap, status line, secret-scanning CI
 
 ## What stays local
 
-`.credentials.json`, `channels/`, `settings.local.json`, `installed_plugins.json`, `mcp-needs-auth-cache.json`, project memory, sessions, caches, debug logs, `*.remote` conflict files.
+`.credentials.json`, `credentials.md`, `channels/`, `settings.local.json`, `installed_plugins.json`, `mcp-needs-auth-cache.json`, `*.jsonl` (incl. `history.jsonl`), `projects/`, `swarm-report/`, project/session memory, caches, debug logs, `*.remote` conflict files, private `rtk`/`mempal` hooks.
 
 ## Setup
 

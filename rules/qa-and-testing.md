@@ -72,8 +72,8 @@ A mandatory planning output — defines "done", the contract `/acceptance` verif
 | Test plan | structured executable cases | `/generate-test-plan` → `docs/testplans/<slug>-test-plan.md` |
 | Design mockups | UI/UX visual ACs | Figma in spec `design.figma`, or screenshots |
 | Debug artifact | bug-fix only — repro steps are the contract | `swarm-report/<slug>-debug.md` |
-| Behavioral baseline | migration / "shouldn't affect behavior" | captured before changes (below) |
+| Behavioral baseline | migration / "shouldn't affect behavior" | captured before changes (see [[task-types]] § Before-state baseline) |
 
-**Behavioral baseline:** for "shouldn't affect behavior" / "migrate without breaking" the before-state IS the truth — capture before any change (screenshots / `manual-tester` session / `e2e-scenario.md`), save to `swarm-report/<slug>-baseline.md`, then `/acceptance` verifies after-state matches 1:1. Skipping = no evidence behavior was preserved; "should be fine" is not a source of truth.
+**Behavioral baseline:** for "shouldn't affect behavior" / "migrate without breaking" the before-state IS the truth. Full definition — what qualifies, what does not, the test-coverage shortcut — lives in [[task-types]] § Before-state baseline (single source). In short: capture before any change (screenshots / `manual-tester` session / `e2e-scenario.md`), save to `swarm-report/<slug>-baseline.md`, then `/acceptance` verifies after-state matches 1:1. "should be fine" is not a source of truth.
 
 **Absent source:** if none exists and creating one isn't feasible, document in the plan: intended behavior (one paragraph), why no formal source, what proxy is used (e.g. manual walkthrough vs task description). `/acceptance` Step 1.5 blocks when no source is found and proposes the upstream skill; the justification supplies the proxy — it does not bypass the gate.
