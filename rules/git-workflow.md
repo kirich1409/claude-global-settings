@@ -3,7 +3,7 @@
 - **Fresh base:** before branching, resuming work, pushing, or opening MR/PR — `git fetch` and rebase onto the latest base. Never branch/push from a stale ref. After a rebase that pulled new commits — re-run local checks relevant to the changes.
 - **Commits:** one atomic commit per logical unit. Large tasks → one commit per meaningful stage.
 - **Commit messages:** imperative mood, English, ≤72 chars subject. No type prefixes (`feat:`, `fix:`). Add body only when context is non-obvious.
-- **Branch naming:** `feature/...`, `fix/...`, `chore/...` — kebab-case, English.
+- **Branch naming:** `feature/...` (new product behavior), `fix/...` (bug fix), `chore/...` (no product-behavior change — dependency bumps, configs, CI, build tooling, formatting) — kebab-case, English. Pick the prefix by *what the change does*, not by size.
 - **Force push:** plain `--force` is denied. `--force-with-lease` / `--force-if-includes` are allowed without confirmation (the lease protects against clobbering others' commits).
 - **Git hooks:** never bypass (`--no-verify`, `--no-gpg-sign`, etc.) without explicit user instruction. Hook fail → investigate root cause.
 - **Checkpoint before large refactors.** Before letting an agent touch multiple files, rewrite a function/module, or run any multi-step transformation — first commit a checkpoint: `git add -A && git commit -m "checkpoint: <what's about to change>"`. If the agent makes a mess, recovery is `Esc Esc` in the Claude Code prompt (undo recent edits) or `git reset --hard HEAD` (drop everything since the checkpoint). Goal: never more than 10 seconds away from a working state.

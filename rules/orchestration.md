@@ -28,15 +28,23 @@ These are **process** files, not project code — editing them is orchestration,
 
 ## Skill-first
 
-Task matches an installed skill → use the skill (it knows the right agent/model sequence). Direct Agent is the fallback when no skill fits. E.g. implementation → `/check` + `/finalize` + `/acceptance` + `/create-pr` + `/drive-to-merge`; new spec → `/write-spec`; UI migration → `/migrate-to-compose`; tests → `/write-tests`.
+Task matches an installed skill → use the skill (it knows the right agent/model sequence). Direct Agent is the fallback when no skill fits. E.g. planning a decided change → `/write-plan`; implementation → `/check` + `/finalize` + `/acceptance` + `/create-pr` + `/drive-to-merge`; new spec → `/write-spec`; UI migration → `/migrate-to-compose`; tests → `/write-tests`.
 
-## Subagent code-search directive
+## What subagents inherit (context delivery)
 
-Subagents do **not** inherit `~/.claude/rules/**` — they default to Grep/Read. When delegating any code search/read (Explore, general-purpose, specialists), include in the prompt:
+Verified empirically on current CC (general-purpose subagent): custom and built-in subagents **do** inherit the main session's `CLAUDE.md`, `MEMORY.md`, and every **unconditional** `~/.claude/rules/*.md` (those with no `paths:` frontmatter — including `ast-index.md`, `orchestration.md`, `external-sources.md`, `qa-and-testing.md`). They already carry the always-on rules — do **not** re-paste them into the delegation prompt.
+
+Two gaps the subagent does **not** get automatically — restate these in the prompt only when they matter:
+- **`paths:`-scoped rules** (`kotlin-style.md`, `gradle-style.md`, `android-cli.md`, `logging.md`, …) load lazily when a matching file is read — absent at subagent startup. If the subagent must honor such a rule before it touches a matching file, restate the key point or point it at the file path.
+- **Explore and Plan** skip `CLAUDE.md` + rules entirely for speed (per CC docs — not separately verified here). For an Explore/Plan agent that must use ast-index, include the directive below.
+
+**What to put in a delegation prompt** (the rest is inherited): the task; the relevant paths/modules; constraints (what not to touch, forbidden tools); the expected output shape; and any `paths:`-scoped rule or Explore/Plan-missing rule that applies.
+
+**ast-index directive** (needed only for Explore/Plan, or an agent doing code search before its rule loads):
 
 > Use `ast-index` via Bash before Grep: `search "q"`, `file "Name"`, `class "Name"`, `usages "Name"`, `implementations "Name"`, `callers "fn"`. Grep only when ast-index is empty or for regex/string-literal search. Before `Read` on a file >~500 lines, run `ast-index outline <file>` and Read only the targeted slice via `offset`/`limit`. On "Index not found" → `ast-index rebuild`, never fall back to Grep.
 
-(The index is kept fresh by hooks — see `rules/ast-index.md`; this only ensures the subagent *uses* it.)
+(Index kept fresh by hooks — see `rules/ast-index.md`.)
 
 ## Model & effort — two independent levers
 
@@ -57,7 +65,7 @@ Dispatch is a **(model × effort)** choice, not a model downgrade. Tune both to 
 No fixed task→agent table. The harness already lists the agents available **in this project** with descriptions — match the task to the best-fit available agent by reading those, then apply the model/effort heuristic above. This stays correct as the available set changes per project (plugins enabled/disabled) instead of pointing at agents that aren't loaded.
 
 **Non-obvious routing & guardrails** (won't be inferred from agent descriptions):
-- **Planning / architecture / synthesis → keep in the main session** (or the `Plan` agent). Never delegate planning — it is the orchestrator's core value.
+- **Planning / architecture / synthesis → keep in the main session** (or the `Plan` agent). Never delegate the *reasoning*. To turn a decided change into a committed, reviewable plan document, use the **`/write-plan`** skill — it structures the plan and runs multiexpert-review without handing off the thinking. (For deciding *what* to build / comparing options use `research`; for the feature contract use `/write-spec`.)
 - Security / performance / UX / code review → the matching **expert agent**, never the main session.
 - Code research / "find X / where is Y used" → **Explore** (haiku).
 - Long-running build / test / CI → **general-purpose in the background**, never blocking the main session.

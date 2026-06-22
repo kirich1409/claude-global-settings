@@ -63,11 +63,11 @@ Both modes are allowed and encouraged. What is forbidden is ad-hoc `println` / `
 
 ## Logger system — mandatory
 
-All logging goes through the project's logger framework. Never write `println`, `System.out.println`, `print()`, `console.log`, `console.debug`, `NSLog`, `fmt.Println` for diagnostic or operational output. If the project does not have a logger configured yet — set one up first; that itself is part of the task.
+All logging goes through **whatever logger the project already uses** — detect it first (scan dependencies, existing logging calls, project `CLAUDE.md`) and match it. Never write `println`, `System.out.println`, `print()`, `console.log`, `console.debug`, `NSLog`, `fmt.Println` for diagnostic or operational output. **Never impose a logger technology the project doesn't use** — the table below is not a checklist to apply.
 
-Defaults per stack (use the one already in the project; otherwise propose during planning):
+Choosing a logger is part of the task **only** when the project has none at all — propose during planning, don't silently pick. The table is a per-stack *starting suggestion for that greenfield case only*; the project's existing choice always wins:
 
-| Stack | Default logger |
+| Stack | Suggested default (greenfield only) |
 |---|---|
 | Android | Timber, or `android.util.Log` if Timber not present |
 | JVM / Kotlin server | `slf4j` (`KotlinLogging` wrapper) |

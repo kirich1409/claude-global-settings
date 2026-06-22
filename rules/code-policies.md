@@ -17,7 +17,7 @@ Format: one or two lines, lead with the surprising fact, follow with the reason.
 
 ## Logging
 
-See `rules/logging.md` — covers permanent vs temporary diagnostic logs, the `// TEMP-LOG` marker convention, mandatory logger system (no `println` / `console.log`), per-level semantics, and what never goes into a log.
+All logging policy lives in [[logging]] — single source. It covers permanent vs temporary diagnostic logs, the `// TEMP-LOG` convention, the mandatory logger system, per-level semantics, and redaction. Nothing about logging (incl. `// TEMP-LOG`) is duplicated here.
 
 ## Feature flags and configuration
 

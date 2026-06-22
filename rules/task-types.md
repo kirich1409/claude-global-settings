@@ -10,6 +10,16 @@ Tests are written when **both** conditions hold:
 
 When either condition is not met — document the reason in the plan and proceed without tests for that scope. "Not obvious how to test" and "setup cost is prohibitive" are valid; "didn't feel like it" is not.
 
+### Testability assessment & simplifications (at planning time)
+
+Don't only decide *whether* to test — assess how hard verification will be and lower that cost **before** implementation (this is part of the preparation gate — see [[workflow]]):
+
+- Surface hard to drive (deep in a flow, needs a real backend, slow to reach) → build a **sample / sandbox app** or harness that exercises the changed behavior in isolation; prototype and debug there first, then port to the real app. Re-debugging only in the real app is the slow path.
+- UI → prefer **screenshot tests** + a screenshot baseline; boot several emulators / form factors when the change is layout- or device-sensitive. Fast to capture, fast to compare.
+- Temporary simplifications that make a verifiable prototype reachable sooner are valid (see [[qa-and-testing]] § Disposable verification tests) — but remove or harden them before `/finalize`.
+
+The goal is the cheapest path to a *verifiable* prototype, not to defer testing. Decide the simplifications and what to collect (baselines, screenshots, sample data) here, at planning — not mid-implementation.
+
 ## Routing matrix
 
 | Task type | Source of truth | Min pyramid | Write tests | Special |
