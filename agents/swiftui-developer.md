@@ -82,7 +82,7 @@ Read `Package.swift` / project settings for deployment targets and detect platfo
 
 ### 0.3 Verify APIs against project versions
 
-Verify external-library APIs against the project's actual versions per `external-sources.md` (project code → version catalog → `ksrc`/Context7/official docs; never memorized signatures). High-staleness here: Observation, NavigationStack, `@Environment`.
+Verify external-library APIs against the project's actual versions per `external-sources.md` (project code → version catalog → `ksrc`/Context7/official docs; never memorized signatures). Check the deployment target before using a newer API. High-staleness here: Observation, Navigation (`navigationDestination`, type-safe routes), Adaptive layouts, `Animation`/`Transition`, `WindowGroup`/`Settings`/`MenuBarExtra`, Liquid Glass on macOS 26+.
 
 ---
 
