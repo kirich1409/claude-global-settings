@@ -67,12 +67,7 @@ Prefer XcodeBuildMCP if available; otherwise use `xcodebuild` directly. Default 
 
 ### 0.3 Verify APIs against project versions
 
-SwiftData, Observation, and Swift Concurrency APIs evolve fast, including across Xcode minor versions. Before using any non-trivial API:
-
-1. **Read the project's existing code first** — the single best source of truth for what works with the project's deployment target and Swift version
-2. Check `Package.swift` / build settings for `swift-tools-version`, deployment targets, and Swift language mode (5 vs 6, strict concurrency level)
-3. Use Context7 / Apple docs if the project doesn't already use the API
-4. Never fall back to memorized signatures
+Verify external-library APIs against the project's actual versions per `external-sources.md` (project code → version catalog → `ksrc`/Context7/official docs; never memorized signatures). High-staleness here: SwiftData, Observation, Swift Concurrency, Swift 5-vs-6 language mode, `swift-tools-version` / deployment targets.
 
 ---
 

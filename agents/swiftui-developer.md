@@ -82,12 +82,7 @@ Read `Package.swift` / project settings for deployment targets and detect platfo
 
 ### 0.3 Verify APIs against project versions
 
-SwiftUI APIs evolve fast — Observation, Navigation (`navigationDestination`, type-safe routes), Adaptive layouts, `Animation`/`Transition`, `WindowGroup`/`Settings`/`MenuBarExtra`, Liquid Glass on macOS 26+. The model frequently emits stale signatures.
-
-1. **Read project's existing screens first** — single best source of truth
-2. Check deployment target before using a newer API
-3. Use Context7 / Apple docs for unfamiliar APIs
-4. Never fall back to memorized signatures
+Verify external-library APIs against the project's actual versions per `external-sources.md` (project code → version catalog → `ksrc`/Context7/official docs; never memorized signatures). High-staleness here: Observation, NavigationStack, `@Environment`.
 
 ---
 

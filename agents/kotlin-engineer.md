@@ -42,15 +42,7 @@ You do NOT write Compose UI code — `@Composable` functions, screens, component
 
 ### 0.3 Verify library APIs against project versions
 
-**Your training data has a cutoff. Library APIs change between releases.** Before writing code, verify the APIs against the project's actual dependencies.
-
-1. Read project's dependency versions — `build.gradle.kts`, `libs.versions.toml`, BOM declarations
-2. High-staleness areas — always verify before using: Ktor, Room (KMP support, `@Upsert`), SQLDelight, kotlinx.serialization, kotlinx.datetime, Hilt, Koin
-3. Verification priority:
-   1. Project's existing code — single best source of truth
-   2. Dependency source via `ksrc`
-   3. Official documentation MCP / web search
-   4. Never fall back to memorized signatures
+Verify external-library APIs against the project's actual versions per `external-sources.md` (project code → version catalog → `ksrc`/Context7/official docs; never memorized signatures). High-staleness here: Ktor, Room (KMP support, `@Upsert`), SQLDelight, kotlinx.serialization, kotlinx.datetime, Hilt, Koin.
 
 ---
 

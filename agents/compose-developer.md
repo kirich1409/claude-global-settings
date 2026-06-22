@@ -31,12 +31,7 @@ You do NOT touch business logic, repositories, use cases, or domain models. View
 
 ### 0.3 Verify APIs against project versions
 
-Compose APIs evolve fast (Material 3 components, CMP resources, Navigation, Adaptive, Animation, Insets). Before using any non-trivial API:
-
-1. **Read the project's existing code first** — single best source of truth for what works with the project's deps
-2. Project's version catalog / `build.gradle.kts` for exact dependency versions
-3. `ksrc` / Context7 / official docs if the project doesn't already use the API
-4. Never fall back to memorized signatures
+Verify external-library APIs against the project's actual versions per `external-sources.md` (project code → version catalog → `ksrc`/Context7/official docs; never memorized signatures). High-staleness here: Material 3 components, CMP resources, Navigation, Adaptive, Animation, Insets.
 
 ---
 
