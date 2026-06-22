@@ -10,6 +10,8 @@ Tests are written when **both** conditions hold:
 
 When either condition is not met — document the reason in the plan and proceed without tests for that scope. "Not obvious how to test" and "setup cost is prohibitive" are valid; "didn't feel like it" is not.
 
+This gate governs **discretionary** scope — which pyramid levels, internal/non-public behavior. It does **not** override the public-API floor: a modified **public** symbol still must satisfy [[qa-and-testing]] §1 (exercised by a test, or annotated trivial). When test cost is genuinely prohibitive on a public symbol, route it to a **tracked exception** (the [[qa-and-testing]] §4 `@Ignore`-with-issue pattern) — the gap stays explicit and tracked, never a silent documented skip.
+
 ### Testability assessment & simplifications (at planning time)
 
 Don't only decide *whether* to test — assess how hard verification will be and lower that cost **before** implementation (this is part of the preparation gate — see [[workflow]]):
@@ -31,6 +33,7 @@ The goal is the cheapest path to a *verifiable* prototype, not to defer testing.
 | Refactoring | Before-state baseline (tests as proxy if they exist) | L1–L2 + L5 if UI surface | Before refactor if coverage gaps exist | Behavior must be 1:1 with before-state |
 | Infrastructure change (network / storage / auth / DI) | Spec / requirements | L1 + **L5 mandatory** | After implementation | — |
 | UI / design task | Figma / screenshots | L1 + L3 + L5 | After implementation | Visual comparison against mockup |
+| Performance optimization | Benchmark baseline — before/after numbers | L0 + benchmark measurement | Capture baseline before; measure delta after | Win must be a measurable delta (Macrobenchmark / Perfetto), never "feels faster" |
 | Investigation / research | Research output document | L1 only if code produced | N/A when no code changes | No pyramid when no code is written |
 
 **L0 (Build) is the implicit entry gate for every row** — the affected part (relevant app/module, not always the whole repo) must compile before any L1+ level runs. The "Min pyramid" column lists levels *above* L0; it never repeals it. No code change → no L0 (e.g. research). See `qa-and-testing.md` → verification pyramid.
