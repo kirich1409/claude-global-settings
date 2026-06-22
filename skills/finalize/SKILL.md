@@ -29,7 +29,7 @@ Code-quality pass over the current branch. Multi-round review-and-fix loop focus
 **Tolerance flags (optional):**
 
 - `--allow-warn` — stop after 1 round on WARN-only (default: PASS on WARN-only, keep iterating BLOCKs).
-- `--deep-scan-effort <low|medium|high|xhigh|max>` — effort for the Phase 0 `/code-review` deep scan (default `high`). Lower it to cut cost/latency on routine tasks; raise for high-risk changes.
+- `--deep-scan-effort <auto|low|medium|high|xhigh|max>` — effort for the Phase 0 `/code-review` deep scan (default `auto`: scaled from the diff's risk signals — see Phase 0 § Effort selection). Pin an explicit level to override the auto choice in either direction.
 - `--skip-deep-scan` — omit Phase 0 entirely (recorded verbatim in `acknowledged risks`). Phase 0 also auto-skips on trivial diffs.
 - `--skip-experts` — omit Phase D (rarely useful; experts auto-skip when no triggers match).
 - `--max-rounds N` (≥ 1) — override the default 3. Use after an ESCALATE for one more round without restarting.
@@ -66,8 +66,21 @@ Runs **once per finalize run, before Round 1** — not per round. Captures the r
 
 **Invocation.** Invoke the **built-in** `/code-review` — the core skill, unqualified name `code-review`, NOT the `code-review:code-review` marketplace plugin (which needs a PR number and cannot review a working tree) — in **report mode** against the branch diff:
 
-- effort from `--deep-scan-effort` (default `high`); **no `--fix`** (severity triage is owned by finalize's fix loop, not the harness), **no `--comment`** (this gate runs pre-PR on a working tree).
+- effort from `--deep-scan-effort` (default `auto`, resolved below); **no `--fix`** (severity triage is owned by finalize's fix loop, not the harness), **no `--comment`** (this gate runs pre-PR on a working tree).
 - The harness reviews the current-branch diff + uncommitted changes and returns a JSON array of findings (`file`, `line`, `summary`, `failure_scenario`), most-severe first.
+
+### Effort selection (`auto`)
+
+Scale recall to blast radius using signals finalize already materializes pre-loop — the diff (`swarm-report/<slug>-diff.txt`), the context artifact's `risk_areas`, and a cheap pass of the [Security-expert pattern triggers](#security-expert-pattern-triggers) table over the diff. No new computation, no extra agents. An explicit `--deep-scan-effort` always wins over `auto`. Evaluate top-down, **first match wins**; the floor is `medium` (anything below it is a trivial diff, already skipped above):
+
+| Tier | Fires when (any) |
+|---|---|
+| **max** | ≥ 1 *narrow* security pattern in the diff, OR declared `risk_areas` ∈ {auth, payment, pii, data-migration}, OR a DB-migration path — same bar that triggers a full Phase D security review; a missed bug here is the most expensive. |
+| **xhigh** | tech / infra-layer change (network, storage, auth, DI per `~/.claude/rules/task-types.md`), OR new public API spanning ≥ 2 modules, OR diff > 500 LOC or > 15 files. High blast radius. |
+| **high** | new public API symbol, OR cross-module dependency change, OR diff > 150 LOC or > 6 files. Default for substantive features. |
+| **medium** | everything else above the trivial-skip bar — localized change, no risk signal. |
+
+Record the resolved tier and the signal that picked it in the report (`Phase 0 (deep scan): effort=xhigh — reason: infra-layer (network)`), so a surprising cost is traceable to a concrete trigger and the thresholds can be tuned against real runs.
 
 **Binding check.** On the maintainer's machine the unqualified `/code-review` binds the built-in recall harness (empirically confirmed: its first step is a working-tree `git diff`, not a PR-number lookup). In a foreign / public install where the marketplace shadow could bind instead, detect it: if the invoked command demands a PR number rather than diffing the working tree, it bound the wrong instance → skip Phase 0, log `reason: /code-review bound marketplace shadow`, continue to Phase A. **Never pass a PR number to satisfy it.**
 
@@ -256,7 +269,7 @@ Save `swarm-report/<slug>-finalize.md` on exit (PASS or ESCALATE):
 ## Rounds
 
 ### Round 1
-- Phase 0 (deep scan /code-review): effort, N findings after dedup vs Phase A (or `skipped: trivial diff | --skip-deep-scan | bound marketplace shadow`).
+- Phase 0 (deep scan /code-review): `effort=<tier> — reason: <signal>`, N findings after dedup vs Phase A (or `skipped: trivial diff | --skip-deep-scan | bound marketplace shadow`).
 - Phase A (code-reviewer): verdict, N findings (K BLOCK, M WARN, L NIT). Fixes: X.
 - Phase B (/simplify): Y files changed, auto-fixed.
 - Phase C (pr-review-toolkit): per-agent breakdown, or `skipped` if plugin not installed.
