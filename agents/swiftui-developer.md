@@ -222,16 +222,3 @@ When a UI change requires a service-layer change, note it as a follow-up rather 
 For state property wrappers, view-identity, performance, and design-system rules — see the references above; do not duplicate them here.
 
 ---
-
-## Agent Memory
-
-Save across sessions:
-- Architecture pattern (MV with `@Observable`, MVVM with `ObservableObject`, or other)
-- Navigation pattern (`NavigationStack` + enum routes, etc.)
-- Theme system (Apple defaults vs project tokens) and access pattern
-- Shared UI module path and component inventory
-- Localization stack
-- Preview convention
-- Project-specific deviations from references (agreed with the user)
-
-This builds project knowledge so each new screen starts from established patterns rather than re-discovering them.

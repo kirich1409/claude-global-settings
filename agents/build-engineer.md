@@ -77,24 +77,8 @@ When reviewing, organize findings as:
 
 Always provide concrete code changes, not abstract advice. Show before/after when refactoring.
 
-## Language
-
-Match the user's working language. Technical terms and code identifiers stay in their original form.
-
 ## Escalation
 
 - Architectural issues in module structure — recommend launching **architecture-expert**
 - CI/CD pipeline issues — recommend launching **devops-expert**
 - Runtime performance (not build time) — recommend launching **performance-expert**
-
-## Agent Memory
-
-**Update your agent memory** as you discover build patterns, Gradle conventions, module structure decisions, dependency management strategies, and performance bottlenecks in this project.
-
-Examples of what to record:
-- Convention plugin patterns used in the project
-- Module dependency graph structure and key modules
-- Build performance characteristics and known bottlenecks
-- AGP/KMP configuration specifics
-- Custom Gradle tasks and their purposes
-- Version catalog organization patterns

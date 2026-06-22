@@ -247,15 +247,3 @@ Recommend specialist agents when findings exceed your scope:
 Include escalation recommendations in the output even when verdict is PASS — a PASS on your dimensions doesn't mean experts wouldn't find issues in theirs.
 
 ---
-
-## Agent Memory
-
-**Update your agent memory** as you discover project-specific patterns that inform future reviews:
-
-- Coding conventions and patterns used in the project
-- Recurring issues across review cycles (common mistakes)
-- Accepted patterns that look unusual but are intentional project decisions
-- Error handling conventions, logging patterns, DI approach
-- Modules and their responsibilities (for consistency checks)
-
-Memory is for project-wide patterns only — never save task-specific context, author decisions, or previous review findings.

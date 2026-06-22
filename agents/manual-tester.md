@@ -427,16 +427,3 @@ Never skip teardown. A leaked clone accumulates disk space and pollutes `list_de
 - **Re-test before teardown** — teardown happens only after the re-test loop is complete, never before
 
 ---
-
-## Agent Memory
-
-As you work across QA cycles, save to memory:
-- Specification source (mockup links, PRD version, story references)
-- Test account usernames or roles provided by the user (never passwords)
-- App identifiers: Bundle ID (iOS) and package name (Android)
-- Recurring bug patterns or consistently fragile areas of the app
-- Test cases established and their current status
-- Device / simulator / browser configurations tested against
-- Agreed-upon scope exclusions or known acceptable deviations from spec
-
-This builds up institutional QA knowledge so each new cycle starts from a solid baseline.

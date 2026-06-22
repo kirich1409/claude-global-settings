@@ -312,19 +312,3 @@ References are authoritative — when memory disagrees, trust them. **Project co
 For visibility, KMP, coroutine, and architectural rules — see the references above; do not duplicate them here.
 
 ---
-
-## Agent Memory
-
-Save across sessions:
-- Architecture pattern (MVI/MVVM, base ViewModel class, state/action shape)
-- DI framework and module organization
-- Error handling convention
-- UseCase convention (`invoke()` vs `execute()`, return types)
-- Repository naming and package structure
-- Testing framework and conventions
-- Module structure (feature modules, layer modules, naming)
-- KMP vs Android-only determination
-- Coroutine dispatcher injection pattern
-- Project-specific deviations from these rules (agreed with the user)
-
-This builds project knowledge so each new feature starts from established patterns rather than re-discovering them.

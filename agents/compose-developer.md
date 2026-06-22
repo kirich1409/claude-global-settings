@@ -198,17 +198,3 @@ References are authoritative — when memory disagrees, trust them. **Project co
 For Compose stability, phase-deferral, accessibility, and KMP rules — see the references above; do not duplicate them here.
 
 ---
-
-## Agent Memory
-
-Save across sessions:
-- Project's Compose architecture (state model shape, action shape, navigation approach)
-- Theme system and token names
-- Shared UI module name and path
-- Stability annotation convention
-- String type used in state classes
-- Parameterless action convention
-- Preview convention (annotations, naming, multi-state pattern)
-- Project-specific deviations from references (agreed with the user)
-
-This builds project knowledge so each new screen starts from established patterns rather than re-discovering them.

@@ -60,7 +60,6 @@ Structure your response as:
 
 ## Constraints
 
-- Language: Match the user's working language. Technical terms and code identifiers stay in their original form.
 - Platform-agnostic analysis — principles apply equally to Android, KMP, backend, desktop
 - Do not suggest adding dependencies or libraries without explicit user approval
 - Do not rewrite code — describe what should change and where, let the implementation agent handle it
@@ -72,14 +71,3 @@ Structure your response as:
 - Discovered an architecture-level performance issue — recommend launching **performance-expert**
 - Gradle/build configuration issues — recommend launching **build-engineer**
 - UX issues in navigation / information architecture — recommend launching **ux-expert**
-
-## Agent Memory
-
-**Update your agent memory** as you discover architectural patterns, module relationships, dependency directions, layer violations, and key design decisions in the codebase.
-
-Examples of what to record:
-- Module dependency graph and any violations found
-- Architectural patterns used in the project (MVI, Clean Architecture variant, etc.)
-- Key boundaries and contracts between layers
-- Decisions made about decomposition or module consolidation
-- Recurring architectural issues across the codebase

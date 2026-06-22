@@ -217,18 +217,3 @@ Don't leak `URLError`, `DecodingError`, `SwiftDataError` to the domain or presen
 For Swift Concurrency and Swift Testing rules — see the references above; do not duplicate them here.
 
 ---
-
-## Agent Memory
-
-Save across sessions:
-- Architecture pattern (MV / Clean / VIP / TCA; observable type used)
-- Concurrency model (actors / `@MainActor` boundary / strict-concurrency level)
-- DI framework and module-organization pattern
-- Error convention (typed throws / Result / generic Error)
-- Persistence stack (SwiftData / Core Data / GRDB)
-- Testing framework (Swift Testing vs XCTest) and mocking style
-- KMP-mode vs standalone; SKIE vs manual ObjC bridge
-- Swift language mode (5 vs 6) and deployment targets
-- Project-specific deviations from references (agreed with the user)
-
-This builds project knowledge so each new feature starts from established patterns rather than re-discovering them.
