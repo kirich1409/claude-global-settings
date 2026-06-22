@@ -1,3 +1,8 @@
+---
+paths:
+  - "**/*.kt"
+---
+
 # Kotlin Coroutines & Flow — Non-Obvious Rules
 
 This file lists only the coroutine and Flow rules a modern Claude model omits or gets wrong without a reminder. Generic idioms — structured concurrency basics, `viewModelScope` for ViewModels, exposing immutable `StateFlow`, `async`/`await`, `flow {}` builders, choosing `suspend` vs `Flow`, catching `IOException` instead of `Exception`, no empty `catch` blocks — are **not** documented here; trust the model and the [official kotlinx.coroutines docs](https://kotlinlang.org/docs/coroutines-guide.html).

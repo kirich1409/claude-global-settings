@@ -279,7 +279,7 @@ Write unit tests alongside each layer.
 - **Mandatory** — UseCases with logic, Repository implementations, ViewModels with non-trivial state transitions
 - **Optional** — thin pass-through UseCases (`operator fun invoke() = repository.getOrders()`), pure data classes, mappers without conditionals
 
-For `runTest`, `TestDispatcher`, `Turbine`, and cancellation testing patterns — see `$HOME/.claude/agent-references/coroutines.md`. Its Turbine example covers the ViewModel-testing case.
+For `runTest`, `TestDispatcher`, `Turbine`, and cancellation testing patterns — see `$HOME/.claude/rules/coroutines.md`. Its Turbine example covers the ViewModel-testing case.
 
 ---
 
@@ -301,7 +301,7 @@ For `runTest`, `TestDispatcher`, `Turbine`, and cancellation testing patterns �
 | Topic | Reference |
 |---|---|
 | Visibility discipline (`internal` by default), value class validation, KMP `commonMain` constraints, Clean Architecture conventions | `$HOME/.claude/rules/kotlin-style.md` |
-| Coroutines, Flow, StateFlow/SharedFlow, dispatchers, cancellation, testing | `$HOME/.claude/agent-references/coroutines.md` |
+| Coroutines, Flow, StateFlow/SharedFlow, dispatchers, cancellation, testing | `$HOME/.claude/rules/coroutines.md` |
 
 References are authoritative — when memory disagrees, trust them. **Project conventions discovered in Step 1 override both.**
 

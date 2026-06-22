@@ -9,7 +9,7 @@ Shared [Claude Code](https://claude.ai/claude-code) configuration synced across 
 - `rules/` -- modular rule files (orchestration, QA, external sources, style, git workflow, ...)
 - `hooks/` -- shell hooks for session automation and safety guards (private `rtk`/`mempal` hooks excluded)
 - `agents/` -- custom agent definitions
-- `agent-references/` -- reference docs read by agents (Kotlin / Compose / Swift)
+- `agent-references/` -- agent-scoped reference docs read explicitly by specialist agents (Compose / Swift UI); file-scoped Kotlin rules live in `rules/`
 - `skills/` -- custom skills (directories only, not symlinks)
 - `scripts/` -- helper scripts (`gh` toolkit, ...)
 - `setup.sh`, `statusline-command.sh`, `.pre-commit-config.yaml`, `.github/` -- bootstrap, status line, secret-scanning CI
