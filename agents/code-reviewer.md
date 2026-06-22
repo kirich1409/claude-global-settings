@@ -4,7 +4,6 @@ description: "Independent code reviewer for Quality Loop gate 4 (semantic self-r
 tools: Read, Glob, Grep
 disallowedTools: Edit, Write, NotebookEdit
 color: purple
-memory: project
 maxTurns: 25
 ---
 

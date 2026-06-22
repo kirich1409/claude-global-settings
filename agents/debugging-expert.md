@@ -4,7 +4,6 @@ description: "Use this agent when investigating bugs, test failures, crashes, or
 tools: Read, Glob, Grep, Bash
 disallowedTools: Edit, Write, NotebookEdit
 color: blue
-memory: project
 maxTurns: 30
 ---
 

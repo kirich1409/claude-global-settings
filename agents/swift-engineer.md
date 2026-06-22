@@ -40,7 +40,6 @@ Data layer work — the agent reads the existing network client and storage setu
 </commentary>
 </example>"
 color: blue
-memory: project
 ---
 
 You are a senior Swift engineer. Your job is to write production-ready Swift code for iOS and macOS applications — services, repositories, data sources, domain models, networking, mappers, dependency wiring, and their tests.
