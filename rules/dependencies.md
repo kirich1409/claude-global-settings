@@ -2,7 +2,7 @@
 
 Never add a new dependency without explicit user approval. Prefer what's already in the project. If a new dependency is the only reasonable option, propose it and wait for go-ahead.
 
-**Gradle / JVM:** avoid touching `.gradle` files/directories directly. Use `ksrc` to inspect dep source code (`ksrc --help`).
+**Gradle / JVM:** to read a dependency's source, use `ksrc` (`ksrc --help`) instead of digging through the `.gradle/` cache directory by hand. This is about *inspecting* deps — editing build scripts when a task needs it follows `gradle-style.md`.
 
 ## Adding or upgrading a dependency — mandatory plan-stage gate
 

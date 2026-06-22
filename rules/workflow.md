@@ -26,6 +26,6 @@ Autonomy: concentrate questions in this prep phase; once sources are gathered, p
 
 **Bug fixes:**
 1. Plan mode (debug + fix in the plan). Capture reproduction steps in `swarm-report/<slug>-debug.md` — this is the source of truth for `/acceptance`.
-2. Implement → optional `/write-tests` for regression → `/check` → `/finalize` → `/acceptance` → PR.
+2. Write a failing test that reproduces the bug first, then implement the fix (red-green) → `/check` → `/finalize` → `/acceptance` → PR. The regression test is not optional unless the feasibility gate applies — then a tracked exception, never a silent skip (see [[task-types]] bug-fix row + [[qa-and-testing]] §4). `/write-tests` can scaffold the test.
 
 **Exploratory QA without a spec:** call the `manual-tester` agent directly via the Task tool (no skill needed).
