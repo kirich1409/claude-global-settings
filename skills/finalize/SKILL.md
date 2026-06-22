@@ -60,7 +60,7 @@ Round N:
 
 ## Phase 0 — Deep scan (built-in `/code-review`, one-shot)
 
-Runs **once per finalize run, before Round 1** — not per round. Captures the recall of the built-in `/code-review` harness (line-by-line correctness, removed-behavior auditing, cross-file tracing, altitude) that Phase A's single `code-reviewer` and the Phase C trio do not reproduce. That recall comes from the harness's multi-angle fan-out + independent verify step — paraphrasing its angle names into another agent's brief does **not** substitute for running it, so the real command is wired in rather than imitated.
+Runs **once per finalize run, before Round 1** — not per round. Captures the **correctness recall** the built-in `/code-review` harness provides and the other phases do not: line-by-line bug scan, removed-behavior auditing, and cross-file tracing, backed by an independent verify step. That recall comes from the harness's multi-angle fan-out + verify — paraphrasing its angle names into another agent's brief does **not** substitute for running it, so the real command is wired in rather than imitated. Its cleanup/altitude/conventions angles overlap Phases B and A and are discarded at ingestion (see Feed into the loop) — Phase 0 is a correctness layer, not a cleanup one.
 
 **Skip when the diff is trivial** (same bar as `test-coverage-expert`): single file, < 50 LOC, refactor-only, no new public API. Log `phase: 0, status: skipped, reason: trivial diff`. Also skipped by `--skip-deep-scan` (logged in `acknowledged risks`).
 
@@ -84,7 +84,16 @@ Record the resolved tier and the signal that picked it in the report (`Phase 0 (
 
 **Binding check.** On the maintainer's machine the unqualified `/code-review` binds the built-in recall harness (empirically confirmed: its first step is a working-tree `git diff`, not a PR-number lookup). In a foreign / public install where the marketplace shadow could bind instead, detect it: if the invoked command demands a PR number rather than diffing the working tree, it bound the wrong instance → skip Phase 0, log `reason: /code-review bound marketplace shadow`, continue to Phase A. **Never pass a PR number to satisfy it.**
 
-**Feed into the loop.** Dedup Phase 0 findings against Phase A (same defect + location + reason → keep one; Phase A wins when it adds plan-conformance / Non-negotiables context). Surviving findings enter **Round 1**'s fix loop under the same severity × confidence gate as Phase A. `/code-review` does not emit the 0–100 rubric, so grade each finding by its `failure_scenario`: a concrete crash / wrong-output / data-loss path → critical or major (BLOCK); a reuse / simplification / altitude cleanup → minor (NIT, never blocks PASS). Fixes go through the normal fix → `/check` cycle. Phase 0 is **not** re-run in later rounds.
+**Feed into the loop — correctness only (avoid double work).** Phase 0 exists for the recall the other phases lack: real bugs, **removed-behavior regressions**, and **broken call sites**, backed by the harness's independent verify step. Ingest ONLY those — findings whose `failure_scenario` is a concrete crash / wrong-output / data-loss / dropped-guard / broken-caller.
+
+**Discard the rest at ingestion**, because other phases own those lanes and *act* on them:
+- reuse / simplification / efficiency / altitude findings → **Phase B `/simplify`** (the same four angles, same lineage — `/simplify` and `/code-review` split from one command — and Phase B applies the fix, not just reports it). Re-acting here doubles the work.
+- conventions / `CLAUDE.md` findings → **Phase A `code-reviewer`** (owns conformance + the Non-negotiables-always-BLOCK rule).
+- correctness findings that overlap Phase A → dedup (same defect + location → keep one; Phase A wins, it adds plan-conformance / Non-negotiables context).
+
+Surviving correctness findings enter **Round 1**'s fix loop, graded by `failure_scenario` (crash / wrong-output / data-loss / dropped-guard → critical or major BLOCK). Fixes go through the normal fix → `/check` cycle. Phase 0 is **not** re-run in later rounds.
+
+**Compute note.** `/code-review` is monolithic — it runs all eight angles, including the four cleanup ones whose output we discard. That wasted fan-out is the price of the verify step plus removed-behavior / cross-file recall that nothing else provides; `auto` effort keeps it bounded, and the harness ranks correctness first under its own output cap, so even a lower effort still surfaces the bugs we keep. If profiling later shows the duplicate cleanup fan-out dominates cost, the lever is to drop Phase 0's effort, not to also fix cleanup twice.
 
 ---
 
