@@ -486,8 +486,7 @@
       "source": {
         "source": "github",
         "repo": "warpdotdev/claude-code-warp"
-      },
-      "autoUpdate": true
+      }
     }
   },
   "language": "Russian",
