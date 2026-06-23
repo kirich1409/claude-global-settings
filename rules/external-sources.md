@@ -45,6 +45,21 @@ If a whole channel class is unavailable (no web search, no dependency-intelligen
 
 **High-staleness (оба канала обязательны):** Ktor 3.x, Room (KMP `@Upsert`, multiplatform), SQLDelight, kotlinx.serialization, kotlinx.datetime, Hilt, Koin, Compose Multiplatform, Compose Material3, AGP 8+/9, KSP, Firebase Android (BoM v34+ убрал KTX), Navigation 3.
 
+## Fast-moving declarative UI — guides & changelog before implementing
+
+Для **Jetpack Compose, Compose Multiplatform (CMP), SwiftUI** одного «verify API against versions» мало: стек меняется быстро, и кроме *какой API есть* нужно *как сейчас рекомендуется делать* (иначе агент пишет устаревший код — `NavigationView` вместо `NavigationStack`, deprecated Compose API). Перед имплементацией нетривиального экрана/компонента в этих стеках пройти три роли — под общим принципом *Tool discovery & multi-channel use* (discover в рантайме → tier → cross-check):
+
+**A. API-truth — какой API реально в версии проекта.** `ksrc` (T1, реальный source jar точной версии; JVM/KMP → Jetpack Compose, CMP core/Material3; не Swift) → доки того же номера / Context7 (T2). SwiftUI: `apple-doc-mcp-server` MCP когда подключён (T2; ksrc-эквивалента для Apple нет).
+
+**B. Recommended approach — как делают сейчас.** Официальные reference-приложения (код > доки, T1/T2): `android/nowinandroid`, `android/compose-samples`, `JetBrains/compose-multiplatform/examples`, Apple sample code → What's New / release-notes / roadmap (Android Dev Blog, JetBrains Kotlin Blog, WWDC) + дизайн-канон (Compose API Guidelines, Material 3, Apple HIG) → community (T3/T4, **только cross-check, не единственный источник**): Swift Forums, Hacking with Swift / Sundell / Point-Free, Kotlin Slack, Android Weekly.
+
+**C. Что изменилось / известные проблемы.** `maven-mcp` `dependency-changes` — changelog между версиями (T2; самый богатый сигнал для CMP). Issue-трекеры **по правильному адресу**: Jetpack Compose → **Google IssueTracker** (не GitHub); CMP → GitHub issues (`JetBrains/compose-multiplatform`); SwiftUI → Apple Developer Forums / Feedback Assistant.
+
+**Per-stack маршрут:**
+- **Jetpack Compose** → `android docs` CLI + developer.android.com release-notes/BOM/roadmap + `ksrc`.
+- **Compose Multiplatform** → версии **выровнены** с Jetpack Compose (CMP X.Y ≈ JC X.Y по core API; CMP релизится **позже календарно**, не по номеру; Material3 — своя нумерация). Для общего Compose API годятся JC-доки / `android docs` / `ksrc` **того же номера**; JetBrains KMP docs / Kotlin Blog / GitHub — для CMP-специфики (iOS/Desktop/resources/`expect`-`actual`) и проверки, что номер реально вышел/stable в CMP.
+- **SwiftUI** → `apple-doc-mcp-server` (primary, когда подключён) + Apple/WWDC; сайт Apple — SPA, raw WebFetch ненадёжен, предпочитать MCP.
+
 ## Context7 workflow
 
 Шаги при обращении к Context7 (когда именно — см. таблицу Source routing и композицию по стекам выше):
