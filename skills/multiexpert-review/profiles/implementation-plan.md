@@ -37,6 +37,8 @@ Generic implementation-plan assessment. Each reviewer applies their expertise:
 - Trade-offs surfaced where multiple valid approaches exist
 - Dependencies (code, libraries, services) identified
 - Testing approach outlined (if implementation includes test code)
+- Verification & Sources present — the source(s) of truth that define "done" are named, collected,
+  and sufficient to verify the finished change; testing strategy (pyramid levels) stated
 
 No fixed severity mapping — reviewers judge severity from their expertise.
 
@@ -58,6 +60,11 @@ look thorough — every finding must name the weakness, where it is, and why it 
 - **Invisible scope** — a one-line task hiding a subsystem. Demand it be split or sized honestly.
 - **Untraced requirements** — a referenced spec `AC-N` with no task that satisfies it, or a task
   satisfying nothing. Demand the mapping be complete.
+- **Missing or hollow verification** — no `## Verification & Sources` section, or one that names a
+  source of truth without confirming it is collected and sufficient ("baseline TBD", a
+  migration/behavior-preserving task with no before-state captured), or omits the testing strategy
+  (which pyramid levels apply, L5 where mandatory). Demand the concrete source, its status, and a
+  sufficiency claim — a plan that can't say how the finished change is verified is not approvable.
 
 This rubric is what converts "a plan that passes" into "a plan that is right".
 

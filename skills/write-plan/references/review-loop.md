@@ -99,6 +99,12 @@ The critic rejects, as blockers or majors, plans that try to pass without substa
   honestly.
 - **Untraced requirements** — a spec `AC-N` with no task that satisfies it, or a task that satisfies
   nothing. Demand the mapping be complete.
+- **Missing or hollow verification** — no `## Verification & Sources` section, or one that names a
+  source of truth without confirming it is collected and sufficient ("baseline TBD", "spec
+  somewhere", a migration/behavior-preserving task with no before-state captured), or omits the
+  testing strategy (which pyramid levels apply, L5 where mandatory). Demand the concrete source, its
+  status, and a sufficiency claim — a plan that can't say how the finished change is verified is not
+  approvable.
 
 This rubric is what converts "a plan that passes" into "a plan that is right". It lives in the
 profile's prompt augmentation so the panel applies it automatically.

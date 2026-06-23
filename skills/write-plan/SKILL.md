@@ -119,7 +119,14 @@ fill every placeholder. Shape:
 - **`plan.md`** — YAML frontmatter (`type: plan`, `slug`, `date`, `status: draft`, `spec:` link or
   `none`, `risk_areas`, `review_verdict: pending`) + body: Context & Decision, Technical Approach,
   Affected Modules & Files (table: path · change type · note), Decisions Made (with rationale),
-  Risks & Mitigations, Out of Scope, Open Questions (tagged blocking / non-blocking).
+  Risks & Mitigations, **Verification & Sources**, Out of Scope, Open Questions (tagged blocking /
+  non-blocking). The **Verification & Sources** section is mandatory and must name the source(s) of
+  truth that define "done" (spec / test-plan / before-state baseline / Figma / debug-repro),
+  assert each is collected and **sufficient** to verify the finished change, and state the testing
+  strategy (pyramid levels L0–L5 that apply). For a migration or "shouldn't change behavior" task the
+  baseline is captured **before** implementation, not promised — a plan that only names a source
+  without confirming it exists and suffices is not done (qa-and-testing §6, §0; task-types
+  § Before-state baseline).
 - **`tasks.md`** — ordered list `T-N`, each with: short title, dependencies (`after: T-…`), the
   files it touches, and **acceptance** in Given/When/Then or "THE SYSTEM SHALL …" form, plus the
   check that proves it (test name, grep, build target). Tasks are small enough to implement and
