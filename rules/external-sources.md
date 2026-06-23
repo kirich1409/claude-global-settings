@@ -57,7 +57,7 @@ If a whole channel class is unavailable (no web search, no dependency-intelligen
 
 **Per-stack маршрут:**
 - **Jetpack Compose** → `android docs` CLI + developer.android.com release-notes/BOM/roadmap + `ksrc`.
-- **Compose Multiplatform** → версии **выровнены** с Jetpack Compose (CMP X.Y ≈ JC X.Y по core API; CMP релизится **позже календарно**, не по номеру; Material3 — своя нумерация). Для общего Compose API годятся JC-доки / `android docs` / `ksrc` **того же номера**; JetBrains KMP docs / Kotlin Blog / GitHub — для CMP-специфики (iOS/Desktop/resources/`expect`-`actual`) и проверки, что номер реально вышел/stable в CMP.
+- **Compose Multiplatform** → core Compose выровнен с Jetpack Compose по **major.minor** (эмпирически: CMP 1.11.1 ↔ JC runtime 1.11.2 — minor совпадает, patch свой; CMP релизится позже календарно). **Но отдельные артефакты — Material3 и навигация (`org.jetbrains.androidx.navigation:navigation-compose`) — имеют собственную нумерацию, и KMP-форк может отставать от androidx upstream** (напр. KMP navigation 2.9.2 vs androidx 2.9.8) → версию каждого артефакта проверять отдельно (maven-mcp + CMP GitHub release-таблицы). Для общего Compose API годятся JC-доки / `android docs` / `ksrc` того же major.minor; JetBrains KMP docs / Kotlin Blog / GitHub release-таблицы — для CMP-специфики (iOS/Desktop/resources/`expect`-`actual`) и точного соответствия версий артефактов.
 - **SwiftUI** → `apple-doc-mcp-server` (primary, когда подключён) + Apple/WWDC; сайт Apple — SPA, raw WebFetch ненадёжен, предпочитать MCP.
 
 ## Context7 workflow
