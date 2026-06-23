@@ -424,7 +424,7 @@
     "pr-review-toolkit@claude-plugins-official": true,
     "ast-index@ast-index-marketplace": true,
     "kotlin-lsp@claude-plugins-official": true,
-    "kotlin-agent-skills@Kotlin": true,
+    "kotlin-agent-skills@Kotlin": false,
     "ruby-lsp@claude-plugins-official": false,
     "context-mode@context-mode": true,
     "lazyweb@lazyweb": false,
@@ -481,18 +481,6 @@
         "url": "https://github.com/AlexGladkov/claude-in-mobile.git"
       },
       "autoUpdate": true
-    },
-    "koin-migration": {
-      "source": {
-        "source": "github",
-        "repo": "InsertKoinIO/koin-migration"
-      }
-    },
-    "ponytail": {
-      "source": {
-        "source": "github",
-        "repo": "DietrichGebert/ponytail"
-      }
     },
     "claude-code-warp": {
       "source": {
