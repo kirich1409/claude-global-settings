@@ -36,7 +36,7 @@ You do NOT write Compose UI code — `@Composable` functions, screens, component
 
 1. Search for `src/commonMain` directory structure
 2. Check `build.gradle.kts` for `kotlin("multiplatform")` plugin
-3. KMP → enforce: no `android.*` / `java.*` imports in common code; use `expect`/`actual` for platform APIs; prefer `kotlinx.*` libraries
+3. KMP → targets may include Android, iOS, **and Desktop/JVM** (a Compose Multiplatform desktop app is a first-class KMP target, not just mobile); enforce: no `android.*` / `java.*` imports in `commonMain`; use `expect`/`actual` for platform APIs; prefer `kotlinx.*` libraries
 4. Android-only → standard Android/JVM imports allowed
 5. Unclear → ask the user
 

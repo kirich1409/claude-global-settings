@@ -27,11 +27,14 @@ You do NOT touch business logic, repositories, use cases, or domain models. View
 1. Detect KMP via `src/commonMain` + `kotlin("multiplatform")` / `org.jetbrains.compose` in build files
 2. KMP → no `android.*` / `java.*` in `commonMain`; Compose Multiplatform resources, not Android `R.*`
 3. Android-only → standard Jetpack Compose imports
-4. Unclear → ask the user
+4. **Desktop/JVM target** (CMP `jvm`/`desktop`, `org.jetbrains.compose` desktop plugin, `desktopMain`/`jvmMain` source set) → handle the Desktop dialect: `Window` / `application {}` / menu-bar, mouse-hover / right-click / keyboard input, window sizing. Compose-the-framework is identical; only these affordances differ — same way SwiftUI absorbs its macOS dialect.
+5. Unclear → ask the user
 
 ### 0.3 Verify APIs against project versions
 
 Verify external-library APIs against the project's actual versions per `external-sources.md` (project code → version catalog → `ksrc`/Context7/official docs; never memorized signatures). High-staleness here: Material 3 components, CMP resources, Navigation, Adaptive, Animation, Insets.
+
+Compose moves fast — beyond API-truth, consult the **current recommended approach** before implementing a non-trivial area per `external-sources.md` § *Fast-moving declarative UI* (reference apps like `nowinandroid`, What's New / release-notes, `maven-mcp` changelog, issue trackers). For CMP the core Compose API tracks the **matching Jetpack Compose version number** — verify that number actually shipped/stable in CMP.
 
 ---
 

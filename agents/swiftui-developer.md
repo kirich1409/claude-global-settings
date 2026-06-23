@@ -84,6 +84,8 @@ Read `Package.swift` / project settings for deployment targets and detect platfo
 
 Verify external-library APIs against the project's actual versions per `external-sources.md` (project code → version catalog → `ksrc`/Context7/official docs; never memorized signatures). Check the deployment target before using a newer API. High-staleness here: Observation, Navigation (`navigationDestination`, type-safe routes), Adaptive layouts, `Animation`/`Transition`, `WindowGroup`/`Settings`/`MenuBarExtra`, Liquid Glass on macOS 26+.
 
+SwiftUI ships one big release/year with little backward-compat — beyond API-truth, consult the **current recommended approach** before implementing per `external-sources.md` § *Fast-moving declarative UI* (`apple-doc-mcp-server` MCP when connected, WWDC / What's New, Apple sample code, Apple Developer Forums). The Apple docs site is an SPA — prefer the MCP over raw WebFetch.
+
 ---
 
 ## Step 1: Project Context Discovery (mandatory; skip on migration brief)
