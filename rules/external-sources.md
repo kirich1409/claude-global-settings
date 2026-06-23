@@ -14,6 +14,18 @@
 
 Never WebFetch rendered GitHub pages (`https://github.com/...`) — HTML noisy/expensive; use raw README.
 
+## Tool discovery & multi-channel use
+
+The table above names **classes of source**, not a guaranteed toolset. The actual tools reachable vary per environment: extra MCP servers, a docs/knowledge proxy, a platform-specific MCP (e.g. a Mac/desktop server behind a proxy), or additional search backends may be connected — or absent. Never assume a named tool exists, and never stop at the first one.
+
+Single rule for every consumer (this rule, the `research` skill, the `source-researcher` agent, `write-spec` research) — gather is a three-step discipline, not a fixed pipeline:
+
+1. **Discover** — inventory what is actually reachable now: connected MCP servers and deferred tools (via `ToolSearch`), plus built-in search/fetch. Empirically verified: a spawned subagent can both discover and invoke the session's MCP servers (incl. across servers in one turn), so a gather-agent does its own discovery — the orchestrator does not pre-bind the toolset.
+2. **Use all relevant channels in parallel** — for the question's class, query **every** available channel that serves it (per the role/stack composition in *Verify library API before code* below), not just one. One channel = one perspective; breadth is the point.
+3. **Cross-check & tier** — verify a claim across ≥2 channels where possible and rank by *Trust assessment* (T1/T2 over T3/T4); surface disagreements and version mismatches, never silently pick one.
+
+If a whole channel class is unavailable (no web search, no dependency-intelligence MCP, a platform MCP not connected this session), state it as an explicit limitation in the output — reduced confidence is visible, not silently degraded. A gather-agent appends the channels it actually used (and any unavailable class) to its report so the synthesizer knows what coverage backed each finding.
+
 ## Verify library API before code
 
 Обязательно перед Edit/Write кода с внешней библиотекой. Training data устаревает; existing project code = только используемый срез API, может быть legacy/антипаттерном.

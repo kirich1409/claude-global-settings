@@ -1,14 +1,64 @@
 # Research Consortium — Expert Prompt Templates
 
-Use these prompts verbatim when launching each expert agent in Phase 2. Each agent runs independently — never share one agent's findings with another.
+Phase 2 launches each expert in one parallel message. Each agent runs independently — never share one agent's findings with another. Two **codebase-bound** tracks (Codebase, Architecture) use the verbatim prompts below on Explore / architecture-expert; the three **external** tracks (Web, Docs, Dependencies) run on the `source-researcher` agent (see *External tracks* below).
 
-> **Intentional overlap with the `write-spec` skill.** The Codebase / Architecture / Web
-> prompts here overlap with `../../write-spec/references/research-prompts.md`, where they
-> appear as an enriched superset. This skill instead splits Docs and Dependencies into their
-> own dedicated tracks (below). The two files are kept separate **on purpose** so each skill
-> stays self-contained — do not merge them into a shared file.
+> **Intentional overlap with the `write-spec` skill.** The Codebase / Architecture prompts
+> here overlap with `../../write-spec/references/research-prompts.md`, where they appear as an
+> enriched superset. The two files are kept separate **on purpose** so each skill stays
+> self-contained — do not merge them into a shared file. (Both skills route external-source
+> gathering through the same `source-researcher` agent + `rules/external-sources.md`, so that
+> method *is* shared — only the codebase prompts are intentionally duplicated.)
 
 All prompts must include this line: *"Respond in the same language as the research topic description."*
+
+---
+
+## Tool discovery & multi-channel use — single source
+
+The method for discovering reachable tools/MCP, querying **all** relevant channels of a class,
+and cross-checking by trust tier is **not duplicated here**. It lives in one place:
+`rules/external-sources.md` § *Tool discovery & multi-channel use* (+ § *Verify library API
+before code* for stack composition, § *Trust assessment* for tiers). That rule is unconditional
+and is inherited by every subagent, so the `source-researcher` agent and the Explore /
+architecture tracks all apply the same discipline without restating it.
+
+The three **external** tracks (Web / Docs / Dependencies) do not get a hardcoded tool in their
+prompt — they run on the **`source-researcher`** agent, which does its own runtime discovery.
+The two **codebase-bound** tracks keep their own prompts (Explore and architecture-expert have
+different jobs and toolchains).
+
+---
+
+## External tracks — launch via the `source-researcher` agent
+
+Web, Docs, and Dependencies are three **independent** instances of `source-researcher`, each
+with a different `focus` (independence per instance preserves the synthesis-bias invariant —
+do not collapse them into one call). The agent already knows its method and report structure;
+the launch prompt only supplies focus + topic + constraints. Model/effort are pinned in the
+agent definition (`sonnet` / `medium`) — do not override unless the topic clearly needs more.
+
+Launch each selected external track with `agentType: source-researcher` and this prompt:
+
+```
+focus: {web | library-docs | dependency-intelligence}
+topic: {topic}
+constraints: {known boundaries — KMP-only, no new deps, pinned versions, deadline}
+
+Investigate only your focus class for this topic, per your standing instructions
+(discover available channels → query all relevant ones → cross-check by tier → report
+without synthesizing). Respond in the same language as the topic description.
+```
+
+Track → focus mapping:
+
+| Track | `focus` | Covers |
+|---|---|---|
+| Web | `web` | industry practice, trade-offs, pitfalls, real-world examples, ≤12-mo developments, consensus |
+| Docs | `library-docs` | API reference, guides, changelogs, migration/compat, version-specific behavior |
+| Dependencies | `dependency-intelligence` | current vs latest versions, CVEs, KMP/AGP compat, health, breaking changes, alternatives |
+
+The detailed per-class angles that used to live here now live in the agent's system prompt
+(`agents/source-researcher.md`) and in `external-sources.md` — single source, no restating.
 
 ---
 
@@ -31,66 +81,6 @@ Grep + Read otherwise. Check build files, configuration, and test code too.
 
 Respond in the same language as the research topic description. Structure: overview,
 then findings grouped by category.
-```
-
----
-
-## Web Expert
-
-Conditional track — launch only when the topic needs an external perspective (industry practices, third-party library best practices, benchmarks, post-mortems). Skip for purely internal questions. If web search is unavailable but the track was selected, note it as a limitation in the report.
-
-```
-Research: {topic}
-
-If web search is available, investigate:
-1. Common approaches and best practices (with trade-offs for each)
-2. Known pitfalls and mistakes to avoid
-3. Real-world examples from open-source projects
-4. Recent developments or changes (last 12 months)
-5. Community consensus — what does the majority recommend and why?
-
-If web search is unavailable, note this as a limitation and rely on training knowledge
-where possible.
-
-Respond in the same language as the research topic description. Include source URLs
-for key claims.
-```
-
----
-
-## Docs Expert
-
-```
-Find official documentation for: {libraries/frameworks related to topic}
-
-For each library/framework:
-1. API reference, guides, changelogs
-2. Migration guides, compatibility notes, configuration options, known limitations
-3. Version-specific documentation if version matters
-
-Respond in the same language as the research topic description. Quote relevant
-sections. Note gaps where documentation is missing or unclear.
-```
-
----
-
-## Dependencies Expert (maven-mcp)
-
-Available tools: `search_artifacts`, `get_latest_version`, `get_dependency_vulnerabilities`, `get_dependency_changes`, `compare_dependency_versions`, `check_multiple_dependencies`.
-
-```
-Analyze dependencies related to: {topic}
-
-Investigate:
-1. Current versions of relevant libraries and their latest available versions
-2. Known vulnerabilities in current or candidate dependencies
-3. Compatibility matrix — what works with what (Kotlin version, KMP targets, AGP)
-4. Alternative libraries that serve the same purpose — compare by maturity,
-   maintenance activity, KMP support, community size
-5. Breaking changes in recent versions
-
-Respond in the same language as the research topic description. Include specific
-version numbers and groupId:artifactId coordinates.
 ```
 
 ---

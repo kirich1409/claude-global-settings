@@ -99,9 +99,22 @@ Paths:
 Launch all selected agents **in a single message** for maximum parallelism. Each works
 independently — never share findings between agents.
 
-Use the prompt templates in [`references/expert-prompts.md`](references/expert-prompts.md)
-verbatim per agent. The reference covers all 5 tracks (Codebase / Web / Docs / Dependencies /
-Architecture) with their tools and required structure.
+Agent routing per track (see [`references/expert-prompts.md`](references/expert-prompts.md) for
+the exact launch prompts):
+
+| Track | Agent | Model |
+|---|---|---|
+| Codebase | `Explore` | (built-in default) |
+| Architecture | `architecture-expert` | (agent default) |
+| Web / Docs / Dependencies | `source-researcher` (one independent instance each, `focus: web` / `library-docs` / `dependency-intelligence`) | pinned in the agent — `sonnet` / `medium` |
+
+The three external tracks do **not** carry a hardcoded toolset: `source-researcher` discovers
+the tools/MCP actually reachable at runtime and queries every relevant channel of its class,
+per the single method in `rules/external-sources.md` § *Tool discovery & multi-channel use*
+(inherited by the agent — not restated in the prompt). Keeping the three as **separate**
+instances preserves the synthesis-bias invariant — never merge them into one `source-researcher`
+call. The codebase-bound tracks keep their verbatim prompts (Explore and architecture-expert have
+different jobs and toolchains).
 
 ### State persistence
 

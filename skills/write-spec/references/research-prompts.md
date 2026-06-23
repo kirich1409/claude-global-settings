@@ -1,12 +1,16 @@
 Referenced from: `plugins/developer-workflow/skills/write-spec/SKILL.md` (§Phase 1.1 Launch research consortium).
 
-> **Intentional overlap with the `research` skill.** The Codebase / Architecture / Web prompts
-> below are an enriched **superset** of the ones in
-> `../../research/references/expert-prompts.md` (here they add integration-points and
-> test-infra, plus the spec-only Business Analyst / Critical Evaluation / Dependency Chain
-> tracks). The two files are kept separate **on purpose** — each skill stays self-contained
-> per the toolbox model — so do not collapse them into one shared file. This mirrors the
-> `acceptance` ↔ `multiexpert-review` "same protocol, duplicated with a note" idiom.
+> **Intentional overlap with the `research` skill.** The Codebase / Architecture prompts below
+> are an enriched **superset** of the ones in `../../research/references/expert-prompts.md` (here
+> they add integration-points and test-infra, plus the spec-only Business Analyst / Critical
+> Evaluation / Dependency Chain tracks). The two files are kept separate **on purpose** — each
+> skill stays self-contained per the toolbox model — so do not collapse them into one shared
+> file. This mirrors the `acceptance` ↔ `multiexpert-review` "same protocol, duplicated with a
+> note" idiom. **Web Research is the exception**: both skills route it through the shared
+> `source-researcher` agent + `rules/external-sources.md`, so that method is genuinely shared,
+> not duplicated. (Note: the spec-only **Dependency Chain** track maps infrastructure
+> prerequisites — APIs, permissions, console setup — and is *not* the research skill's
+> version/CVE "Dependencies" track; it stays on general-purpose.)
 
 # Research-Agent Prompt Templates
 
@@ -51,25 +55,27 @@ Analyze:
 Read the relevant module structure and build files before making judgments.
 ```
 
-## Web Research (general-purpose subagent)
+## Web Research — via the `source-researcher` agent
 
 Include when: feature involves external protocols, non-trivial algorithms, third-party
 integration, or unfamiliar domain.
 
+Run on the **`source-researcher`** agent (`focus: web`) — it discovers the tools/MCP actually
+reachable at runtime and queries every relevant channel, per the single method in
+`rules/external-sources.md` § *Tool discovery & multi-channel use* (inherited by the agent, not
+restated here). Model/effort pinned in the agent (`sonnet` / `medium`). It gathers and reports
+without synthesizing — the spec author merges.
+
 ```
-Research best practices and implementation approaches for: {feature goal}
+focus: web
+topic: {feature goal}
+constraints: {platform — Android/iOS/KMP — and any known boundaries}
 
-Prefer a dedicated web research tool when one is available in the environment.
-Otherwise use standard web search.
-
-Investigate:
-1. Common implementation approaches with trade-offs
-2. Known pitfalls and mistakes to avoid
-3. Relevant libraries or standards
-4. Real-world examples from open-source projects
-5. Platform-specific considerations (Android/iOS/KMP if relevant)
-
-Note if web search was unavailable. Include source URLs for key claims.
+Investigate best practices and implementation approaches for this feature: common approaches
+with trade-offs, known pitfalls, relevant libraries/standards, real-world open-source examples,
+platform-specific considerations. Per your standing instructions: discover available channels →
+query all relevant → cross-check by tier → report without synthesizing. Respond in the same
+language as the feature description.
 ```
 
 ## Business Analyst (business-analyst agent)
