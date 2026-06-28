@@ -11,6 +11,7 @@
 | Context7 | Published library/framework docs, current API/migration | Project code, debugging own code; one `resolve-library-id` fail → stop, don't chase synonyms |
 | `WebSearch`/`WebFetch` | Default for everything not covered above | — |
 | Raw README via `raw.githubusercontent.com` | Last-resort for a specific repo | — |
+| Reference implementations (стек-сэмплы / popular OSS) | «Как реально собрать/соединить X» — паттерны wiring/DI/boilerplate/слоёв из реального кода; см. § *Reference implementations* | API-truth (сигнатуры) — это usage-срез, не спека |
 
 Never WebFetch rendered GitHub pages (`https://github.com/...`) — HTML noisy/expensive; use raw README.
 
@@ -45,13 +46,28 @@ If a whole channel class is unavailable (no web search, no dependency-intelligen
 
 **High-staleness (оба канала обязательны):** Ktor 3.x, Room (KMP `@Upsert`, multiplatform), SQLDelight, kotlinx.serialization, kotlinx.datetime, Hilt, Koin, Compose Multiplatform, Compose Material3, AGP 8+/9, KSP, Firebase Android (BoM v34+ убрал KTX), Navigation 3.
 
+## Reference implementations — реальный код как источник «как сделать»
+
+Перед нетривиальной фичей/интеграцией искать референс-код **проактивно**, наравне с доками — это часть preparation gate ([[workflow]]), не «по запросу пользователя». Реальный текущий код часто **сильнее доков** для роли *Guides* — «как реально соединить X»: wiring/DI, конфиг-boilerplate, организация слоёв и паттернов. Для *API-truth* (сигнатуры) он остаётся supporting — `ksrc`/official = T1.
+
+**Два класса — разный вес доверия и разный поиск:**
+- **Стек-сэмплы** (под фреймворк/стек проекта), vendor-endorsed → **T1/T2**: `android/nowinandroid`, `android/compose-samples`, `android/architecture-samples`, `JetBrains/compose-multiplatform` examples, Apple `developer.apple.com/tutorials/sample-apps` / `pointfreeco/isowords`, `shadcn-ui/taxonomy`.
+- **Domain-OSS** — популярное OSS-приложение **той же предметной сферы** (мессенджер при разработке мессенджера, notes при notes) → **T3**: чужой intent, может нести конвенции команды / антипаттерны. Никогда не единственный источник; cross-check с API-truth.
+
+**Discovery (как найти правильный):** vendor-endorsed > всё остальное. Дальше — свежесть коммитов и release cadence, динамика issues, «used by», репутация мейнтейнера/организации; **не голые звёзды** (накручиваются). Domain-уровень: GitHub topics (`sample-app`, `reference-architecture`), awesome-list'ы, поиск `"{домен} app {язык} open source architecture"`.
+
+**Guardrails (обязательны):**
+- **Pointer, не embed** — ссылаться на репо/файл (`owner/repo` + путь), не копировать код в правила/контекст: иначе stale + раздувание контекста.
+- **Version-proximity** — версия стека в референсе ≈ версии проекта; иначе риск deprecated path → понизить вес.
+- **Usage-slice** — один репо = один способ использования, не эталон (та же оговорка, что про existing project code выше). Cross-check с T1/T2 API-truth перед переносом паттерна.
+
 ## Fast-moving declarative UI — guides & changelog before implementing
 
 Для **Jetpack Compose, Compose Multiplatform (CMP), SwiftUI** одного «verify API against versions» мало: стек меняется быстро, и кроме *какой API есть* нужно *как сейчас рекомендуется делать* (иначе агент пишет устаревший код — `NavigationView` вместо `NavigationStack`, deprecated Compose API). Перед имплементацией нетривиального экрана/компонента в этих стеках пройти три роли — под общим принципом *Tool discovery & multi-channel use* (discover в рантайме → tier → cross-check):
 
 **A. API-truth — какой API реально в версии проекта.** `ksrc` (T1, реальный source jar точной версии; JVM/KMP → Jetpack Compose, CMP core/Material3; не Swift) → доки того же номера / Context7 (T2). SwiftUI: `apple-doc-mcp-server` MCP когда подключён (T2; ksrc-эквивалента для Apple нет).
 
-**B. Recommended approach — как делают сейчас.** Официальные reference-приложения (код > доки, T1/T2): `android/nowinandroid`, `android/compose-samples`, `JetBrains/compose-multiplatform/examples`, Apple sample code → What's New / release-notes / roadmap (Android Dev Blog, JetBrains Kotlin Blog, WWDC) + дизайн-канон (Compose API Guidelines, Material 3, Apple HIG) → community (T3/T4, **только cross-check, не единственный источник**): Swift Forums, Hacking with Swift / Sundell / Point-Free, Kotlin Slack, Android Weekly.
+**B. Recommended approach — как делают сейчас** (общий принцип — см. § *Reference implementations* выше)**.** Официальные reference-приложения (код > доки, T1/T2): `android/nowinandroid`, `android/compose-samples`, `JetBrains/compose-multiplatform/examples`, Apple sample code → What's New / release-notes / roadmap (Android Dev Blog, JetBrains Kotlin Blog, WWDC) + дизайн-канон (Compose API Guidelines, Material 3, Apple HIG) → community (T3/T4, **только cross-check, не единственный источник**): Swift Forums, Hacking with Swift / Sundell / Point-Free, Kotlin Slack, Android Weekly.
 
 **C. Что изменилось / известные проблемы.** `maven-mcp` `dependency-changes` — changelog между версиями (T2; самый богатый сигнал для CMP). Issue-трекеры **по правильному адресу**: Jetpack Compose → **Google IssueTracker** (не GitHub); CMP → GitHub issues (`JetBrains/compose-multiplatform`); SwiftUI → Apple Developer Forums / Feedback Assistant.
 
