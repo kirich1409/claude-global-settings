@@ -15,8 +15,6 @@ Main session = orchestrator on the most capable (expensive) model — its value 
 | Global rules and configs | `~/.claude/CLAUDE.md`, `~/.claude/rules/**`, `~/.claude/settings*.json`, hooks |
 | Process docs | READMEs/docs inside `~/.claude`, plugin tooling for agents |
 
-These are **process** files, not project code — editing them is orchestration, not implementation.
-
 ## Forbidden (violation = error, see `CLAUDE.md § Non-negotiables`)
 
 - Edit/Write in **project code** (production source, configs, tests) — delegate even one line.

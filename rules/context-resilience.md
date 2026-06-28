@@ -24,7 +24,7 @@ Goal: <one sentence>
 - [ ] 3. ...
 ```
 
-Every step carries an explicit `→ verify: <check>` — the concrete signal that proves the step is done (a passing test, a command exit code, an observed UI state). A step without a verifiable check is a weak goal: it forces a clarification round mid-task instead of letting the loop close on its own. Turn vague asks into checks up front — "add validation" → "test for invalid input passes", "fix the bug" → "regression test reproducing it now passes".
+Every step carries `→ verify: <check>` — concrete signal that proves the step is done. Turn vague asks into checks up front: "add validation" → "test for invalid input passes", "fix the bug" → "regression test reproducing it now passes".
 
 `<slug>-e2e-scenario.md`:
 
