@@ -11,8 +11,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          # Full history on PR/manual; push scans the pushed range only.
-          fetch-depth: ${{ github.event_name == 'pull_request' && 0 || 1 }}
+          # Full history always — gitleaks needs the parent commit to diff a PR range.
+          # Do NOT use a `cond && 0 || 1` ternary: 0 is falsy in GHA expressions, so it
+          # collapses to 1 (shallow) and PR scans fail with "unknown revision commit^..commit".
+          fetch-depth: 0
       - uses: gitleaks/gitleaks-action@v3.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
