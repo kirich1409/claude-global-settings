@@ -23,6 +23,11 @@
 !hooks/
 !hooks/**
 
+# === CLOUD SETUP ===
+!cloud-setup.sh
+!.claude/
+!.claude/**
+
 # === AGENTS ===
 !agents/
 !agents/**
