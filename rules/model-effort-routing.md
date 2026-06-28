@@ -1,28 +1,28 @@
-# Model & Effort — Routing
+# Model & Effort — Маршрутизация
 
-## Model & effort — two independent levers
+## Model & effort — два независимых рычага
 
-Dispatch is a **(model × effort)** choice, not a model downgrade. Tune both to reach the result efficiently — running Opus everywhere at *lower* effort is a valid strategy when intelligence matters but cost/latency don't.
+Диспетчеризация — это выбор **(model × effort)**, а не понижение модели. Настраивать оба для эффективного достижения результата — запуск Opus везде на *низком* effort — это валидная стратегия, когда важен интеллект, но стоимость/задержка не критичны.
 
-**Mechanics (what's actually settable):**
-- **Model** — per call via the Agent tool's `model:` (`sonnet` / `opus` / `haiku` / `fable` / full id / `inherit`; default `inherit` = the main model). Set it explicitly — `inherit` silently keeps the expensive main model.
-- **Effort** — `low | medium | high | xhigh | max`, but **only on Opus 4.x / Sonnet 4.6 / Fable; Haiku has no effort knob** (assigning effort to a Haiku agent errors). Effort is **not** a per-call Agent param — it comes from the agent definition's `effort:` frontmatter or the inherited session `/effort` (subagents inherit the session level as baseline; frontmatter overrides). For per-task effort control, pin `effort:` in the agent's frontmatter or use a Workflow (`agent({effort})`). `max` is session-only and never persists.
+**Механика (что реально настраивается):**
+- **Model** — за вызов через параметр `model:` инструмента Agent (`sonnet` / `opus` / `haiku` / `fable` / full id / `inherit`; по умолчанию `inherit` = главная модель). Устанавливать явно — `inherit` молча оставляет дорогую главную модель.
+- **Effort** — `low | medium | high | xhigh | max`, но **только для Opus 4.x / Sonnet 4.6 / Fable; у Haiku рычага effort нет** (назначение effort агенту Haiku вызывает ошибку). Effort — **не** параметр Agent за вызов — он берётся из frontmatter `effort:` определения агента или унаследованного из сессии `/effort` (субагенты наследуют уровень сессии как базовый; frontmatter переопределяет). Для управления effort на уровне задачи — закреплять `effort:` во frontmatter агента или использовать Workflow (`agent({effort})`). `max` действует только в сессии и не сохраняется.
 
-**Heuristic:**
-- Mechanical / search / lookup / admin CRUD → **haiku** (no thinking; effort N/A).
-- Substantive but bounded (implementation, refactor, code review, manual QA, build engineering) → **sonnet**, or **opus at low–medium**.
-- Hard reasoning (planning, architecture, security/perf/UX review, debugging root cause, ambiguous trade-offs) → **opus at high–xhigh/max**.
-- Unclear model between two adjacent tiers → pick the **smaller**, bump on first failure. Unclear effort → start **lower**, bump if the result comes back thin.
+**Эвристика:**
+- Механические / поиск / lookup / admin CRUD → **haiku** (без reasoning; effort N/A).
+- Существенные, но ограниченные задачи (реализация, рефакторинг, code review, ручное QA, build engineering) → **sonnet**, или **opus при low–medium**.
+- Сложный reasoning (планирование, архитектура, security/perf/UX review, отладка первопричины, неоднозначные компромиссы) → **opus при high–xhigh/max**.
+- Непонятно между двумя соседними уровнями → выбрать **меньший**, повысить при первом сбое. Непонятно с effort → начать **ниже**, повысить если результат получается тонким.
 
-## Routing — choose from what's available
+## Маршрутизация — выбирать из доступного
 
-No fixed task→agent table. The harness already lists the agents available **in this project** with descriptions — match the task to the best-fit available agent by reading those, then apply the model/effort heuristic above. This stays correct as the available set changes per project (plugins enabled/disabled) instead of pointing at agents that aren't loaded.
+Нет фиксированной таблицы задача→агент. Harness уже перечисляет доступные **в этом проекте** агенты с описаниями — подбирать наиболее подходящего по ним, затем применять эвристику model/effort выше. Это остаётся правильным по мере того, как доступный набор меняется от проекта к проекту (плагины включены/отключены), не ссылаясь на агентов, которых нет.
 
-**Non-obvious routing & guardrails** (won't be inferred from agent descriptions):
-- **Planning / architecture / synthesis → keep in the main session** (or the `Plan` agent). Never delegate the *reasoning*. To turn a decided change into a committed, reviewable plan document, use the **`/write-plan`** skill — it structures the plan and runs multiexpert-review without handing off the thinking. (For deciding *what* to build / comparing options use `research`; for the feature contract use `/write-spec`.)
-- Security / performance / UX / code review → the matching **expert agent**, never the main session.
-- Code research / "find X / where is Y used" → **Explore** (haiku).
-- Long-running build / test / CI → **general-purpose in the background**, never blocking the main session.
-- Implementation in a stack → the stack specialist (Kotlin/Compose/Swift engineer) **when its plugin is available**; else general-purpose.
-- Skill-first: if an installed skill covers the task, use it over a direct Agent.
-- PR/MR, issue, or Projects-board work (incl. delegated `gh`/`glab`): the idempotent, timeout-safe toolkit in `$HOME/.claude/scripts/gh/` + `rules/github-ops.md` / `rules/github-merge-policy.md`. Never block on `gh run watch` / `gh pr checks --watch`.
+**Неочевидная маршрутизация и ограничения** (не вывести из описаний агентов):
+- **Планирование / архитектура / синтез → оставлять в главной сессии** (или агенте `Plan`). Никогда не делегировать *reasoning*. Чтобы превратить принятое решение в зафиксированный, рецензируемый план-документ, использовать скилл **`/write-plan`** — он структурирует план и запускает multiexpert-review без передачи мышления. (Для решения *что* строить / сравнения вариантов использовать `research`; для контракта фичи использовать `/write-spec`.)
+- Security / performance / UX / code review → соответствующий **expert agent**, никогда не главная сессия.
+- Поиск по коду / «найти X / где используется Y» → **Explore** (haiku).
+- Долгие сборки / тесты / CI → **general-purpose в фоне**, никогда не блокировать главную сессию.
+- Реализация в стеке → специалист по стеку (Kotlin/Compose/Swift engineer) **когда его плагин доступен**; иначе general-purpose.
+- Skill-first: если установленный скилл покрывает задачу, использовать его вместо прямого Agent.
+- Работа с PR/MR, issue или доской Projects (включая делегированный `gh`/`glab`): идемпотентный, timeout-safe toolkit в `$HOME/.claude/scripts/gh/` + `rules/github-ops.md` / `rules/github-merge-policy.md`. Никогда не блокироваться на `gh run watch` / `gh pr checks --watch`.

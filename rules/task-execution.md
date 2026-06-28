@@ -1,15 +1,15 @@
-# Task Execution
+# Выполнение задач
 
-## Error handling during tasks
+## Обработка ошибок в ходе задач
 
-For **blocking** errors (failures that prevent continuing). For investigation without a blocker, follow Communication Style (dig silently, report once).
+Для **блокирующих** ошибок (сбои, препятствующие продолжению). Для расследования без блокера следовать Стилю общения (копать молча, отчитаться один раз).
 
-1. Notify the user immediately that an error occurred.
-2. Diagnose and attempt to fix autonomously.
-3. Report what happened and what was done.
-4. If one attempt is not enough — stop and ask the user how to proceed.
+1. Немедленно уведомить пользователя об ошибке.
+2. Диагностировать и попытаться исправить автономно.
+3. Отчитаться о том, что произошло и что было сделано.
+4. Если одной попытки недостаточно — остановиться и спросить пользователя, как продолжить.
 
-## Root cause over symptom suppression (подход к фиксу багов)
+## Первопричина над подавлением симптомов (подход к фиксу багов)
 
 - Баг-фикс устраняет **причину**, а не гасит симптом. Прежде чем обернуть падающее место в `try/catch`, добавить null-guard / fallback / `@Suppress` — спроси: *а корректно ли вообще то, что здесь падает?* Часто «защита» прячет то, что вызов / API / логика изначально неверны.
 - Если defensive-обёртка (try/catch, fallback, retry, null-coalesce, suppress) **и есть весь фикс** — это красный флаг. Она допустима только **поверх** устранённой причины, как ремень безопасности.
@@ -18,10 +18,10 @@ For **blocking** errors (failures that prevent continuing). For investigation wi
 - Чини **все** экземпляры паттерна, не только тот, что в трейсе.
 - Закрепляй **регресс-тестом** на наблюдаемый контракт («не пробрасывает», «не воспроизводится»), даже если точный сбой в тесте не воспроизводим.
 
-## Scope creep
+## Расширение scope
 
-If a task turns out significantly more complex than it appeared — stop, report what was found, propose to revise scope or approach before proceeding.
+Если задача оказалась значительно сложнее, чем казалась — остановиться, сообщить о находках, предложить пересмотреть scope или подход перед тем, как продолжить.
 
-## Large output handling
+## Обработка большого вывода
 
-For commands that may produce large output (test runs, git logs, build output, API responses, dependency trees) — prefer context-mode over raw Bash. The PreToolUse hook handles Bash automatically; explicitly use `mcp__plugin_context-mode_context-mode__execute` for large MCP tool results.
+Для команд, которые могут выдавать большой вывод (тест-раны, git logs, вывод сборки, API-ответы, деревья зависимостей) — предпочитать context-mode вместо обычного Bash. Хук PreToolUse обрабатывает Bash автоматически; явно использовать `mcp__plugin_context-mode_context-mode__execute` для больших результатов MCP-инструментов.

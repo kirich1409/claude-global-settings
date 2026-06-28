@@ -1,58 +1,47 @@
-# PR/MR Merge Autonomy & Anti-Stall Policy
+# Политика автономии слияния PR/MR и anti-stall
 
-When driving a PR/MR to merge, how to stay autonomous without stalling — and how that differs per
-project. Companion to [[github-ops]] (mechanics) and the `drive-to-merge` skill.
+При управлении PR/MR до слияния — как оставаться автономным без зависания, и как это отличается в разных проектах. Дополнение к [[github-ops]] (механика) и скиллу `drive-to-merge`.
 
-## The stall problem
+## Проблема зависания
 
-An agent waiting for merge often just stops and goes nowhere: it sits in a polling loop on CI, or hits
-a manual merge gate and waits. Two cures, in order of preference.
+Агент, ожидающий слияния, часто просто останавливается: зависает в poll-loop на CI или натыкается на ручной merge gate. Два решения — в порядке предпочтения.
 
-## 1. Delegate the wait to the platform (native auto-merge) — preferred
+## 1. Делегировать ожидание платформе (нативный auto-merge) — предпочтительно
 
-Instead of polling CI and babysitting, set the PR/MR to auto-merge and **move on to another task**.
-The platform merges once checks pass and review is approved:
+Вместо поллинга CI и «присмотра» — установить PR/MR в auto-merge и **переключиться на другую задачу**. Платформа сольёт, как только проверки пройдут и ревью одобрено:
 
-- GitHub: `gh pr merge <PR> --auto --squash` (needs repo auto-merge enabled + branch protection).
-- GitLab: `glab mr merge <IID> --when-pipeline-succeeds` (respects merge train if enabled).
+- GitHub: `gh pr merge <PR> --auto --squash` (требует включённого auto-merge + branch protection в репо).
+- GitLab: `glab mr merge <IID> --when-pipeline-succeeds` (учитывает merge train, если включён).
 
-This removes the wait entirely — the agent does not hang on green-CI. **Whether it is allowed is a
-project-policy decision (below).**
+Это полностью убирает ожидание — агент не зависает на green-CI. **Разрешено ли это — решение политики проекта (ниже).**
 
-## 2. If you must wait — wait non-blocking
+## 2. Если ожидать необходимо — ждать неблокирующе
 
-Never block the session (see [[github-ops]] Anti-hang). Poll one `gh pr view --json
-statusCheckRollup,reviewDecision,mergeable,mergeStateStatus,isDraft,state` → classify → `ScheduleWakeup`
-(cache-window discipline: ≤270s or ≥600s, avoid 280–550s). Cap consecutive no-change polls and surface
-a blocker rather than looping forever.
+Никогда не блокировать сессию (см. [[github-ops]] Anti-hang). Опросить один раз `gh pr view --json
+statusCheckRollup,reviewDecision,mergeable,mergeStateStatus,isDraft,state` → классифицировать → `ScheduleWakeup`
+(дисциплина cache-window: ≤270s или ≥600s, избегать 280–550s). Ограничить последовательные poll'ы без изменений и сообщить о блокере вместо бесконечного цикла.
 
-## Project-differentiated policy — read it from the project, don't hardcode
+## Политика с учётом проекта — читать из проекта, не хардкодить
 
-Autonomy is **not** uniform across repos. Read the policy from the project layer (`<repo>/CLAUDE.md`
-"PR/MR policy" section); when absent, infer from the profile below and state the assumption.
+Автономность **не** одинакова во всех репо. Читать политику из слоя проекта (`<repo>/CLAUDE.md`, секция «PR/MR policy»); при отсутствии — вывести из профиля ниже и явно указать допущение.
 
-| | Personal GitHub (loose) | Team GitLab / shared repo (cautious) |
+| | Личный GitHub (свободный) | Командный GitLab / общее репо (осторожный) |
 |---|---|---|
-| Native auto-merge | allowed by default | **only with explicit consent** — silent MWPS/merge-train can stall the team's queue/pipeline |
-| `--auto` round gate | on by default | off — keep manual review of each round |
-| Manual merge gate | may be relaxed | **mandatory** |
-| Pre-push checks | light | run full local `/check` before every push |
-| `--force-with-lease` | fine | careful — it dismisses others' approvals; re-request review after |
-| Parallelism | aggressive | conservative; respect merge queue / others' work |
+| Нативный auto-merge | разрешён по умолчанию | **только с явного согласия** — молчаливый MWPS/merge-train может заблокировать очередь/pipeline команды |
+| Gate `--auto` за раунд | включён по умолчанию | выключен — сохранять ручное ревью каждого раунда |
+| Ручной merge gate | можно ослабить | **обязателен** |
+| Pre-push checks | лёгкие | запускать полный локальный `/check` перед каждым пушем |
+| `--force-with-lease` | нормально | осторожно — сбрасывает чужие одобрения; заново запросить ревью после |
+| Параллелизм | агрессивный | консервативный; уважать merge queue / работу других |
 
-Default for any non-personal / unknown-ownership repo: **cautious**. When unsure which profile applies,
-ask once, then record the answer in the repo's `CLAUDE.md`.
+По умолчанию для любого нелично/с неизвестным владельцем репо: **осторожный**. При неясности какой профиль применяется — спросить один раз, затем зафиксировать ответ в `CLAUDE.md` репо.
 
-## Offer autonomy early
+## Предлагать автономность заранее
 
-When setup detects a long wait ahead (CI ≥ 5 min, or review pending), proactively offer the autonomous
-path — "set auto-merge and switch to another task?" — instead of silently stalling. Don't make the user
-remember to pass `--auto`.
+При обнаружении долгого ожидания впереди (CI ≥ 5 мин или ревью в ожидании) — проактивно предложить автономный путь — «установить auto-merge и переключиться на другую задачу?» — вместо молчаливого зависания. Не заставлять пользователя самостоятельно вспоминать про `--auto`.
 
-## Parallel work across several PRs
+## Параллельная работа по нескольким PR
 
-- One worktree per PR (`Agent(isolation: worktree)`) — parallel fixes without disk conflicts.
-- For long cross-session babysitting of many PRs, use `/schedule` (cron routine): "every N min — advance
-  ready PRs, fix failed ones". Robust across session end.
-- With native auto-merge in place, parallel babysitting is mostly unnecessary — the platform finishes
-  each PR on its own.
+- Один worktree на PR (`Agent(isolation: worktree)`) — параллельные правки без конфликтов по диску.
+- Для долгого кросс-сессионного «присмотра» за многими PR использовать `/schedule` (cron routine): «каждые N мин — продвинуть готовые PR, починить упавшие». Надёжно пересекает завершение сессий.
+- При включённом нативном auto-merge параллельный «присмотр» в основном не нужен — платформа завершит каждый PR сама.

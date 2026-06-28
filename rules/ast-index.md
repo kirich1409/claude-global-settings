@@ -1,65 +1,65 @@
-# Code Search Rules
+# Правила поиска по коду
 
-Three tools cover all code navigation (`ast-index --help` for full syntax).
+Три инструмента покрывают всю навигацию по коду (`ast-index --help` для полного синтаксиса).
 
-## Decision Matrix
+## Матрица решений
 
-| Task | Tool |
+| Задача | Инструмент |
 |------|------|
-| Find class / interface / struct | `ast-index class "Name"` |
-| Find any symbol by name | `ast-index symbol "Name"` |
-| Universal search (symbol + file + refs) | `ast-index search "query"` |
-| Find all usages of a symbol | `ast-index usages "Name"` |
-| Find all references (defs + imports + usages) | `ast-index refs "Name"` |
-| Find subclasses / implementors | `ast-index implementations "Interface"` |
-| Class/type hierarchy | `ast-index hierarchy "ClassName"` |
-| Who calls a function | `ast-index callers "functionName"` |
-| Call tree | `ast-index call-tree "fn" --depth 3` |
-| Module dependencies | `ast-index deps "module-name"` |
-| Reverse dependents | `ast-index dependents "module-name"` |
-| Symbols in a file | `ast-index outline path/to/File.kt` |
-| Public API of a module | `ast-index api "module-path"` |
-| Potentially unused symbols | `ast-index unused-symbols` |
+| Найти класс / интерфейс / структуру | `ast-index class "Name"` |
+| Найти любой символ по имени | `ast-index symbol "Name"` |
+| Универсальный поиск (символ + файл + ссылки) | `ast-index search "query"` |
+| Найти все использования символа | `ast-index usages "Name"` |
+| Найти все ссылки (определения + импорты + использования) | `ast-index refs "Name"` |
+| Найти подклассы / реализаторы | `ast-index implementations "Interface"` |
+| Иерархия классов/типов | `ast-index hierarchy "ClassName"` |
+| Кто вызывает функцию | `ast-index callers "functionName"` |
+| Дерево вызовов | `ast-index call-tree "fn" --depth 3` |
+| Зависимости модуля | `ast-index deps "module-name"` |
+| Обратные зависимости | `ast-index dependents "module-name"` |
+| Символы в файле | `ast-index outline path/to/File.kt` |
+| Public API модуля | `ast-index api "module-path"` |
+| Потенциально неиспользуемые символы | `ast-index unused-symbols` |
 | TODO/FIXME/HACK | `ast-index todo` |
-| Regex / string literal search | **Grep** |
-| Comment content search | **Grep** |
-| Type resolution, inferred types | **LSP hover** |
-| Go to definition (type-aware) | **LSP goToDefinition** |
-| Precise call hierarchy | **LSP incomingCalls / outgoingCalls** |
+| Поиск по regex / строковым литералам | **Grep** |
+| Поиск по содержимому комментариев | **Grep** |
+| Разрешение типов, выводимые типы | **LSP hover** |
+| Перейти к определению (с учётом типов) | **LSP goToDefinition** |
+| Точная иерархия вызовов | **LSP incomingCalls / outgoingCalls** |
 
-## Priority Rules
+## Правила приоритета
 
-1. **ast-index FIRST** for any "find X" task — structured results, 1-11ms
-2. **LSP** when semantic type-resolution is needed (hover, exact definition, generics)
-3. **Grep** ONLY for regex patterns, string literals, comments, or when ast-index returns empty
-4. **NEVER** run Grep "for completeness" after ast-index returned results
+1. **ast-index ПЕРВЫМ** для любой задачи «найти X» — структурированные результаты, 1–11 мс
+2. **LSP** когда нужно семантическое разрешение типов (hover, точное определение, generics)
+3. **Grep** ТОЛЬКО для regex-паттернов, строковых литералов, комментариев, или когда ast-index вернул пусто
+4. **НИКОГДА** не запускать Grep «для полноты» после того, как ast-index вернул результаты
 
-## Hard Rules — No Exceptions
+## Жёсткие правила — без исключений
 
-- **NEVER use Grep to search for a class, function, interface, variable, or any code symbol by name.** This is always ast-index territory.
-- **NEVER use Glob to find a source file by class/module name.** Use `ast-index search` or `ast-index class`.
-- If ast-index reports "Index not found" — stop and bootstrap it: run `ast-index rebuild` via Bash (works from any agent, including Explore, which has no Skill tool), or the matching `ast-index:initialize-*` skill if the Skill tool is available. Then retry. Do NOT fall back to Grep, and do NOT skip the search.
-- Grep is permitted ONLY for: string literals in code, regex patterns, comment text, config values, log messages.
+- **НИКОГДА не использовать Grep для поиска класса, функции, интерфейса, переменной или любого символа кода по имени.** Это всегда территория ast-index.
+- **НИКОГДА не использовать Glob для поиска исходного файла по имени класса/модуля.** Использовать `ast-index search` или `ast-index class`.
+- Если ast-index сообщает "Index not found" — остановиться и проинициализировать: запустить `ast-index rebuild` через Bash (работает из любого агента, включая Explore, у которого нет Skill tool), или подходящий скилл `ast-index:initialize-*` если Skill tool доступен. Затем повторить. Нельзя переходить к Grep, нельзя пропускать поиск.
+- Grep разрешён ТОЛЬКО для: строковых литералов в коде, regex-паттернов, текста комментариев, значений конфигов, сообщений логов.
 
-## Large-File Reads
+## Чтение больших файлов
 
-- Before `Read` on any file longer than ~500 lines, run `ast-index outline <file>` first, then `Read` only the needed slice via `offset` / `limit`. The outline gives the symbol map to target the exact range — do not bulk-read large files.
+- Перед `Read` любого файла длиннее ~500 строк сначала запустить `ast-index outline <file>`, затем читать только нужный срез через `offset` / `limit`. Outline даёт карту символов для точного определения диапазона — не читать большие файлы целиком.
 
-## Session Start Check
+## Проверка при старте сессии
 
-If the session reminder contains `⚠ AST INDEX NOT AVAILABLE` — the index is not initialized for this project. Before any code search:
-1. Identify the project type (Android/iOS/Web/Rust/etc.)
-2. Bootstrap the index: `ast-index rebuild` via Bash, or the matching `ast-index:initialize-*` skill if the Skill tool is available
-3. Only then proceed with code navigation
+Если в session reminder содержится `⚠ AST INDEX NOT AVAILABLE` — индекс не инициализирован для этого проекта. Перед любым поиском по коду:
+1. Определить тип проекта (Android/iOS/Web/Rust/и т.д.)
+2. Проинициализировать индекс: `ast-index rebuild` через Bash, или подходящий скилл `ast-index:initialize-*` если Skill tool доступен
+3. Только затем переходить к навигации по коду
 
-## Index Freshness — Automated
+## Свежесть индекса — автоматически
 
-The index is kept current by hooks; no manual `update` is needed in normal work:
+Индекс поддерживается актуальным хуками; ручной `update` в обычной работе не нужен:
 
-- **SessionStart** runs `ast-index update` (incremental reconcile) or `rebuild` if the index is missing, then launches a detached, single-instance `ast-index watch` daemon for the project. The watcher catches **all** file changes — editor, subagent, terminal, `git pull`/`checkout`/`rebase`, build output — and updates incrementally. `watch` self-enforces one instance per project, so re-launch is a safe no-op. The `~/.claude` config repo is deliberately excluded from the watcher (its index is still built for searching hooks/scripts).
-- **PostToolUse:EnterWorktree** (`hooks/ast-index-bootstrap-worktree.sh`) bootstraps a freshly-entered worktree's index and launches its own watcher — ast-index is per-worktree and does not carry over.
-- **SessionEnd** (`hooks/ast-index-stop-watch.sh`) stops the session project's watcher — it matches the `ast-index watch` process by working directory (the watch lock's stored PID is unreliable) and terminates it. Best-effort: Claude Code's SessionEnd does **not** fire on `/exit` or `/clear` and can be skipped on a hard terminal kill, so a watcher may still outlive a session.
+- **SessionStart** запускает `ast-index update` (инкрементальная сверка) или `rebuild` если индекс отсутствует, затем запускает отдельный, единственный экземпляр демона `ast-index watch` для проекта. Watcher отслеживает **все** изменения файлов — редактор, субагент, терминал, `git pull`/`checkout`/`rebase`, вывод сборки — и обновляет инкрементально. `watch` сам обеспечивает один экземпляр на проект, поэтому повторный запуск — безопасная no-op. Конфиг-репо `~/.claude` намеренно исключён из watcher (его индекс всё равно собирается для поиска по hooks/scripts).
+- **PostToolUse:EnterWorktree** (`hooks/ast-index-bootstrap-worktree.sh`) инициализирует индекс свежего worktree и запускает собственный watcher — ast-index привязан к worktree и не переносится.
+- **SessionEnd** (`hooks/ast-index-stop-watch.sh`) останавливает watcher проекта сессии — находит процесс `ast-index watch` по рабочей директории (хранимый PID в блокировке ненадёжен) и завершает его. Best-effort: SessionEnd Claude Code **не** срабатывает на `/exit` или `/clear` и может не выполниться при жёстком завершении терминала, поэтому watcher может пережить сессию.
 
-Watchers self-bound: `watch` enforces one instance per project; re-opening reuses the existing watcher. A leaked watcher's stale lock self-heals on the next relaunch.
+Watchers само-ограничены: `watch` обеспечивает один экземпляр на проект; повторное открытие использует существующий watcher. Устаревшая блокировка утёкшего watcher самоисправляется при следующем перезапуске.
 
-If a subagent still hits "Index not found" in a code worktree, it must `ast-index rebuild` (it has Bash) — never skip to Grep.
+Если субагент всё равно получает "Index not found" в рабочем worktree — он должен запустить `ast-index rebuild` (Bash у него есть) — никогда не переходить к Grep.

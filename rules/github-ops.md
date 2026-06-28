@@ -1,60 +1,46 @@
-# GitHub / GitLab Tracker Operations
+# Операции с трекером GitHub / GitLab
 
-How agents work with PRs/MRs, issues, and the Projects board correctly and without hanging.
-This file is the always-on core; **command/GraphQL detail lives in the scripts**, not here — read a
-script's header block when you need the exact recipe.
+Как агенты правильно работают с PR/MR, issues и доской Projects без зависания.
+Этот файл — всегда активное ядро; **детали команд/GraphQL живут в скриптах**, не здесь — читать заголовочный блок скрипта, когда нужен точный рецепт.
 
-## Toolkit — `$HOME/.claude/scripts/gh/`
+## Набор инструментов — `$HOME/.claude/scripts/gh/`
 
-Idempotent, timeout-safe helpers (extracted from the retired `issue-manager`). Prefer them over raw
-`gh project` / hand-rolled GraphQL. Every script wraps its network calls in `_common.sh`'s
-`gh_with_timeout`, so a hung API aborts instead of freezing the agent.
+Идемпотентные, безопасные по timeout хелперы (извлечены из упразднённого `issue-manager`). Предпочитать их перед сырым `gh project` / ручным GraphQL. Каждый скрипт оборачивает сетевые вызовы в `gh_with_timeout` из `_common.sh`, поэтому зависший API прерывается вместо заморозки агента.
 
-| Script | Does |
+| Скрипт | Что делает |
 |---|---|
-| `transition_status.sh <issue> <status>` | Move issue on the board (Projects v2 via GraphQL) or labels-fallback. `--dry-run` resolves without writing. |
-| `get_completion_signal.sh <issue>` | Is the issue done? (merged PR > open PR > none) |
-| `get_dependencies.sh <issue>` | Blocking edges: sub-issues + "blocked by #N" / "depends on #N". |
-| `list_issues.sh` / `fetch_issue.sh` | Query / fetch issues (state, labels, body, node id). |
-| `add_comment.sh` / `link_pr.sh` | Marker-idempotent comment / PR linkage. |
+| `transition_status.sh <issue> <status>` | Перемещает issue на доске (Projects v2 через GraphQL) или fallback по лейблам. `--dry-run` разрешает без записи. |
+| `get_completion_signal.sh <issue>` | Завершён ли issue? (merged PR > open PR > none) |
+| `get_dependencies.sh <issue>` | Блокирующие зависимости: sub-issues + «blocked by #N» / «depends on #N». |
+| `list_issues.sh` / `fetch_issue.sh` | Запрос/получение issues (state, labels, body, node id). |
+| `add_comment.sh` / `link_pr.sh` | Marker-idempotent комментарий / привязка PR. |
 
-## Idempotency — every tracker mutation must be resume-safe
+## Идемпотентность — каждая мутация трекера должна быть resume-safe
 
-A session can be compacted, re-woken (`ScheduleWakeup`), or re-run. Mutations must not duplicate or
-double-apply. Two enforced patterns:
+Сессия может быть сжата, перебуждена (`ScheduleWakeup`) или запущена повторно. Мутации не должны дублироваться или применяться дважды. Два обязательных паттерна:
 
-- **Read-before-write** for status: read current state, write only if it differs (the scripts return
-  `action: noop` when already there).
-- **Hidden-marker** for comments/links: scan for `<!-- agent:<key> -->` before posting; skip if present.
-  Never post a tracker comment without a marker check.
+- **Read-before-write** для статуса: читать текущее состояние, писать только если отличается (скрипты возвращают `action: noop` если уже там).
+- **Hidden-marker** для комментариев/ссылок: сканировать `<!-- agent:<key> -->` перед постингом; пропустить если присутствует. Никогда не постить комментарий в трекер без проверки маркера.
 
-## Board (GitHub Projects v2) — move the card at every stage
+## Доска (GitHub Projects v2) — двигать карточку на каждом этапе
 
-Keep the board in sync with reality. Canonical state machine and where it's driven:
+Держать доску в синхронизации с реальностью. Каноническая машина состояний и где она управляется:
 
-| Stage | Board status | Trigger |
+| Этап | Статус доски | Триггер |
 |---|---|---|
-| Work started / draft PR opened | **In Progress** | `create-pr --draft` |
-| PR ready for review | **In Review** | `create-pr --promote` |
-| Merged | **Done** | post-merge |
-| Blocked | (label `status:blocked`) | true blocker raised |
+| Работа начата / draft PR открыт | **In Progress** | `create-pr --draft` |
+| PR готов к ревью | **In Review** | `create-pr --promote` |
+| Смержен | **Done** | post-merge |
+| Заблокирован | (label `status:blocked`) | истинный блокер поднят |
 
-Move via `transition_status.sh <issue> <in-progress|in-review|done|blocked>` — do not hand-write
-`gh project item-edit` / GraphQL. The script auto-detects the linked Project v2, falls back to
-open/closed + `status:*` labels when no project (or no permission). Don't forget the move — it is the
-most-forgotten step of a PR pipeline.
+Двигать через `transition_status.sh <issue> <in-progress|in-review|done|blocked>` — не писать вручную `gh project item-edit` / GraphQL. Скрипт автоматически находит связанный Project v2, при отсутствии проекта (или разрешений) — откат к open/closed + лейблам `status:*`. Не забывать двигать карточку — это самый забываемый шаг PR pipeline.
 
-## Platform abstraction — describe the action, not the CLI
+## Абстракция платформы — описывать действие, не CLI
 
-GitHub ↔ GitLab. Detect platform from the remote host (see `drive-to-merge/references/setup.md`), then
-map: `gh` ↔ `glab`, `gh pr` ↔ `glab mr`, `gh api graphql` ↔ `glab api`. Think "move the card" /
-"is it merged" / "re-request review" — pick the CLI by detected platform, never assume `github.com`.
+GitHub ↔ GitLab. Определять платформу по remote host (см. `drive-to-merge/references/setup.md`), затем маппить: `gh` ↔ `glab`, `gh pr` ↔ `glab mr`, `gh api graphql` ↔ `glab api`. Думать «переместить карточку» / «смержен ли» / «запросить ревью снова» — выбирать CLI по определённой платформе, никогда не предполагать `github.com`.
 
-## Anti-hang — never block the session on a long op
+## Anti-hang — никогда не блокировать сессию на долгой операции
 
-- All scripted `gh` calls are timeout-bounded (`_common.sh`). When writing new `gh` calls outside the
-  toolkit, wrap them too — a synchronous `gh` with no timeout freezes the agent if the API stalls.
-- **Never run blocking watchers in the main session:** `gh run watch`, `gh pr checks --watch`,
-  `gh run watch --exit-status` block for the full CI duration. Delegate to a background task/subagent,
-  or use `ScheduleWakeup` polling, or delegate the wait to the platform (see [[github-merge-policy]]).
-- Treat `pending` as "wait", never as "fail".
+- Все скриптовые вызовы `gh` ограничены по timeout (`_common.sh`). При написании новых вызовов `gh` вне набора инструментов — оборачивать их тоже: синхронный `gh` без timeout заморозит агента при зависании API.
+- **Никогда не запускать блокирующие watchers в главной сессии:** `gh run watch`, `gh pr checks --watch`, `gh run watch --exit-status` блокируют на всё время CI. Делегировать в фоновую задачу/субагент, или использовать `ScheduleWakeup` polling, или делегировать ожидание платформе (см. [[github-merge-policy]]).
+- Считать `pending` как «ждать», никогда как «сбой».

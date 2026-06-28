@@ -1,61 +1,61 @@
-# Task Type Routing
+# Маршрутизация по типу задачи
 
-Routing matrix: task type → verification source of truth + testing pyramid target + when to write tests.
+Матрица маршрутизации: тип задачи → источник истины верификации + целевой уровень пирамиды + когда писать тесты.
 
-## Test feasibility gate
+## Gate проверки тестируемости
 
-Tests are written when **both** conditions hold:
-1. The coverage approach is clear — there is a natural test boundary for the behavior (pure function, API contract, known UI interaction).
-2. The effort is within reasonable budget relative to the task — writing the test does not cost more than the change itself for simple cases, and does not require building test infrastructure from scratch.
+Тесты пишутся, когда выполняются **оба** условия:
+1. Подход к покрытию понятен — существует естественная граница теста для поведения (чистая функция, API-контракт, известное UI-взаимодействие).
+2. Усилия находятся в разумном бюджете относительно задачи — написание теста не стоит дороже самого изменения для простых случаев и не требует построения тестовой инфраструктуры с нуля.
 
-When either condition is not met — document the reason in the plan and proceed without tests for that scope. "Not obvious how to test" and "setup cost is prohibitive" are valid; "didn't feel like it" is not.
+Если хотя бы одно условие не выполнено — задокументировать причину в плане и продолжить без тестов для этой scope. «Непонятно как тестировать» и «стоимость настройки непомерна» — валидные причины; «не захотелось» — нет.
 
-This gate governs **discretionary** scope — which pyramid levels, internal/non-public behavior. It does **not** override the public-API floor: a modified **public** symbol still must satisfy [[qa-and-testing]] §1 (exercised by a test, or annotated trivial). When test cost is genuinely prohibitive on a public symbol, route it to a **tracked exception** (the [[qa-and-testing]] §4 `@Ignore`-with-issue pattern) — the gap stays explicit and tracked, never a silent documented skip.
+Этот gate регулирует **дискреционный** scope — какие уровни пирамиды, внутреннее/непубличное поведение. Он **не** отменяет минимальный уровень для public API: изменённый **публичный** символ всё равно должен удовлетворять [[qa-and-testing]] §1 (проверяется тестом или помечен как тривиальный). Если стоимость теста действительно непомерна для публичного символа — направить к **отслеживаемому исключению** (паттерн `@Ignore`-with-issue из [[qa-and-testing]] §4) — пробел остаётся явным и отслеживаемым, никогда не замалчивается.
 
-### Testability assessment & simplifications (at planning time)
+### Оценка тестируемости и упрощения (на этапе планирования)
 
-Don't only decide *whether* to test — assess how hard verification will be and lower that cost **before** implementation (this is part of the preparation gate — see [[workflow]]):
+Не только решать *тестировать ли* — оценивать сложность верификации и снижать её стоимость **до** реализации (это часть preparation gate — см. [[workflow]]):
 
-- Surface hard to drive (deep in a flow, needs a real backend, slow to reach) → build a **sample / sandbox app** or harness that exercises the changed behavior in isolation; prototype and debug there first, then port to the real app. Re-debugging only in the real app is the slow path.
-- UI → prefer **screenshot tests** + a screenshot baseline; boot several emulators / form factors when the change is layout- or device-sensitive. Fast to capture, fast to compare.
-- Temporary simplifications that make a verifiable prototype reachable sooner are valid (see [[qa-and-testing]] § Disposable verification tests) — but remove or harden them before `/finalize`.
+- Поверхность сложно управляемая (глубоко в флоу, нужен реальный backend, долго добираться) → построить **sample / sandbox-приложение** или harness, который упражняет изменённое поведение изолированно; сначала прототипировать и отлаживать там, затем переносить в реальное приложение. Отладка только в реальном приложении — медленный путь.
+- UI → предпочитать **screenshot-тесты** + screenshot baseline; запускать несколько эмуляторов / форм-факторов, когда изменение чувствительно к раскладке или устройству. Быстро захватить, быстро сравнить.
+- Временные упрощения, которые делают верифицируемый прототип достижимым раньше, допустимы (см. [[qa-and-testing]] § Disposable verification tests) — но удалить или укрепить до `/finalize`.
 
-The goal is the cheapest path to a *verifiable* prototype, not to defer testing. Decide the simplifications and what to collect (baselines, screenshots, sample data) here, at planning — not mid-implementation.
+Цель — дешевейший путь к *верифицируемому* прототипу, а не откладывание тестирования. Решать упрощения и что собирать (baselines, скриншоты, тестовые данные) здесь, при планировании — не в середине реализации.
 
-## Routing matrix
+## Матрица маршрутизации
 
-| Task type | Source of truth | Min pyramid | Write tests | Special |
+| Тип задачи | Источник истины | Мин. пирамида | Писать тесты | Особое |
 |---|---|---|---|---|
-| Feature | Spec / test plan / AC list | L1–L5 (L5 if UI surface) | After implementation; before if AC are clear (TDD) | — |
-| Bug fix | `swarm-report/<slug>-debug.md` — reproduction steps | L1–L2 + L5 if UI regression | **Before fix** — write a failing test first, then fix | Red-green: test proves bug exists, then proves it's gone |
-| Tech migration | Before-state baseline | L1 + **L5 mandatory** | Before migration — establish test coverage of migrated behavior as part of baseline | Capture before-state first |
-| Library version bump | Before-state baseline | L1 + **L5 mandatory** | Verify existing tests pass; add where coverage gaps found | Capture before-state if tests absent |
-| Refactoring | Before-state baseline (tests as proxy if they exist) | L1–L2 + L5 if UI surface | Before refactor if coverage gaps exist | Behavior must be 1:1 with before-state |
-| Infrastructure change (network / storage / auth / DI) | Spec / requirements | L1 + **L5 mandatory** | After implementation | — |
-| UI / design task | Figma / screenshots | L1 + L3 + L5 | After implementation | Visual comparison against mockup |
-| Performance optimization | Benchmark baseline — before/after numbers | L0 + benchmark measurement | Capture baseline before; measure delta after | Win must be a measurable delta (Macrobenchmark / Perfetto), never "feels faster" |
-| Investigation / research | Research output document | L1 only if code produced | N/A when no code changes | No pyramid when no code is written |
+| Фича | Спецификация / тест-план / список AC | L1–L5 (L5 если есть UI-поверхность) | После реализации; до — если AC понятны (TDD) | — |
+| Багфикс | `swarm-report/<slug>-debug.md` — шаги воспроизведения | L1–L2 + L5 если UI-регрессия | **До фикса** — сначала написать падающий тест, затем исправить | Red-green: тест доказывает существование бага, затем его исчезновение |
+| Tech-миграция | Baseline состояния до изменений | L1 + **L5 обязателен** | До миграции — установить покрытие тестами мигрируемого поведения как часть baseline | Сначала захватить состояние до |
+| Бамп версии библиотеки | Baseline состояния до изменений | L1 + **L5 обязателен** | Проверить, что существующие тесты проходят; добавить при обнаружении пробелов в покрытии | Захватить состояние до, если тестов нет |
+| Рефакторинг | Baseline состояния до изменений (тесты как proxy, если есть) | L1–L2 + L5 если есть UI-поверхность | До рефакторинга при наличии пробелов в покрытии | Поведение должно быть 1:1 с состоянием до |
+| Инфраструктурное изменение (network / storage / auth / DI) | Спецификация / требования | L1 + **L5 обязателен** | После реализации | — |
+| UI / дизайн-задача | Figma / скриншоты | L1 + L3 + L5 | После реализации | Визуальное сравнение с макетом |
+| Оптимизация производительности | Benchmark baseline — числа до/после | L0 + измерение benchmark | Захватить baseline до; измерить дельту после | Улучшение должно быть измеримой дельтой (Macrobenchmark / Perfetto), никогда «ощущается быстрее» |
+| Расследование / исследование | Документ результатов исследования | L1 только если код написан | N/A при отсутствии изменений кода | Нет пирамиды, если код не написан |
 
-**L0 (Build) is the implicit entry gate for every row** — the affected part (relevant app/module, not always the whole repo) must compile before any L1+ level runs. The "Min pyramid" column lists levels *above* L0; it never repeals it. No code change → no L0 (e.g. research). See `qa-and-testing.md` → verification pyramid.
+**L0 (Build) — неявный входной gate для каждой строки** — затронутая часть (соответствующее приложение/модуль, не всегда весь репо) должна компилироваться до запуска любого L1+. Колонка «Мин. пирамида» перечисляет уровни *выше* L0; она никогда не отменяет его. Нет изменения кода → нет L0 (например, исследование). См. `qa-and-testing.md` → пирамида верификации.
 
-## Before-state baseline
+## Baseline состояния до изменений
 
-A durable snapshot of the system's current behavior, created **before any changes**, detailed enough to verify the modified system behaves identically.
+Долговечный снимок текущего поведения системы, созданный **до любых изменений**, достаточно подробный, чтобы убедиться, что изменённая система ведёт себя идентично.
 
-### What qualifies
+### Что подходит
 
-1. **Passing tests cover the behavior being changed** → the test suite IS the baseline. No additional capture needed — green before = spec for after.
-2. **No test coverage** → capture manually before starting:
-   - UI: screenshots of all affected screens + `manual-tester` exploration session documented in `swarm-report/<slug>-baseline.md`.
-   - API / backend: response shape snapshots for affected endpoints.
-   - Performance-neutral claims: current benchmark numbers.
+1. **Проходящие тесты покрывают изменяемое поведение** → тест-сьют И ЕСТЬ baseline. Дополнительный захват не нужен — зелёные до = спека для после.
+2. **Нет покрытия тестами** → захватить вручную до начала:
+   - UI: скриншоты всех затронутых экранов + сессия исследования `manual-tester`, задокументированная в `swarm-report/<slug>-baseline.md`.
+   - API / backend: снимки форм ответов для затронутых endpoints.
+   - Нейтральные к производительности утверждения: текущие числа benchmark.
 
-**Shortcut:** establishing test coverage of the migrated behavior before the migration satisfies both the baseline requirement and the `/write-tests` step in one move.
+**Shortcut:** установить покрытие тестами мигрируемого поведения до миграции выполняет сразу и требование к baseline, и шаг `/write-tests` за один приём.
 
-**Sufficiency check:** "Could I hand this baseline to someone who has never seen this system and have them verify the migration succeeded?" If yes — the baseline is sufficient.
+**Проверка достаточности:** «Мог бы я передать этот baseline кому-то, кто никогда не видел эту систему, чтобы он проверил, что миграция прошла успешно?» Если да — baseline достаточен.
 
-### What is not a baseline
+### Что не является baseline
 
-- "It should be fine" — not a baseline.
-- Code review or static analysis of the change — these check intent, not runtime behavior.
-- A passing build — proves compilation, not behavior.
+- «Должно быть нормально» — не baseline.
+- Code review или статический анализ изменения — они проверяют намерение, не рантайм-поведение.
+- Прошедшая сборка — доказывает компиляцию, не поведение.

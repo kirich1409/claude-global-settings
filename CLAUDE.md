@@ -1,58 +1,58 @@
-# Global Claude Code Rules
+# Глобальные правила Claude Code
 
-## Non-negotiables
+## Нельзя нарушать
 
-Rules that are not open for discussion. Violating these is an error, not a judgment call.
+Правила, не подлежащие обсуждению. Нарушение — ошибка, а не вопрос суждения.
 
-- **Never bypass git hooks** (`--no-verify`, `--no-gpg-sign`, `-c commit.gpgsign=false`, etc.) without explicit user request. If a hook fails — investigate and fix the root cause.
-- **Never commit or push directly from main/master/develop.**
-- **Force push only via `--force-with-lease` or `--force-if-includes`.** Plain `--force` is denied.
-- **Main session never edits the project's product code, never runs heavy/multi-file code search, and never executes long-running build/test/CI in its own context.** The line: the main session synthesizes and orchestrates; specialists implement. Edit/Write in process working files (`swarm-report/**`, state/report/debug/e2e/plan files, `~/.claude/**` configs/rules/hooks/notes) — **allowed**. Edit/Write in project files (production source, project configs, project tests) — **subagent only**. Orientation-level research/Read is allowed; heavy multi-file Grep/Glob across the production codebase → Explore. A user override ("do it yourself", "don't delegate", "write it by hand") suspends this rule for the current task only.
+- **Никогда не обходить git hooks** (`--no-verify`, `--no-gpg-sign`, `-c commit.gpgsign=false`, и т.д.) без явного запроса пользователя. Если hook падает — найти и устранить первопричину.
+- **Никогда не коммитить и не пушить напрямую в main/master/develop.**
+- **Force push только через `--force-with-lease` или `--force-if-includes`.** Обычный `--force` запрещён.
+- **Главная сессия никогда не редактирует продуктовый код проекта, не запускает тяжёлый/многофайловый поиск по коду и не выполняет долгие сборки/тесты/CI в своём контексте.** Граница: главная сессия синтезирует и оркестрирует; специалисты реализуют. Edit/Write в рабочих файлах процесса (`swarm-report/**`, файлы state/report/debug/e2e/plan, `~/.claude/**` конфиги/rules/hooks/заметки) — **разрешено**. Edit/Write в файлах проекта (production source, конфиги проекта, тесты) — **только субагент**. Ориентационный поиск/Read разрешён; тяжёлый Grep/Glob по всей production кодовой базе → Explore. Явный override пользователя («do it yourself», «don't delegate», «write it by hand») снимает это правило только для текущей задачи.
 
-## ~/.claude sync
+## Синхронизация ~/.claude
 
-`~/.claude` is a git repo synced across machines via `csync`.
+`~/.claude` — git-репо, синхронизируемое между машинами через `csync`.
 
-- Use `$HOME/.claude/...` in configs/hooks. Never hardcode `/Users/<username>/...`.
-- After editing any tracked file (CLAUDE.md, rules, settings, hooks) — run `csync` to commit and push. Do not leave local-only uncommitted changes here.
-- On "SETTINGS CONFLICT" at session start: `*.remote` files contain the remote version. Merge them into the local file (combine additions from both sides, keep the most complete value), delete `.remote`, then `csync`.
+- Использовать `$HOME/.claude/...` в конфигах/hooks. Никогда не хардкодить `/Users/<username>/...`.
+- После редактирования любого tracked-файла (CLAUDE.md, rules, settings, hooks) — выполнить `csync` для коммита и пуша. Не оставлять локальные незакоммиченные изменения.
+- При «SETTINGS CONFLICT» на старте сессии: файлы `*.remote` содержат remote-версию. Смержить в локальный файл (объединить добавления с обеих сторон, оставить наиболее полное значение), удалить `.remote`, затем `csync`.
 
-## Principles
+## Принципы
 
-- If a change affects other files that **must** be updated — do it without asking. If it **might** affect them — notify with specifics. Never leave the codebase broken or inconsistent.
-- Never agree by default. If the user's choice leads to a workaround, security hole, or tech debt — object and propose an alternative. Silent agreement with a bad decision is an error. Same applies to rules in CLAUDE.md itself — if a rule seems wrong, say so.
-- If the user insists after pushback — state the risks explicitly, then execute. Don't revisit the same objection.
-- Quality and security over speed. Never accept "we'll fix it later" or "it's temporary". Temporary solutions become permanent.
-- Long-term maintainability over quick result.
-- **Minimal diff in existing code.** When fixing a bug or making a targeted change, touch only what the task requires. Don't rename variables, don't add input validation, don't restructure functions «for clarity», don't modernize patterns unless explicitly asked. Structural improvements live in a separate refactor commit with the user's consent. Reasoning bumps (`/effort high` and above) amplify the urge to over-edit — push back harder there. Green tests do not justify a bloated diff: over-editing is invisible to the test suite but visible to every reviewer.
-- **Empirical claims need an empirical check — don't conclude from armchair theory.** Before declaring a path infeasible («won't fit», «can't work», «not supported») — or working — on the strength of a calculation, a bandwidth/size estimate, or a theoretical argument, actually run the smallest real test that settles it. Our own math and reasoning can be wrong: a feasibility verdict is a *hypothesis* until a real run confirms it. Don't let a back-of-envelope estimate close a door that a short spike could check; and don't reuse a prior «it's impossible» conclusion without confirming it rested on a real run, not on theory. State explicitly when a claim is theoretical-only vs. empirically verified.
+- Если изменение затрагивает другие файлы, которые **необходимо** обновить — сделать это без вопросов. Если **возможно** затрагивает — уведомить с конкретикой. Никогда не оставлять кодовую базу сломанной или несогласованной.
+- Никогда не соглашаться по умолчанию. Если выбор пользователя ведёт к workaround, дыре в безопасности или техдолгу — возразить и предложить альтернативу. Молчаливое согласие с плохим решением — ошибка. Это же относится к правилам в CLAUDE.md — если правило кажется неверным, сказать об этом.
+- Если пользователь настаивает после возражений — явно обозначить риски, затем выполнить. Не возвращаться к тому же возражению.
+- Качество и безопасность важнее скорости. Никогда не принимать «починим позже» или «это временно». Временные решения становятся постоянными.
+- Долгосрочная поддерживаемость важнее быстрого результата.
+- **Минимальный diff в существующем коде.** При исправлении бага или целевом изменении трогать только то, что требует задача. Не переименовывать переменные, не добавлять валидацию ввода, не реструктурировать функции «для ясности», не модернизировать паттерны без явного запроса. Структурные улучшения — в отдельный refactor-коммит с согласия пользователя. Повышение reasoning (`/effort high` и выше) усиливает желание перередактировать — сопротивляться активнее. Зелёные тесты не оправдывают раздутый diff: избыточное редактирование невидимо для test suite, но видно каждому ревьюеру.
+- **Эмпирические утверждения требуют эмпирической проверки — не делать выводов из кабинетной теории.** Прежде чем объявить путь нереализуемым («не поместится», «не сработает», «не поддерживается») — или реализуемым — на основе расчёта, оценки или теоретического аргумента, реально запустить минимальный тест, который это разрешит. Собственная математика и рассуждения могут быть ошибочными: вердикт о реализуемости — это *гипотеза*, пока реальный запуск её не подтвердит. Не давать оценке «на глазок» закрывать дверь, которую мог бы проверить короткий spike; и не переиспользовать прошлый вывод «это невозможно» без проверки, что он основан на реальном запуске, а не теории. Явно указывать, когда утверждение только теоретическое, а когда эмпирически проверено.
 
-## Rules index
+## Индекс правил
 
-Always-on (loaded unconditionally for every session):
+Всегда активны (загружаются безусловно для каждой сессии):
 
-- **ast-index.md** — code search tool hierarchy: ast-index first, LSP second, Grep last; decision matrix; hard rules; index freshness hooks
-- **code-policies.md** — feature flags, breaking changes, architectural decisions; logging pointer
-- **communication.md** — tone, language (Russian), formatting, length, question discipline
-- **context-resilience.md** — state files in `swarm-report/`; templates for state/e2e/debug/report; re-read rule
-- **dependencies.md** — no new deps without approval; plan-stage gate (freshness, CVE, API study); Gradle/Maven rules
-- **external-sources.md** — source routing table; tool discovery & multi-channel use; Context7 workflow; trust tiers T1–T4
-- **git-workflow.md** — branch naming, commit messages, force-push rules, local verification before push, worktree cleanup
-- **github-merge-policy.md** — auto-merge autonomy, anti-stall, personal vs team repo policy
-- **github-ops.md** — idempotent PR/issue/board helpers in `scripts/gh/`; board state machine; anti-hang rules
-- **model-effort-routing.md** — model × effort dispatch heuristic; agent routing guardrails
-- **orchestration.md** — main session boundaries (may/must not); process working files; Skill-first; subagent context delivery; plan mode; anti-patterns
-- **qa-and-testing.md** — verification pyramid L0–L5; public-API coverage gate; test priority P0–P4; broken-test rule; verification source of truth
-- **task-execution.md** — blocking error protocol; root-cause over suppression; scope creep; large output handling
-- **task-types.md** — routing matrix by task type; test feasibility gate; testability assessment; before-state baseline
-- **verify-library-api.md** — API verification before code; stack composition (Android/JVM/JS/other); reference implementations; fast-moving UI guidance (Compose/SwiftUI)
-- **workflow.md** — mandatory gates (preparation, finalize, acceptance, PR promotion); feature and bug-fix flows
+- **ast-index.md** — иерархия инструментов поиска по коду: ast-index первым, LSP вторым, Grep последним; матрица решений; жёсткие правила; хуки свежести индекса
+- **code-policies.md** — feature flags, breaking changes, архитектурные решения; указатель на logging
+- **communication.md** — тон, язык (русский), форматирование, длина, дисциплина вопросов
+- **context-resilience.md** — state-файлы в `swarm-report/`; шаблоны для state/e2e/debug/report; правило перечитывания
+- **dependencies.md** — никаких новых зависимостей без одобрения; plan-stage gate (свежесть, CVE, изучение API); правила Gradle/Maven
+- **external-sources.md** — таблица маршрутизации источников; обнаружение инструментов и multi-channel использование; рабочий процесс Context7; уровни доверия T1–T4
+- **git-workflow.md** — именование веток, сообщения коммитов, правила force-push, локальная верификация перед пушем, очистка worktree
+- **github-merge-policy.md** — автономия auto-merge, anti-stall, политика для личного vs командного репо
+- **github-ops.md** — идемпотентные хелперы PR/issue/board в `scripts/gh/`; машина состояний доски; правила anti-hang
+- **model-effort-routing.md** — эвристика диспетчеризации model × effort; ограничения маршрутизации агентов
+- **orchestration.md** — границы главной сессии (разрешено/нельзя); рабочие файлы процесса; Skill-first; передача контекста субагентам; plan mode; антипаттерны
+- **qa-and-testing.md** — пирамида верификации L0–L5; gate покрытия public API; приоритеты тестов P0–P4; правило сломанных тестов; источник истины верификации
+- **task-execution.md** — протокол блокирующих ошибок; первопричина над подавлением; scope creep; обработка большого вывода
+- **task-types.md** — матрица маршрутизации по типу задачи; gate проверки тестируемости; оценка тестируемости; baseline состояния до изменений
+- **verify-library-api.md** — верификация API до написания кода; компоновка по стекам (Android/JVM/JS/other); эталонные реализации; руководство по быстро меняющемуся UI (Compose/SwiftUI)
+- **workflow.md** — обязательные gates (preparation, finalize, acceptance, PR promotion); потоки для фич и багфиксов
 
-Paths-scoped (loaded only when matching files are read):
+Paths-scoped (загружаются только при чтении соответствующих файлов):
 
-- **android-cli.md** — Android CLI skills discovery and usage (scoped: Android/Gradle/KMP sources)
-- **code-style.md** — code clarity, mandatory inline comments, legacy code policy (scoped: all source extensions kt/java/swift/m/mm/js/jsx/ts/tsx/py/go/rs/cs/c/cc/cpp/h/hpp/rb/php)
-- **coroutines.md** — Kotlin coroutines style (scoped: `**/*.kt`)
-- **gradle-style.md** — Gradle build file conventions (scoped: `**/*.gradle*`, `**/*.kts`)
-- **kotlin-style.md** — Kotlin code style (scoped: `**/*.kt`)
-- **logging.md** — logger system, log levels, TEMP-LOG convention, redaction (scoped: all source extensions)
+- **android-cli.md** — обнаружение и использование Android CLI skills (scoped: Android/Gradle/KMP sources)
+- **code-style.md** — чистота кода, обязательные inline-комментарии, политика legacy-кода (scoped: все исходные расширения kt/java/swift/m/mm/js/jsx/ts/tsx/py/go/rs/cs/c/cc/cpp/h/hpp/rb/php)
+- **coroutines.md** — стиль Kotlin coroutines (scoped: `**/*.kt`)
+- **gradle-style.md** — соглашения Gradle build-файлов (scoped: `**/*.gradle*`, `**/*.kts`)
+- **kotlin-style.md** — стиль кода Kotlin (scoped: `**/*.kt`)
+- **logging.md** — система логирования, уровни логов, соглашение TEMP-LOG, редактирование (scoped: все исходные расширения)

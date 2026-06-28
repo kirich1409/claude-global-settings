@@ -1,16 +1,16 @@
-# Context Compaction Resilience
+# Устойчивость к сжатию контекста
 
-For long multi-stage tasks, persist state to a file so work survives context compaction. Three canonical files live in `./swarm-report/` (must be in `.gitignore`):
+Для долгих многоэтапных задач сохранять состояние в файл, чтобы работа пережила сжатие контекста. Три канонических файла живут в `./swarm-report/` (обязательно в `.gitignore`):
 
-| File | Purpose | Lifetime |
+| Файл | Назначение | Время жизни |
 |---|---|---|
-| `<slug>-state.md` | Operational checklist for any long task — plan execution, multi-step refactor, batch fix | Delete after task completes |
-| `<slug>-e2e-scenario.md` | Running-app verification scenario; single source of truth for "verified". Owned by `/acceptance` when invoked | Survives across re-runs of acceptance |
-| `<slug>-debug.md` | Bug investigation: repro steps, observed vs expected, hypotheses, root cause. Picked up by `acceptance` Branch 3 and `create-pr` for bug-fix PR bodies | Stays as audit trail |
+| `<slug>-state.md` | Операционный чеклист для любой длинной задачи — выполнение плана, многошаговый рефакторинг, пакетное исправление | Удалить после завершения задачи |
+| `<slug>-e2e-scenario.md` | Сценарий верификации работающего приложения; единственный источник истины для «проверено». Управляется `/acceptance` при вызове | Переживает перезапуски acceptance |
+| `<slug>-debug.md` | Расследование бага: шаги воспроизведения, наблюдаемое vs ожидаемое, гипотезы, первопричина. Подхватывается `acceptance` Branch 3 и `create-pr` для PR-тела багфикса | Остаётся как audit trail |
 
-A fourth file, `<slug>-report.md`, is the final report (see Reports below).
+Четвёртый файл, `<slug>-report.md`, — итоговый отчёт (см. Отчёты ниже).
 
-## Templates
+## Шаблоны
 
 `<slug>-state.md`:
 
@@ -24,7 +24,7 @@ Goal: <one sentence>
 - [ ] 3. ...
 ```
 
-Every step carries `→ verify: <check>` — concrete signal that proves the step is done. Turn vague asks into checks up front: "add validation" → "test for invalid input passes", "fix the bug" → "regression test reproducing it now passes".
+Каждый шаг несёт `→ verify: <check>` — конкретный сигнал, доказывающий выполнение шага. Расплывчатые запросы сразу превращать в проверки: «добавить валидацию» → «тест на невалидный ввод проходит», «починить баг» → «регрессионный тест, воспроизводящий его, теперь проходит».
 
 `<slug>-e2e-scenario.md`:
 
@@ -63,19 +63,19 @@ Platform: <platform>
 <files to touch, approach>
 ```
 
-## Re-read rule
+## Правило перечитывания
 
-Before each action that depends on prior state — **Read the file first**. Completed steps (`[x]`) are not redone; resume from the first `[ ]`. Mark `[x]` only after the action is verified, never speculatively. If a step is rolled back, edit the file — the file is the truth, the chat is not.
+Перед каждым действием, зависящим от предыдущего состояния, — **Read the file first**. Завершённые шаги (`[x]`) не переделываются; возобновить с первого `[ ]`. Помечать `[x]` только после верификации действия, никогда спекулятивно. При откате шага — отредактировать файл: файл — это истина, чат — нет.
 
-On `/compact` or session end the active state files are the recovery point: current goal, open TODOs, verification commands, key architectural decisions all live there.
+При `/compact` или завершении сессии активные state-файлы — точка восстановления: текущая цель, открытые TODO, команды верификации, ключевые архитектурные решения — всё там.
 
-## Reports
+## Отчёты
 
-`<slug>-report.md` — final report saved when the task completes (multi-stage or agent-delegated). Skip for tasks completable in a few tool calls.
+`<slug>-report.md` — итоговый отчёт, сохраняемый при завершении задачи (многоэтапной или делегированной агентам). Пропустить для задач, выполнимых за несколько вызовов инструментов.
 
-Minimum content:
-- Task description
-- What was done (files, modules)
-- Validation results
-- Issues and rollbacks (if any)
-- Status: Done / Partial / Blocked
+Минимальное содержание:
+- Описание задачи
+- Что сделано (файлы, модули)
+- Результаты валидации
+- Проблемы и откаты (если были)
+- Статус: Done / Partial / Blocked

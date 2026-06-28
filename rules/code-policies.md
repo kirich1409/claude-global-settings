@@ -1,26 +1,25 @@
-# Code Policies
+# Политики кода
 
-Code-writing style/comments/legacy: see `code-style.md`.
+Стиль написания кода/комментарии/legacy: см. `code-style.md`.
 
-## Logging
+## Логирование
 
-All logging policy lives in [[logging]] — single source. It covers permanent vs temporary diagnostic logs, the `// TEMP-LOG` convention, the mandatory logger system, per-level semantics, and redaction. Nothing about logging (incl. `// TEMP-LOG`) is duplicated here.
+Вся политика логирования — в [[logging]], единственном источнике. Там описаны постоянные vs временные диагностические логи, соглашение `// TEMP-LOG`, обязательная система логгера, семантика уровней и редактирование. Ничто о логировании (включая `// TEMP-LOG`) здесь не дублируется.
 
-## Feature flags and configuration
+## Feature flags и конфигурация
 
-- **Feature flags:** never add proactively — that's a product decision. If the task clearly implies a flag, ask first.
-- **Configuration:** follow the project's existing pattern. If none — put config in a dedicated config layer, no hardcoded values.
+- **Feature flags:** никогда не добавлять проактивно — это продуктовое решение. Если задача явно подразумевает флаг, сначала спросить.
+- **Конфигурация:** следовать существующему паттерну проекта. Если паттерна нет — класть конфиг в выделенный конфиг-слой, без хардкоженных значений.
 
 ## Breaking changes
 
-Make the change directly. Backward compatibility and migration are the user's responsibility unless asked. For public API, DB schema, or CLI interface — notify the user before proceeding.
+Вносить изменение напрямую. Обратная совместимость и миграция — ответственность пользователя, если не попросил иначе. Для public API, схемы БД или CLI-интерфейса — уведомить пользователя перед тем, как продолжить.
 
-## Architectural decisions
+## Архитектурные решения
 
-When a task allows multiple approaches:
-1. Check existing project patterns — match if clear.
-2. No clear pattern → present options with trade-offs, recommend with reasoning, then proceed.
-3. No signal at all → apply best practices and project settings as default.
+Когда задача допускает несколько подходов:
+1. Проверить существующие паттерны проекта — следовать, если паттерн очевиден.
+2. Паттерн не ясен → представить варианты с компромиссами, рекомендовать с обоснованием, затем продолжить.
+3. Никаких сигналов → применить лучшие практики и настройки проекта по умолчанию.
 
-Never silently pick an approach when alternatives exist.
-
+Никогда не выбирать подход молча, когда существуют альтернативы.

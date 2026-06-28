@@ -22,32 +22,32 @@ paths:
   - "**/*.php"
 ---
 
-# Code Style
+# Стиль кода
 
-Planning-time code decisions: see `code-policies.md`.
+Решения по коду на этапе планирования: см. `code-policies.md`.
 
-## Code clarity and documentation
+## Чистота кода и документация
 
-When code is modified, update directly related docs — KDoc, inline comments, `.md` files. Never leave docs describing something the code no longer does.
+При изменении кода — обновлять непосредственно связанную документацию: KDoc, inline-комментарии, `.md`-файлы. Никогда не оставлять документацию, описывающую то, чего код уже не делает.
 
-### Mandatory inline comments
+### Обязательные inline-комментарии
 
-Add a short comment whenever the code contains:
+Добавлять короткий комментарий, когда код содержит:
 
-- **Preserved behavior from a migration** — old API used system default timezone, new API could use UTC but intentionally doesn't; old code had no null-check and callers rely on that. Comment: what the old code did and why the new matches it.
-- **Intentionally retained bug or quirk** — known incorrect/surprising behavior kept for compat, spec compliance, or because fixing it would break something else. Comment: what the bug is, why it's kept.
-- **Non-obvious constraint** — code looks wrong but is correct due to an external contract, hardware quirk, server format, third-party library, or platform limitation.
-- **Implicit semantic change** — logic appears equivalent but subtly differs in edge cases (overflow, timezone, locale, rounding, encoding). Comment: what differs and why it's acceptable.
+- **Сохранённое поведение из миграции** — старый API использовал системный timezone по умолчанию, новый API мог бы использовать UTC, но намеренно не использует; в старом коде не было null-check, и вызывающие на это полагаются. Комментарий: что делал старый код и почему новый воспроизводит это.
+- **Намеренно сохранённый баг или особенность** — известное некорректное/неожиданное поведение, сохранённое ради совместимости, соответствия спецификации или потому что исправление сломает что-то ещё. Комментарий: что это за баг и почему он сохранён.
+- **Неочевидное ограничение** — код выглядит неправильно, но корректен из-за внешнего контракта, особенности железа, формата сервера, сторонней библиотеки или ограничения платформы.
+- **Неявное семантическое изменение** — логика выглядит эквивалентной, но тонко отличается в граничных случаях (переполнение, timezone, locale, округление, кодировка). Комментарий: в чём отличие и почему оно приемлемо.
 
-Format: one or two lines, lead with the surprising fact, follow with the reason. No need to reference the task or PR.
+Формат: одна-две строки, начать с неожиданного факта, затем причина. Ссылаться на задачу или PR не нужно.
 
-## Legacy code
+## Legacy-код
 
-Do not change code outside the scope of the current task unless it's a direct blocker.
+Не изменять код за пределами области текущей задачи, если это не прямой блокер.
 
-When the task touches legacy code:
-- Legacy pattern works and doesn't conflict → keep it, note in one line.
-- Adding new code nearby → prefer current project standard, not legacy style.
-- Legacy pattern actively blocks the task or mixing styles creates inconsistency → refactor as part of the task and explain why.
+Когда задача затрагивает legacy-код:
+- Legacy-паттерн работает и не конфликтует → оставить, отметить в одну строку.
+- Добавление нового кода рядом → предпочитать текущий стандарт проекта, а не legacy-стиль.
+- Legacy-паттерн активно блокирует задачу или смешение стилей создаёт несогласованность → рефакторить в рамках задачи и объяснить почему.
 
-Threshold: does leaving it as-is make the result worse or harder to maintain?
+Порог: делает ли оставление как есть результат хуже или труднее в поддержке?

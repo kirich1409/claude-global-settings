@@ -3,25 +3,25 @@ paths:
   - "**/*.kt"
 ---
 
-# Kotlin Coroutines & Flow — Non-Obvious Rules
+# Kotlin Coroutines & Flow — Неочевидные правила
 
-This file lists only the coroutine and Flow rules a modern Claude model omits or gets wrong without a reminder. Generic idioms — structured concurrency basics, `viewModelScope` for ViewModels, exposing immutable `StateFlow`, `async`/`await`, `flow {}` builders, choosing `suspend` vs `Flow`, catching `IOException` instead of `Exception`, no empty `catch` blocks — are **not** documented here; trust the model and the [official kotlinx.coroutines docs](https://kotlinlang.org/docs/coroutines-guide.html).
+Этот файл содержит только те правила coroutines и Flow, которые современная модель упускает или нарушает без напоминания. Общие идиомы — основы structured concurrency, `viewModelScope` для ViewModels, экспонирование immutable `StateFlow`, `async`/`await`, билдеры `flow {}`, выбор между `suspend` и `Flow`, перехват `IOException` вместо `Exception`, отсутствие пустых `catch`-блоков — **не** документированы здесь; доверяй модели и [официальной документации kotlinx.coroutines](https://kotlinlang.org/docs/coroutines-guide.html).
 
 ---
 
-## Scope Ownership by Layer
+## Владение scope по слоям
 
-Models occasionally inject an Application-scoped `CoroutineScope` into a Repository. They shouldn't.
+Модели иногда внедряют `CoroutineScope` уровня Application в Repository. Так делать нельзя.
 
-| Layer | Scope | Why |
+| Слой | Scope | Почему |
 |-------|-------|-----|
-| ViewModel | `viewModelScope` | Tied to ViewModel lifecycle, survives config changes |
-| UseCase / Repository | **No own scope — inherits caller's** | Caller controls cancellation |
-| Work that must outlive a screen | Injected `CoroutineScope` (Application-scoped) | Guaranteed completion when the user navigates away mid-write |
+| ViewModel | `viewModelScope` | Привязан к lifecycle ViewModel, переживает config changes |
+| UseCase / Repository | **Нет собственного scope — наследует от вызывающего** | Вызывающий управляет отменой |
+| Работа, которая должна пережить экран | Внедрённый `CoroutineScope` (Application-scoped) | Гарантирует завершение, если пользователь уходит в середине записи |
 
-## Dispatcher Injection — Constructor Param, Not Hardcoded
+## Внедрение dispatcher — параметр конструктора, не хардкод
 
-Inject `CoroutineDispatcher` as a constructor parameter. Models default to hardcoded `Dispatchers.IO` inside `withContext` blocks, which makes the class untestable.
+Внедрять `CoroutineDispatcher` как параметр конструктора. Модели по умолчанию хардкодят `Dispatchers.IO` внутри блоков `withContext`, что делает класс нетестируемым.
 
 ```kotlin
 class DefaultOrderRepository(
@@ -33,15 +33,15 @@ class DefaultOrderRepository(
 }
 ```
 
-## Suspend Functions Are Main-Safe — Caller Doesn't Wrap
+## Suspend-функции main-safe — вызывающий не оборачивает
 
-Every `suspend fun` in the data/domain layer must be safe to call from the main thread. The function chooses the dispatcher via internal `withContext`. The caller does **not** wrap your function in `withContext` — that breaks the contract and indicates the function did not respect main-safety.
+Каждая `suspend fun` в data/domain слое должна быть безопасна для вызова с main thread. Функция сама выбирает dispatcher через внутренний `withContext`. Вызывающий **не** оборачивает её в `withContext` — это нарушает контракт и означает, что функция не соблюдает main-safety.
 
-Models sometimes push dispatcher choice up to the caller. Keep it inside the function.
+Модели иногда перекладывают выбор dispatcher на вызывающего. Держи это внутри функции.
 
-## StateFlow / SharedFlow Lifecycle Pairing
+## Lifecycle-паринг StateFlow / SharedFlow
 
-`SharingStarted.WhileSubscribed(5_000)` is the right default for `stateIn` in a ViewModel — and it only works if the UI collects with **lifecycle-aware** APIs. Without lifecycle awareness, the upstream never stops:
+`SharingStarted.WhileSubscribed(5_000)` — правильный дефолт для `stateIn` во ViewModel, и он работает только если UI собирает с **lifecycle-aware** API. Без lifecycle awareness upstream никогда не останавливается:
 
 ```kotlin
 val orders: StateFlow<List<Order>> = getOrders()
@@ -52,44 +52,44 @@ val orders: StateFlow<List<Order>> = getOrders()
     )
 ```
 
-UI side:
+UI:
 - Compose: `collectAsStateWithLifecycle()`
 - Views: `flowWithLifecycle()` / `repeatOnLifecycle(Lifecycle.State.STARTED)`
 
-`SharingStarted.Eagerly` wastes resources unless the state is genuinely always needed. `SharingStarted.Lazily` never stops once started — usually wrong for screen-scoped state.
+`SharingStarted.Eagerly` тратит ресурсы, если состояние не нужно постоянно. `SharingStarted.Lazily` никогда не останавливается после запуска — обычно неверно для screen-scoped состояния.
 
-## Flow Operator Gotchas
+## Подводные камни операторов Flow
 
-Two non-obvious facts the model gets wrong about ordering:
+Два неочевидных факта, которые модель нарушает при порядке:
 
-1. **`flowOn(dispatcher)` only affects upstream operators** — calling it twice or after a terminal operator silently does nothing useful. Apply once, at the producer side.
-2. **`retry { }` must be placed BEFORE `catch { }`** in the chain. If `catch` runs first, it consumes the error and `retry` never sees it.
+1. **`flowOn(dispatcher)` влияет только на upstream-операторы** — вызов дважды или после терминального оператора тихо ничего полезного не делает. Применять один раз, на стороне producer.
+2. **`retry { }` должен стоять ДО `catch { }`** в цепочке. Если `catch` выполняется первым, он поглощает ошибку, и `retry` её не видит.
 
 ```kotlin
 upstream
     .map { /* ... */ }
-    .retry(3) { it is IOException }   // first — gets a chance to retry
-    .catch { /* fallback emission */ } // last — handles unrecoverable errors
+    .retry(3) { it is IOException }   // первым — получает шанс повторить
+    .catch { /* fallback emission */ } // последним — обрабатывает неисправимые ошибки
     .collect { /* ... */ }
 ```
 
-## Avoiding Indefinite Suspension
+## Предотвращение бесконечной приостановки
 
-Terminal operators like `first()`, `single()`, `Channel.receive()` suspend until data arrives. If the source never emits, the coroutine hangs forever — a common production bug with event-driven flows.
+Терминальные операторы `first()`, `single()`, `Channel.receive()` приостанавливаются до прихода данных. Если источник никогда не эмитирует, coroutine зависает навсегда — распространённый production-баг с event-driven Flow.
 
-| Source | `first()` risk | Mitigation |
+| Источник | Риск `first()` | Защита |
 |---|---|---|
-| `StateFlow` | Safe — always has a value | None |
-| `SharedFlow(replay > 0)` | Low — replays last N values | `withTimeout` for rare events |
-| `SharedFlow(replay = 0)` | **High** — waits for next emit | Always use `withTimeout` |
-| `Channel` | **High** — waits for `send()` | `tryReceive()` or `withTimeout` |
-| Cold `flow { }` | Depends on producer | `withTimeout` if producer may not emit |
+| `StateFlow` | Безопасно — всегда есть значение | Нет |
+| `SharedFlow(replay > 0)` | Низкий — воспроизводит последние N значений | `withTimeout` для редких событий |
+| `SharedFlow(replay = 0)` | **Высокий** — ждёт следующего emit | Всегда использовать `withTimeout` |
+| `Channel` | **Высокий** — ждёт `send()` | `tryReceive()` или `withTimeout` |
+| Cold `flow { }` | Зависит от producer | `withTimeout` если producer может не эмитировать |
 
-Use `firstOrNull()` when absence of data is a valid outcome rather than an error.
+Использовать `firstOrNull()`, когда отсутствие данных — допустимый исход, а не ошибка.
 
-## Cancellation — `CancellationException` Must Propagate
+## Отмена — `CancellationException` должен распространяться
 
-Every `catch` that catches `Exception` or `Throwable` must re-throw `CancellationException` first. Models forget this constantly:
+Каждый `catch`, перехватывающий `Exception` или `Throwable`, должен сначала перебросить `CancellationException`. Модели постоянно забывают об этом:
 
 ```kotlin
 try {
@@ -101,7 +101,7 @@ try {
 }
 ```
 
-`runCatching { }` swallows `CancellationException` — never use bare `runCatching` in suspend code. Either re-throw inside `onFailure`, or use explicit `try/catch`:
+`runCatching { }` поглощает `CancellationException` — никогда не использовать голый `runCatching` в suspend-коде. Либо перебрасывать внутри `onFailure`, либо использовать явный `try/catch`:
 
 ```kotlin
 runCatching { api.fetchData() }
@@ -111,33 +111,33 @@ runCatching { api.fetchData() }
     }
 ```
 
-## `withContext(NonCancellable)` — Only in `finally`
+## `withContext(NonCancellable)` — только в `finally`
 
-`NonCancellable` disables cancellation for everything inside. Use it **only in cleanup that must complete after a coroutine is being cancelled**:
+`NonCancellable` отключает отмену для всего внутри. Использовать **только в cleanup, который должен завершиться после отмены coroutine**:
 
 ```kotlin
 try {
     work()
 } finally {
-    withContext(NonCancellable) { releaseResources() } // valid
+    withContext(NonCancellable) { releaseResources() } // валидно
 }
 ```
 
-Anywhere else it's a bug — disables cooperative cancellation in the calling chain.
+В любом другом месте это баг — отключает кооперативную отмену в вызывающей цепочке.
 
-## Error Mapping at Layer Boundaries
+## Маппинг ошибок на границах слоёв
 
-Don't leak `HttpException`, `SQLiteException`, or other implementation exceptions to the domain or presentation layer. Map them at the data → domain boundary into a project-specific error type or `Result<T>`.
+Нельзя пропускать `HttpException`, `SQLiteException` или другие implementation-исключения в domain или presentation слой. Маппировать их на границе data → domain в project-специфичный тип ошибки или `Result<T>`.
 
-## Testing
+## Тестирование
 
-Three rules the model misses:
+Три правила, которые модель упускает:
 
-1. **All `TestDispatchers` in a single test must share the same scheduler** — otherwise `advanceUntilIdle()` doesn't propagate. Pass the same `TestCoroutineScheduler` to each dispatcher.
-2. **Replace the `Main` dispatcher** before testing anything that uses `viewModelScope`: `Dispatchers.setMain(testDispatcher)` in `@Before`, `Dispatchers.resetMain()` in `@After`.
-3. **`UnconfinedTestDispatcher` vs `StandardTestDispatcher`** — `Unconfined` runs eagerly (simpler for most tests; assertions see latest state after each suspending call). `Standard` queues; advance via `advanceUntilIdle()` or `runCurrent()` — use when you need explicit control over scheduling order.
+1. **Все `TestDispatchers` в одном тесте должны использовать одинаковый scheduler** — иначе `advanceUntilIdle()` не распространяется. Передавать один и тот же `TestCoroutineScheduler` каждому dispatcher.
+2. **Заменить `Main` dispatcher** перед тестированием всего, что использует `viewModelScope`: `Dispatchers.setMain(testDispatcher)` в `@Before`, `Dispatchers.resetMain()` в `@After`.
+3. **`UnconfinedTestDispatcher` vs `StandardTestDispatcher`** — `Unconfined` выполняется жадно (проще для большинства тестов; assertions видят последнее состояние после каждого suspend-вызова). `Standard` ставит в очередь; продвигать через `advanceUntilIdle()` или `runCurrent()` — использовать когда нужен явный контроль над порядком планирования.
 
-Use Turbine for Flow assertions:
+Использовать Turbine для assertions Flow:
 
 ```kotlin
 viewModel.state.test {
@@ -148,4 +148,4 @@ viewModel.state.test {
 }
 ```
 
-Do not use `delay()` or `Thread.sleep()` to wait for coroutines in tests.
+Не использовать `delay()` или `Thread.sleep()` для ожидания coroutines в тестах.

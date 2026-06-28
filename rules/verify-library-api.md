@@ -1,6 +1,6 @@
-# Verify Library API Before Code
+# Верификация Library API до написания кода
 
-## Verify library API before code
+## Верификация library API до написания кода
 
 Обязательно перед Edit/Write кода с внешней библиотекой. Training data устаревает; existing project code = только используемый срез API, может быть legacy/антипаттерном.
 
@@ -34,13 +34,13 @@
 - **Version-proximity** — версия стека в референсе ≈ версии проекта; иначе риск deprecated path → понизить вес.
 - **Usage-slice** — один репо = один способ использования, не эталон (та же оговорка, что про existing project code выше). Cross-check с T1/T2 API-truth перед переносом паттерна.
 
-## Fast-moving declarative UI — guides & changelog before implementing
+## Быстро меняющийся декларативный UI — guides и changelog перед реализацией
 
 Для **Jetpack Compose, Compose Multiplatform (CMP), SwiftUI** одного «verify API against versions» мало: стек меняется быстро, и кроме *какой API есть* нужно *как сейчас рекомендуется делать* (иначе агент пишет устаревший код — `NavigationView` вместо `NavigationStack`, deprecated Compose API). Перед имплементацией нетривиального экрана/компонента в этих стеках пройти три роли — под общим принципом *Tool discovery & multi-channel use* (discover в рантайме → tier → cross-check):
 
 **A. API-truth — какой API реально в версии проекта.** `ksrc` (T1, реальный source jar точной версии; JVM/KMP → Jetpack Compose, CMP core/Material3; не Swift) → доки того же номера / Context7 (T2). SwiftUI: `apple-doc-mcp-server` MCP когда подключён (T2; ksrc-эквивалента для Apple нет).
 
-**B. Recommended approach — как делают сейчас** (общий принцип — см. § *Reference implementations* выше)**.** Официальные reference-приложения (код > доки, T1/T2): `android/nowinandroid`, `android/compose-samples`, `JetBrains/compose-multiplatform/examples`, Apple sample code → What's New / release-notes / roadmap (Android Dev Blog, JetBrains Kotlin Blog, WWDC) + дизайн-канон (Compose API Guidelines, Material 3, Apple HIG) → community (T3/T4, **только cross-check, не единственный источник**): Swift Forums, Hacking with Swift / Sundell / Point-Free, Kotlin Slack, Android Weekly.
+**B. Рекомендуемый подход — как делают сейчас** (общий принцип — см. § *Reference implementations* выше)**.** Официальные reference-приложения (код > доки, T1/T2): `android/nowinandroid`, `android/compose-samples`, `JetBrains/compose-multiplatform/examples`, Apple sample code → What's New / release-notes / roadmap (Android Dev Blog, JetBrains Kotlin Blog, WWDC) + дизайн-канон (Compose API Guidelines, Material 3, Apple HIG) → community (T3/T4, **только cross-check, не единственный источник**): Swift Forums, Hacking with Swift / Sundell / Point-Free, Kotlin Slack, Android Weekly.
 
 **C. Что изменилось / известные проблемы.** `maven-mcp` `dependency-changes` — changelog между версиями (T2; самый богатый сигнал для CMP). Issue-трекеры **по правильному адресу**: Jetpack Compose → **Google IssueTracker** (не GitHub); CMP → GitHub issues (`JetBrains/compose-multiplatform`); SwiftUI → Apple Developer Forums / Feedback Assistant.
 

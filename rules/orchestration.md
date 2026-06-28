@@ -1,62 +1,62 @@
-# Orchestration Rules
+# Правила оркестрации
 
-Main session = orchestrator on the most capable (expensive) model — its value is reasoning, planning, synthesis. Hands-on coding goes to specialists, dispatched at the right **model × effort**; keep the main session for decisions.
+Главная сессия = оркестратор на наиболее мощной (дорогой) модели — её ценность в reasoning, планировании, синтезе. Практическое программирование передаётся специалистам, диспетчеризованным с правильным **model × effort**; главная сессия — для решений.
 
-**May:** orientation research (Reads until focus drifts, targeted Bash, `git status`/`log`/`ls`/`pwd`, single-page MCP/web lookups like `mcp__plugin_context7_*` / `WebFetch`); edit process working files (state/report/debug/plan, `~/.claude/**`); plan synthesis from Explore/specialist summaries; final synthesis + the user-facing answer; Skill/Agent invocation with the right model.
-**Must not:** edit project production code, do heavy multi-file code search, or wait on long-running build/test/CI in its own context.
+**Разрешено:** ориентационное исследование (Read пока не уходит фокус, точечный Bash, `git status`/`log`/`ls`/`pwd`, однострочные MCP/web-запросы типа `mcp__plugin_context7_*` / `WebFetch`); редактировать рабочие файлы процесса (state/report/debug/plan, `~/.claude/**`); синтез плана из резюме Explore/специалистов; итоговый синтез + ответ пользователю; вызов Skill/Agent с правильной моделью.
+**Нельзя:** редактировать production-код проекта, делать тяжёлый многофайловый поиск по коду, ждать долгих сборок/тестов/CI в своём контексте.
 
-### Process working files (main session edits directly)
+### Рабочие файлы процесса (главная сессия редактирует напрямую)
 
-| Category | Examples |
+| Категория | Примеры |
 |---|---|
-| State / reports / debug logs | `swarm-report/<slug>-{state,report,debug,e2e-scenario}.md` |
-| Plan files in plan mode | files created in the current plan mode |
-| Session notes | `MEMORY.md`, files in `memory/`, scratch files for the task |
-| Global rules and configs | `~/.claude/CLAUDE.md`, `~/.claude/rules/**`, `~/.claude/settings*.json`, hooks |
-| Process docs | READMEs/docs inside `~/.claude`, plugin tooling for agents |
+| Состояние / отчёты / debug-логи | `swarm-report/<slug>-{state,report,debug,e2e-scenario}.md` |
+| Файлы плана в plan mode | файлы, созданные в текущем plan mode |
+| Заметки сессии | `MEMORY.md`, файлы в `memory/`, scratch-файлы для задачи |
+| Глобальные правила и конфиги | `~/.claude/CLAUDE.md`, `~/.claude/rules/**`, `~/.claude/settings*.json`, hooks |
+| Документация процесса | READMEs/docs внутри `~/.claude`, plugin-инструментарий для агентов |
 
-## Forbidden (violation = error, see `CLAUDE.md § Non-negotiables`)
+## Запрещено (нарушение = ошибка, см. `CLAUDE.md § Нельзя нарушать`)
 
-- Edit/Write in **project code** (production source, configs, tests) — delegate even one line.
-- Heavy/multi-file grep / deep code search across the codebase → Explore (haiku). A targeted grep in 1–2 files for orientation is fine.
-- Long-running build/test/CI in the main context → general-purpose in background.
-- Review tasks (security/performance/UX/code review) → the matching expert agent.
+- Edit/Write в **коде проекта** (production source, конфиги, тесты) — делегировать даже одну строку.
+- Тяжёлый/многофайловый grep / глубокий поиск по кодовой базе → Explore (haiku). Точечный grep в 1–2 файлах для ориентации — допустим.
+- Долгие сборки/тесты/CI в главном контексте → general-purpose в фоне.
+- Задачи ревью (security/performance/UX/code review) → соответствующий expert-агент.
 
-**STOP before every `Edit`/`Write`/non-trivial `Grep`/`Glob`/`Bash`:** touching project code or mass file reads → subagent; a process file (table above) or `~/.claude/**` → fine; lightweight orientation (a few Reads, `git status`/`log`/`ls`, targeted routing grep) → fine. N edits in production code is one specialist job, not "many small ones from the main session."
+**СТОП перед каждым `Edit`/`Write`/нетривиальным `Grep`/`Glob`/`Bash`:** касается кода проекта или массового чтения файлов → субагент; рабочий файл процесса (таблица выше) или `~/.claude/**` → ок; лёгкая ориентация (несколько Read, `git status`/`log`/`ls`, точечный routing grep) → ок. N правок в production-коде — это одна работа специалиста, а не «много маленьких из главной сессии».
 
 ## Skill-first
 
-Task matches an installed skill → use the skill (it knows the right agent/model sequence). Direct Agent is the fallback when no skill fits. E.g. planning a decided change → `/write-plan`; implementation → `/check` + `/finalize` + `/acceptance` + `/create-pr` + `/drive-to-merge`; new spec → `/write-spec`; UI migration → `/migrate-to-compose`; tests → `/write-tests`.
+Задача соответствует установленному skill → использовать skill (он знает правильную последовательность агент/модель). Прямой Agent — fallback, когда ни один skill не подходит. Например: планирование решённого изменения → `/write-plan`; реализация → `/check` + `/finalize` + `/acceptance` + `/create-pr` + `/drive-to-merge`; новая спецификация → `/write-spec`; UI-миграция → `/migrate-to-compose`; тесты → `/write-tests`.
 
-## What subagents inherit (context delivery)
+## Что наследуют субагенты (передача контекста)
 
-Verified empirically on current CC (general-purpose subagent): custom and built-in subagents **do** inherit the main session's `CLAUDE.md`, `MEMORY.md`, and every **unconditional** `~/.claude/rules/*.md` (those with no `paths:` frontmatter — including `ast-index.md`, `orchestration.md`, `external-sources.md`, `qa-and-testing.md`). They already carry the always-on rules — do **not** re-paste them into the delegation prompt.
+Проверено эмпирически на текущем CC (general-purpose субагент): кастомные и встроенные субагенты **наследуют** `CLAUDE.md`, `MEMORY.md` главной сессии и все **безусловные** `~/.claude/rules/*.md` (те, что без frontmatter `paths:` — включая `ast-index.md`, `orchestration.md`, `external-sources.md`, `qa-and-testing.md`). Они уже несут always-on правила — **не** вставлять их повторно в prompt делегирования.
 
-Two gaps the subagent does **not** get automatically — restate these in the prompt only when they matter:
-- **`paths:`-scoped rules** (`kotlin-style.md`, `gradle-style.md`, `android-cli.md`, `logging.md`, …) load lazily when a matching file is read — absent at subagent startup. If the subagent must honor such a rule before it touches a matching file, restate the key point or point it at the file path.
-- **Explore and Plan** skip `CLAUDE.md` + rules entirely for speed (per CC docs — not separately verified here). For an Explore/Plan agent that must use ast-index, include the directive below.
+Два пробела, которые субагент **не** получает автоматически — указывать в prompt только когда это важно:
+- **`paths:`-scoped rules** (`kotlin-style.md`, `gradle-style.md`, `android-cli.md`, `logging.md`, …) загружаются лениво при чтении соответствующего файла — отсутствуют при старте субагента. Если субагент должен соблюдать такое правило до того, как прикоснётся к соответствующему файлу — пересказать ключевой момент или указать путь к файлу.
+- **Explore и Plan** полностью пропускают `CLAUDE.md` + rules для скорости (по документации CC — не проверено здесь отдельно). Для агента Explore/Plan, который должен использовать ast-index — включить директиву ниже.
 
-**What to put in a delegation prompt** (the rest is inherited): the task; the relevant paths/modules; constraints (what not to touch, forbidden tools); the expected output shape; and any `paths:`-scoped rule or Explore/Plan-missing rule that applies.
+**Что включать в prompt делегирования** (остальное наследуется): задача; релевантные пути/модули; ограничения (что не трогать, запрещённые инструменты); ожидаемая форма вывода; и любое `paths:`-scoped правило или правило, отсутствующее у Explore/Plan, если применимо.
 
-**ast-index directive** (needed only for Explore/Plan, or an agent doing code search before its rule loads):
+**Директива ast-index** (нужна только для Explore/Plan или агента, выполняющего поиск по коду до загрузки правила):
 
 > Use `ast-index` via Bash before Grep: `search "q"`, `file "Name"`, `class "Name"`, `usages "Name"`, `implementations "Name"`, `callers "fn"`. Grep only when ast-index is empty or for regex/string-literal search. Before `Read` on a file >~500 lines, run `ast-index outline <file>` and Read only the targeted slice via `offset`/`limit`. On "Index not found" → `ast-index rebuild`, never fall back to Grep.
 
-(Index kept fresh by hooks — see `rules/ast-index.md`.)
+(Индекс поддерживается актуальным хуками — см. `rules/ast-index.md`.)
 
-Model × effort dispatch and agent routing: see `model-effort-routing.md`.
+Диспетчеризация model × effort и маршрутизация агентов: см. `model-effort-routing.md`.
 
 ## Plan mode
 
-Plan mode restricts agents to Explore (Phase 1, default haiku) and Plan (Phase 2, default opus) — compatible with the routing above. These rules apply after `ExitPlanMode`.
+Plan mode ограничивает агентов до Explore (Phase 1, по умолчанию haiku) и Plan (Phase 2, по умолчанию opus) — совместимо с маршрутизацией выше. Эти правила применяются после `ExitPlanMode`.
 
-## Override
+## Отмена делегирования
 
-The user can cancel delegation ("do it yourself", "don't delegate", "write it by hand") → the main session goes hands-on until the current task ends, then returns to orchestrator mode.
+Пользователь может отменить делегирование («do it yourself», «don't delegate», «write it by hand») → главная сессия работает напрямую до завершения текущей задачи, затем возвращается в режим оркестратора.
 
-## Anti-patterns (beyond the Forbidden list)
+## Антипаттерны (сверх списка Запрещено)
 
-- Leaving `model:` at default `inherit` without an explicit choice — the Haiku/Sonnet savings are lost.
-- Delegating planning — the main session's synthesis power is wasted.
-- Подмена гейта `/finalize` разовым вызовом `code-reviewer`. `/finalize` — это полный review→fix→simplify loop; одиночное ревью оставляет его наполовину незавершённым (fix и simplify не выполнены). «Код уже отревьюен» гейт не закрывает.
+- Оставлять `model:` на дефолтном `inherit` без явного выбора — экономия на Haiku/Sonnet теряется.
+- Делегировать планирование — синтетическая мощь главной сессии тратится впустую.
+- Подмена gate `/finalize` разовым вызовом `code-reviewer`. `/finalize` — это полный review→fix→simplify loop; одиночное ревью оставляет его наполовину незавершённым (fix и simplify не выполнены). «Код уже отревьюен» gate не закрывает.
 - Сокращение profile-triggered reviewer panel. Если skill / профиль определяет panel правилами (`primary` + regex-matched `optional_if`) — использовать **весь** triggered set. «Эта область уже разобрана в прошлом ревью другого артефакта» — не основание для пропуска: research / spec / test-plan — разные тексты, разные failure modes, разные перспективы. Cost extra agent: 2-5 минут; cost пропуска: gap который вылезет после approval (свежий кейс — `desktop-v2-spec`: сократил panel 5→3, пропустил drag-positioning gap, который UX/perf ревьюер увидел бы сразу). Полный triggered set применять всегда, даже если кажется дублированием.

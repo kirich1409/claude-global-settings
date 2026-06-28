@@ -1,48 +1,48 @@
-# External Sources
+# Внешние источники
 
-## Source routing
+## Маршрутизация источников
 
-| Source | Use for | Don't use for |
+| Источник | Использовать для | Не использовать для |
 |---|---|---|
-| Local code / project files | First stop for project questions | — |
-| `ksrc` | Reading JVM/Gradle dep sources (real source jar) | Project-internal code |
-| `android docs search`/`fetch` | API truth + guides for Android/Jetpack/Compose/AGP/SDK (curated developer.android.com) | non-Android libs |
-| `~/.android/cli/skills/**/SKILL.md` | Bundled Android CLI skills — structured workflows (migrations; узкие области: Wear/XR/edge-to-edge/Compose styles/R8/Perfetto…). Discovery: `android skills find <kw>` → Read the SKILL.md. См. `rules/android-cli.md` | API truth для библиотек; не-Android задачи |
-| Context7 | Published library/framework docs, current API/migration | Project code, debugging own code; one `resolve-library-id` fail → stop, don't chase synonyms |
-| `WebSearch`/`WebFetch` | Default for everything not covered above | — |
-| Raw README via `raw.githubusercontent.com` | Last-resort for a specific repo | — |
+| Локальный код / файлы проекта | Первая точка для вопросов по проекту | — |
+| `ksrc` | Чтение исходников JVM/Gradle зависимостей (реальный source jar) | Внутренний код проекта |
+| `android docs search`/`fetch` | API truth + guides для Android/Jetpack/Compose/AGP/SDK (куриованный developer.android.com) | Не-Android библиотеки |
+| `~/.android/cli/skills/**/SKILL.md` | Встроенные Android CLI skills — структурированные рабочие процессы (миграции; узкие области: Wear/XR/edge-to-edge/Compose styles/R8/Perfetto…). Discovery: `android skills find <kw>` → Read the SKILL.md. См. `rules/android-cli.md` | API truth для библиотек; не-Android задачи |
+| Context7 | Документация опубликованных библиотек/фреймворков, текущий API/миграция | Код проекта, отладка собственного кода; один провал `resolve-library-id` → стоп, не гнаться за синонимами |
+| `WebSearch`/`WebFetch` | По умолчанию для всего, что не покрыто выше | — |
+| Raw README через `raw.githubusercontent.com` | Последний вариант для конкретного репо | — |
 | Reference implementations (стек-сэмплы / popular OSS) | «Как реально собрать/соединить X» — паттерны wiring/DI/boilerplate/слоёв из реального кода; см. `rules/verify-library-api.md` | API-truth (сигнатуры) — это usage-срез, не спека |
 
-Never WebFetch rendered GitHub pages (`https://github.com/...`) — HTML noisy/expensive; use raw README.
+Никогда не использовать `WebFetch` для rendered GitHub-страниц (`https://github.com/...`) — HTML шумный/дорогой; использовать raw README.
 
-## Tool discovery & multi-channel use
+## Обнаружение инструментов и multi-channel использование
 
-The table above names **classes of source**, not a guaranteed toolset. The actual tools reachable vary per environment: extra MCP servers, a docs/knowledge proxy, a platform-specific MCP (e.g. a Mac/desktop server behind a proxy), or additional search backends may be connected — or absent. Never assume a named tool exists, and never stop at the first one.
+Таблица выше называет **классы источников**, а не гарантированный набор инструментов. Реально доступные инструменты варьируются в зависимости от среды: дополнительные MCP-серверы, docs/knowledge proxy, platform-specific MCP (например, Mac/desktop сервер через proxy) или дополнительные поисковые бэкенды могут быть подключены или отсутствовать. Никогда не предполагать, что названный инструмент существует, и никогда не останавливаться на первом.
 
-Single rule for every consumer (this rule, the `research` skill, the `source-researcher` agent, `write-spec` research) — gather is a three-step discipline, not a fixed pipeline:
+Единое правило для всех потребителей (это правило, `research` skill, агент `source-researcher`, research в `write-spec`) — сбор информации это трёхшаговая дисциплина, а не фиксированный pipeline:
 
-1. **Discover** — inventory what is actually reachable now: connected MCP servers and deferred tools (via `ToolSearch`), plus built-in search/fetch. Empirically verified: a spawned subagent can both discover and invoke the session's MCP servers (incl. across servers in one turn), so a gather-agent does its own discovery — the orchestrator does not pre-bind the toolset.
-2. **Use all relevant channels in parallel** — for the question's class, query **every** available channel that serves it (per the role/stack composition in `rules/verify-library-api.md`), not just one. One channel = one perspective; breadth is the point.
-3. **Cross-check & tier** — verify a claim across ≥2 channels where possible and rank by *Trust assessment* (T1/T2 over T3/T4); surface disagreements and version mismatches, never silently pick one.
+1. **Обнаружение** — инвентаризировать, что реально доступно сейчас: подключённые MCP-серверы и deferred tools (через `ToolSearch`), плюс встроенные search/fetch. Эмпирически подтверждено: порождённый субагент может и обнаруживать, и вызывать MCP-серверы сессии (в т.ч. несколько серверов за один ход), поэтому gather-агент проводит собственное обнаружение — оркестратор не предбиндит набор инструментов.
+2. **Использовать все релевантные каналы параллельно** — для класса вопроса запрашивать **каждый** доступный канал, который его обслуживает (по роли/компоновке стека в `rules/verify-library-api.md`), а не только один. Один канал = одна перспектива; ширина охвата — это цель.
+3. **Перекрёстная проверка и тиеринг** — верифицировать утверждение по ≥2 каналам где возможно и ранжировать по *оценке доверия* (T1/T2 над T3/T4); поверхностно показывать разногласия и расхождения версий, никогда не выбирать молча.
 
-If a whole channel class is unavailable (no web search, no dependency-intelligence MCP, a platform MCP not connected this session), state it as an explicit limitation in the output — reduced confidence is visible, not silently degraded. A gather-agent appends the channels it actually used (and any unavailable class) to its report so the synthesizer knows what coverage backed each finding.
+Если целый класс каналов недоступен (нет веб-поиска, нет dependency-intelligence MCP, platform MCP не подключён в данной сессии) — указать это как явное ограничение в выводе, чтобы сниженная уверенность была видимой, а не молча деградировала. Gather-агент дописывает в отчёт каналы, которые фактически использовал (и все недоступные классы), чтобы синтезатор знал, чем обеспечено каждое находение.
 
-Library API verification, stack composition, reference implementations, and fast-moving UI guidance: see `rules/verify-library-api.md`.
+Верификация Library API, компоновка по стекам, reference implementations и руководство по быстро меняющемуся UI: см. `rules/verify-library-api.md`.
 
-## Context7 workflow
+## Рабочий процесс Context7
 
-Шаги при обращении к Context7 (когда именно — см. таблицу Source routing и композицию по стекам выше):
+Шаги при обращении к Context7 (когда именно — см. таблицу маршрутизации источников и компоновку по стекам выше):
 
-1. Начни с `resolve-library-id` по имени библиотеки + вопросу пользователя — кроме случая, когда дан точный ID в формате `/org/project`.
-2. Выбери лучшее совпадение (ID `/org/project`) по: точному совпадению имени, релевантности описания, числу code-сниппетов, репутации источника (High/Medium), benchmark score (выше — лучше). Не туда — переформулируй (`next.js`, не `nextjs`) или используй версионный ID, если указана версия.
+1. Начать с `resolve-library-id` по имени библиотеки + вопросу пользователя — кроме случая, когда дан точный ID в формате `/org/project`.
+2. Выбрать лучшее совпадение (ID `/org/project`) по: точному совпадению имени, релевантности описания, числу code-сниппетов, репутации источника (High/Medium), benchmark score (выше — лучше). Не туда — переформулировать (`next.js`, не `nextjs`) или использовать версионный ID, если указана версия.
 3. `query-docs` с выбранным ID и полным вопросом пользователя (не одним словом).
-4. Отвечай по полученной docs.
+4. Отвечать по полученной docs.
 
 Один провал `resolve-library-id` → стоп, не гнаться за синонимами. Не использовать для: рефакторинга, написания скриптов с нуля, отладки бизнес-логики, code review, общих концепций программирования.
 
-## Trust assessment
+## Оценка доверия
 
-Источник может быть формально primary, а content — устаревший / для другой версии / AI-галлюцинация. Оцени tier до того, как поверить.
+Источник может быть формально primary, а content — устаревший / для другой версии / AI-галлюцинация. Оценить tier до того, как поверить.
 
 | Tier | Что | Источники |
 |---|---|---|
@@ -51,9 +51,9 @@ Library API verification, stack composition, reference implementations, and fast
 | **T3** aggregated/AI | может галлюцинировать | Context7 для community либ без вендорской docs |
 | **T4** random web | блоги, StackOverflow, Medium, tutorials | WebSearch, случайный WebFetch |
 
-**Память — не tier.** Авто-память (`MEMORY.md`, recalled facts) и существующий код проекта фиксируют то, что было верно на момент записи, и устаревают — это **не** источник знания об API/версиях/поведении. При пробеле или сомнении перепроверь по T1/T2 (официальный источник), не действуй по памяти. Память годится как указатель «где смотреть», не как факт.
+**Память — не tier.** Авто-память (`MEMORY.md`, recalled facts) и существующий код проекта фиксируют то, что было верно на момент записи, и устаревают — это **не** источник знания об API/версиях/поведении. При пробеле или сомнении перепроверить по T1/T2 (официальный источник), не действовать по памяти. Память годится как указатель «где смотреть», не как факт.
 
-**Default: T1 + T2 параллельно** для любого Edit/Write с внешней библиотекой — базовый режим, не «при сомнении». T1-only допустим **только** с явным обоснованием в reasoning: стабильная Java/Kotlin stdlib (не evolving либа); уже виденный символ на той же pinned версии, `ksrc` подтверждает форму, локальный helper / data class без поведения; тривиальное использование (конструктор data class, enum value, константа). «Кажется очевидным» — не обоснование.
+**По умолчанию: T1 + T2 параллельно** для любого Edit/Write с внешней библиотекой — базовый режим, не «при сомнении». T1-only допустим **только** с явным обоснованием в reasoning: стабильная Java/Kotlin stdlib (не evolving либа); уже виденный символ на той же pinned версии, `ksrc` подтверждает форму, локальный helper/data class без поведения; тривиальное использование (конструктор data class, enum value, константа). «Кажется очевидным» — не обоснование.
 
 **Валидация перед использованием:**
 - Версия источника = версии в проекте? Нет → флаг, не использовать без cross-check, отметить в reasoning (T1 = pinned, T2 = current; расхождение = проект отстал или docs про другую major).
