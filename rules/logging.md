@@ -22,18 +22,18 @@ paths:
   - "**/*.php"
 ---
 
-# Logging
+# Логирование
 
-## Scope
+## Область применения
 
-Applies to **application and library source code** in mainstream coding languages:
+Применяется к **исходному коду приложений и библиотек** на основных языках программирования:
 
-| Stack | Extensions |
+| Стек | Расширения |
 |---|---|
 | Kotlin / Java / Android / KMP | `.kt`, `.java` |
 | Swift / Objective-C / iOS | `.swift`, `.m`, `.mm` |
 | JavaScript / TypeScript | `.js`, `.jsx`, `.ts`, `.tsx` |
-| Python | `.py` (modules, not throwaway scripts) |
+| Python | `.py` (модули, не одноразовые скрипты) |
 | Go | `.go` |
 | Rust | `.rs` |
 | C# | `.cs` |
@@ -41,83 +41,83 @@ Applies to **application and library source code** in mainstream coding language
 | Ruby | `.rb` |
 | PHP | `.php` |
 
-Does **not** apply to:
+**Не** применяется к:
 
-- Documentation, configs, schemas — `.md`, `.rst`, `.txt`, `.json`, `.yaml`/`.yml`, `.toml`, `.xml`, `.properties`, `.ini`, `.env*`, `.sql`.
-- Build scripts treated as configuration — `build.gradle*`, `settings.gradle*`, `*.gradle.kts` (when used purely declaratively), `Cargo.toml`, `package.json`, `pyproject.toml`, `Podfile`, `Makefile`, `CMakeLists.txt`.
-- Shell / batch scripts — `.sh`, `.bash`, `.zsh`, `.fish`, `.ps1`, `.bat`. `echo` / `printf` are the native output mechanism — using them is correct, not a violation.
-- One-off CLI scripts where `print` *is* the user-facing output (small Python utility, a node `bin/` entry, a Go `cmd/` with no library reuse). The `println` ban targets diagnostic logging inside reusable code, not user-facing output.
-- Generated code (`build/generated/**`, `*.g.kt`, `*.pb.go`, etc.).
-- Test fixtures and sample data files.
+- Документации, конфигам, схемам — `.md`, `.rst`, `.txt`, `.json`, `.yaml`/`.yml`, `.toml`, `.xml`, `.properties`, `.ini`, `.env*`, `.sql`.
+- Build-скриптам в декларативном использовании — `build.gradle*`, `settings.gradle*`, `*.gradle.kts`, `Cargo.toml`, `package.json`, `pyproject.toml`, `Podfile`, `Makefile`, `CMakeLists.txt`.
+- Shell / batch-скриптам — `.sh`, `.bash`, `.zsh`, `.fish`, `.ps1`, `.bat`. `echo` / `printf` — нативный механизм вывода, их использование корректно.
+- Одноразовым CLI-скриптам, где `print` *является* пользовательским выводом (небольшая Python-утилита, node `bin/` entry, Go `cmd/` без переиспользования как библиотеки). Запрет на `println` нацелен на диагностическое логирование внутри переиспользуемого кода, а не на пользовательский вывод.
+- Сгенерированному коду (`build/generated/**`, `*.g.kt`, `*.pb.go`, и т.д.).
+- Тестовым фикстурам и файлам с тестовыми данными.
 
-Inside in-scope files, **every** rule below applies. Outside scope — the rule is silent.
+Внутри файлов в области применения — **все** правила ниже действуют. За пределами области — правило молчит.
 
-## Two modes
+## Два режима
 
-Two modes of logging coexist in the codebase and must not be mixed up:
+В кодовой базе сосуществуют два режима логирования, которые нельзя путать:
 
-- **Permanent logs** — part of the product, ship to production, help debug live incidents.
-- **Temporary diagnostic logs** — added during local investigation, removed before the change is finalized.
+- **Постоянные логи** — часть продукта, идут в production, помогают отлаживать живые инциденты.
+- **Временные диагностические логи** — добавляются при локальном расследовании, удаляются до финализации изменения.
 
-Both modes are allowed and encouraged. What is forbidden is ad-hoc `println` / `console.log` / `print()` / `System.out` / `NSLog` — see *Logger system* below.
+Оба режима разрешены и приветствуются. Запрещено: ad-hoc `println` / `console.log` / `print()` / `System.out` / `NSLog` — см. *Система логирования* ниже.
 
-## Logger system — mandatory
+## Система логирования — обязательна
 
-All logging goes through **whatever logger the project already uses** — detect it first (scan dependencies, existing logging calls, project `CLAUDE.md`) and match it. Never write `println`, `System.out.println`, `print()`, `console.log`, `console.debug`, `NSLog`, `fmt.Println` for diagnostic or operational output. **Never impose a logger technology the project doesn't use** — the table below is not a checklist to apply.
+Всё логирование идёт через **тот логгер, который уже использует проект** — сначала обнаружить его (сканировать зависимости, существующие вызовы логирования, `CLAUDE.md` проекта) и следовать ему. Никогда не писать `println`, `System.out.println`, `print()`, `console.log`, `console.debug`, `NSLog`, `fmt.Println` для диагностического или операционного вывода. **Никогда не навязывать технологию логирования, которую проект не использует** — таблица ниже не является чеклистом для применения.
 
-Choosing a logger is part of the task **only** when the project has none at all — propose during planning, don't silently pick. The table is a per-stack *starting suggestion for that greenfield case only*; the project's existing choice always wins:
+Выбор логгера — часть задачи **только** когда в проекте его нет вообще — предложить на этапе планирования, не выбирать молча. Таблица — это *стартовое предложение только для такого случая greenfield*; существующий выбор проекта всегда побеждает:
 
-| Stack | Suggested default (greenfield only) |
+| Стек | Предлагаемый дефолт (только для greenfield) |
 |---|---|
-| Android | Timber, or `android.util.Log` if Timber not present |
-| JVM / Kotlin server | `slf4j` (`KotlinLogging` wrapper) |
+| Android | Timber, или `android.util.Log` если Timber отсутствует |
+| JVM / Kotlin server | `slf4j` (обёртка `KotlinLogging`) |
 | KMP shared | `co.touchlab.kermit` |
 | iOS / Swift | `os.Logger` (Unified Logging) |
-| Node / TS | project logger (`pino`, `winston`, `bunyan`); never `console.*` |
-| Python | `logging` stdlib; never `print` |
-| Go | project logger (`slog`, `zap`, `zerolog`); never `fmt.Println` |
-| Rust | `tracing` / `log`; never `println!` |
+| Node / TS | логгер проекта (`pino`, `winston`, `bunyan`); никогда `console.*` |
+| Python | `logging` stdlib; никогда `print` |
+| Go | логгер проекта (`slog`, `zap`, `zerolog`); никогда `fmt.Println` |
+| Rust | `tracing` / `log`; никогда `println!` |
 
-User-facing CLI output (`stdout` for the actual program result) is not logging and is exempt.
+Пользовательский вывод CLI (`stdout` как реальный результат программы) — не логирование и освобождён от этих правил.
 
-## Permanent logs — write them generously
+## Постоянные логи — писать щедро
 
-Permanent logs are allowed at every level. They are not "noise to be minimized" — they are a debugging asset. Add them whenever they make future investigation cheaper.
+Постоянные логи разрешены на каждом уровне. Они не «шум, который нужно минимизировать» — они актив для отладки. Добавлять всегда, когда это сделает будущее расследование дешевле.
 
-Good targets:
-- Inputs and outputs at system boundaries (HTTP request/response, DB query/result, IPC, file I/O).
-- Errors with full context (what was attempted, with which inputs, what was the failure).
-- Key state transitions (auth state changes, session start/end, screen lifecycle, feature flag evaluation).
-- Decision points where the code branches on non-obvious conditions.
+Хорошие цели:
+- Входные и выходные данные на границах систем (HTTP запрос/ответ, DB запрос/результат, IPC, file I/O).
+- Ошибки с полным контекстом (что пытались сделать, с какими входными данными, что стало причиной отказа).
+- Ключевые смены состояний (смены auth-состояния, старт/конец сессии, lifecycle экрана, оценка feature flag).
+- Точки принятия решений, где код ветвится по неочевидным условиям.
 
-Production safety still applies (see *What never goes into a log* below). Past that — bias toward more, not less.
+Производственная безопасность всё равно применяется (см. *Что никогда не идёт в лог* ниже). В остальном — склоняться к большему, а не к меньшему.
 
-Production-build stripping is part of why this is safe:
-- Android R8/ProGuard removes `Log.v` / `Log.d` calls when the project's ProGuard rules include the standard `-assumenosideeffects class android.util.Log { ... }` block (or equivalent for Timber).
-- Server / JVM apps configure the production log level (`info` or `warn`) so `debug` / `trace` calls are skipped at runtime with near-zero cost.
-- iOS `os.Logger` `debug` is auto-filtered out of release logs by the system.
+Стриппинг в production-сборке — часть того, почему это безопасно:
+- Android R8/ProGuard удаляет вызовы `Log.v` / `Log.d`, когда ProGuard rules проекта включают стандартный блок `-assumenosideeffects class android.util.Log { ... }` (или эквивалент для Timber).
+- Server / JVM приложения настраивают production log level (`info` или `warn`), так что вызовы `debug` / `trace` пропускаются во время выполнения с минимальными затратами.
+- iOS `os.Logger` `debug` автоматически фильтруется из release-логов системой.
 
-Verify the stripping mechanism is in place when adding heavy `debug` logging. If it is not — add it as a separate decision, do not silently flood production with `debug` output.
+Проверять наличие механизма стриппинга при добавлении тяжёлого `debug`-логирования. Если его нет — добавить как отдельное решение, не заливать production `debug`-выводом молча.
 
-### Log-level semantics
+### Семантика уровней логирования
 
-Follow standard severity. Project conventions win if they differ.
+Следовать стандартной серьёзности. Соглашения проекта побеждают при расхождении.
 
-| Level | Use for |
+| Уровень | Использовать для |
 |---|---|
-| `error` | Operation failed, user-visible or system-impacting. Always includes the exception/cause. |
-| `warn` | Degraded behavior, fallback taken, retry exhausted, unexpected but recoverable input. |
-| `info` | Significant lifecycle events: app start, user signed in, job scheduled, screen entered. One per real-world event, not per loop iteration. |
-| `debug` | Internal state useful when investigating a bug. Stripped from release. Verbose is OK here. |
-| `verbose` / `trace` | Per-iteration detail, raw payloads, fine-grained flow. Stripped from release. |
+| `error` | Операция завершилась неудачей, видимой пользователю или влияющей на систему. Всегда включать исключение/причину. |
+| `warn` | Деградировавшее поведение, использован fallback, исчерпаны повторы, неожиданные но восстановимые входные данные. |
+| `info` | Значимые lifecycle-события: запуск приложения, вход пользователя, запланированная задача, вход на экран. Один на реальное событие, не на итерацию цикла. |
+| `debug` | Внутреннее состояние, полезное при расследовании бага. Стрипается из release. Verbose здесь допустимо. |
+| `verbose` / `trace` | Детали за итерацию, raw payloads, мелкозернистый поток. Стрипается из release. |
 
-Choose the level by *who needs to see this and when*, not by how interesting the log feels at write-time.
+Выбирать уровень по принципу *кому нужно это видеть и когда*, а не по тому, насколько интересен лог в момент написания.
 
-## Temporary diagnostic logs — `// TEMP-LOG`
+## Временные диагностические логи — `// TEMP-LOG`
 
-When investigating a bug, an unclear flow, or a failed hypothesis — instrument the code with logs to see what actually happens. This is a first-class debugging tool, not a workaround. After the second failed read-only hypothesis, instrumenting is usually faster than guessing further.
+При расследовании бага, неясного потока или провалившейся гипотезы — инструментировать код логами, чтобы увидеть, что реально происходит. Это первоклассный инструмент отладки, а не workaround. После второй провалившейся гипотезы только по чтению кода — инструментирование обычно быстрее, чем дальнейшие догадки.
 
-**Marking rule.** Every temporary log line gets a `// TEMP-LOG` comment on the line above (or `# TEMP-LOG` / `/* TEMP-LOG */` per language). One unique grep target, language-agnostic, survives reformatting.
+**Правило маркировки.** Каждая строка временного лога получает комментарий `// TEMP-LOG` на строке выше (или `# TEMP-LOG` / `/* TEMP-LOG */` в зависимости от языка). Одна уникальная цель для grep, независимая от языка, переживает реформатирование.
 
 ```kotlin
 // TEMP-LOG: investigating null state on checkout
@@ -137,39 +137,39 @@ logger.debug("cell.bind id=\(id) state=\(state)")
 log.debug("payload=%s", payload)
 ```
 
-**Lifecycle.**
-1. Add `// TEMP-LOG` log → reproduce → read output → form a hypothesis.
-2. Iterate as needed. Add more `// TEMP-LOG` lines freely.
-3. Once the root cause is understood and the fix is in place — remove every `// TEMP-LOG` line before finalization.
+**Жизненный цикл.**
+1. Добавить `// TEMP-LOG` лог → воспроизвести → прочитать вывод → сформировать гипотезу.
+2. Итерировать по необходимости. Добавлять больше `// TEMP-LOG` строк свободно.
+3. Как только первопричина понята и исправление на месте — удалить все строки `// TEMP-LOG` до финализации.
 
-**Promotion is a deliberate decision.** If during investigation it becomes clear that a `// TEMP-LOG` line is genuinely valuable in production — remove the marker comment, possibly downgrade/upgrade the level, and treat it as a permanent log under the rules above. Do not "forget to remove" the marker.
+**Продвижение — осознанное решение.** Если в процессе расследования становится ясно, что строка `// TEMP-LOG` действительно ценна в production — убрать маркер-комментарий, при необходимости понизить/повысить уровень, и обращаться с ней как с постоянным логом по правилам выше. Нельзя «забыть убрать» маркер.
 
-**Finalization gate.** Before `/finalize` / `/check` / opening a PR, scan the diff:
+**Gate финализации.** Перед `/finalize` / `/check` / открытием PR — просканировать diff:
 
 ```
 git diff | grep -nE 'TEMP-LOG'
 rg -n 'TEMP-LOG' --no-heading
 ```
 
-Any hit blocks the gate. Either remove the line, or consciously promote it (remove the marker, justify the keep).
+Любое совпадение блокирует gate. Либо удалить строку, либо осознанно продвинуть её (убрать маркер, обосновать сохранение).
 
-## What never goes into a log — any mode
+## Что никогда не идёт в лог — любой режим
 
-These are non-negotiable regardless of permanent vs temporary:
+Нельзя нарушать независимо от постоянного или временного режима:
 
-- Secrets: passwords, API keys, tokens, session cookies, signing keys, private keys.
-- PII without need: full names, emails, phone numbers, addresses, document IDs. If absolutely required — log a stable hash or last-4 only.
-- Payment data: full PAN, CVV, full IBAN. Last-4 of PAN is acceptable when project policy allows.
-- Large blobs by default (full request bodies, full files). If needed for diagnosis — truncate with explicit `…[N bytes truncated]`.
-- Anything covered by the project's privacy policy or compliance scope (GDPR, HIPAA, PCI) without an explicit allowance.
+- Секреты: пароли, API ключи, токены, session cookies, signing keys, приватные ключи.
+- PII без необходимости: полные имена, email, номера телефонов, адреса, ID документов. Если абсолютно необходимо — логировать стабильный хэш или последние 4 цифры.
+- Платёжные данные: полный PAN, CVV, полный IBAN. Последние 4 цифры PAN допустимы, когда политика проекта разрешает.
+- Большие блобы по умолчанию (полные тела запросов, полные файлы). Если нужно для диагностики — обрезать с явным `…[N bytes truncated]`.
+- Всё, охватываемое политикой конфиденциальности или compliance-областью проекта (GDPR, HIPAA, PCI) без явного разрешения.
 
-Temporary `// TEMP-LOG` lines are not an exception — the diff goes through review, and "I would have removed it" is not a defense.
+Временные строки `// TEMP-LOG` — не исключение: diff проходит ревью, и «я бы убрал его» — не защита.
 
-## When to instrument
+## Когда инструментировать
 
-The "should I add logs" decision tree:
+Дерево решений «нужно ли добавлять логи»:
 
-1. **Writing new code with non-trivial flow** → add permanent logs at boundaries and key transitions as you go. Not a separate step.
-2. **Investigating a reproducible bug, read-only attempts are not converging** → instrument with `// TEMP-LOG`. Do not keep guessing past two failed hypotheses without instrumentation.
-3. **Investigating a flake / intermittent issue** → instrument with `// TEMP-LOG` at suspected race / timing points, often at `verbose` level. Likely needs several iterations.
-4. **Code review uncovers an unclear runtime path** → the right answer is usually a permanent `debug` log on the path, not a comment explaining what the code does.
+1. **Пишешь новый код с нетривиальным потоком** → добавлять постоянные логи на границах и ключевых переходах по ходу. Не отдельным шагом.
+2. **Расследуешь воспроизводимый баг, попытки только чтением кода не сходятся** → инструментировать с `// TEMP-LOG`. Не продолжать угадывать после двух провалившихся гипотез без инструментирования.
+3. **Расследуешь нестабильность / нерегулярную проблему** → инструментировать с `// TEMP-LOG` в подозрительных точках гонки/таймингов, часто на уровне `verbose`. Вероятно потребует нескольких итераций.
+4. **Ревью кода обнаруживает неясный runtime-путь** → правильный ответ — обычно постоянный `debug`-лог на этом пути, а не комментарий, объясняющий что делает код.

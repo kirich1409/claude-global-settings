@@ -1,29 +1,29 @@
 # Git Workflow
 
-- **Fresh base:** before branching, resuming work, pushing, or opening MR/PR — `git fetch` and rebase onto the latest base. Never branch/push from a stale ref. After a rebase that pulled new commits — re-run local checks relevant to the changes.
-- **Commits:** one atomic commit per logical unit. Large tasks → one commit per meaningful stage.
-- **Commit messages:** imperative mood, English, ≤72 chars subject. No type prefixes (`feat:`, `fix:`). Add body only when context is non-obvious.
-- **Branch naming:** `feature/...` (new product behavior), `fix/...` (bug fix), `chore/...` (no product-behavior change — dependency bumps, configs, CI, build tooling, formatting) — kebab-case, English. Pick the prefix by *what the change does*, not by size.
-- **Force push:** plain `--force` is denied. `--force-with-lease` / `--force-if-includes` are allowed without confirmation (the lease protects against clobbering others' commits).
-- **Git hooks:** never bypass (`--no-verify`, `--no-gpg-sign`, etc.) without explicit user instruction. Hook fail → investigate root cause.
-- **Checkpoint before large refactors.** Before letting an agent touch multiple files, rewrite a function/module, or run any multi-step transformation — first commit a checkpoint: `git add -A && git commit -m "checkpoint: <what's about to change>"`. If the agent makes a mess, recovery is `Esc Esc` in the Claude Code prompt (undo recent edits) or `git reset --hard HEAD` (drop everything since the checkpoint). Goal: never more than 10 seconds away from a working state.
-- **Local verification before push:** push only what passes the checks relevant to what changed (build changed → build; tests changed → tests; lint config changed → lint; build system changed → release build). Draft status is not an excuse. The only acceptable reason to skip a check is explicit awareness that it's incomplete work.
-- **Feature branch push without confirmation:** when working on a dedicated `feature/`, `fix/`, or `chore/` branch (not main/master/develop) — branch creation, commits at each stage, push to remote, and opening a draft PR are routine operations and do not require confirmation. Confirmation is still required for: plain `--force`, PR promotion (draft → ready for review), merge into the default branch. `--force-with-lease` / `--force-if-includes` do not require confirmation.
-- **Stale gone branches:** `commit-commands:clean_gone` skill cleans up local branches whose remotes are gone.
+- **Свежая база:** перед ветвлением, возобновлением работы, пушем или открытием MR/PR — `git fetch` и rebase на последнюю базу. Никогда не ветвиться/пушить с устаревшего ref. После rebase, который подтянул новые коммиты — перезапустить локальные проверки, релевантные изменениям.
+- **Коммиты:** один атомарный коммит на логическую единицу. Большие задачи → один коммит на каждый значимый этап.
+- **Сообщения коммитов:** повелительное наклонение, английский язык, ≤72 символа в заголовке. Без type-префиксов (`feat:`, `fix:`). Тело добавлять только когда контекст неочевиден.
+- **Именование веток:** `feature/...` (новое продуктовое поведение), `fix/...` (исправление бага), `chore/...` (без изменения продуктового поведения — обновление зависимостей, конфиги, CI, build tooling, форматирование) — kebab-case, английский. Выбирать префикс по *тому, что делает изменение*, а не по размеру.
+- **Force push:** обычный `--force` запрещён. `--force-with-lease` / `--force-if-includes` разрешены без подтверждения (lease защищает от затирания чужих коммитов).
+- **Git hooks:** никогда не обходить (`--no-verify`, `--no-gpg-sign`, и т.д.) без явной инструкции пользователя. Сбой hook → найти первопричину.
+- **Checkpoint перед большими рефакторингами.** Перед тем как дать агенту затронуть несколько файлов, переписать функцию/модуль или выполнить любую многошаговую трансформацию — сначала зафиксировать checkpoint: `git add -A && git commit -m "checkpoint: <что будет меняться>"`. Если агент наделает беспорядка, восстановление — `Esc Esc` в промпте Claude Code (отмена последних правок) или `git reset --hard HEAD` (сброс всего с момента checkpoint). Цель: не более 10 секунд до рабочего состояния.
+- **Локальная верификация перед пушем:** пушить только то, что проходит проверки, релевантные изменениям (build changed → build; tests changed → tests; lint config changed → lint; build system changed → release build). Draft-статус не оправдание. Единственная допустимая причина пропустить проверку — явное осознание, что работа неполная.
+- **Push feature-ветки без подтверждения:** при работе на выделенной ветке `feature/`, `fix/` или `chore/` (не main/master/develop) — создание ветки, коммиты на каждом этапе, push в remote и открытие draft PR — рутинные операции и подтверждения не требуют. Подтверждение всё ещё нужно для: обычного `--force`, промоции PR (draft → ready for review), слияния в дефолтную ветку. `--force-with-lease` / `--force-if-includes` подтверждения не требуют.
+- **Устаревшие gone-ветки:** скилл `commit-commands:clean_gone` очищает локальные ветки, у которых исчезли remote.
 
-## Worktree cleanup prompts
+## Подсказки по очистке worktree
 
-**Disk-lean policy (default): do not keep idle worktrees.** Disk space is limited (512 GB SSD, Android multi-module worktrees cost tens of GB each with build caches). As soon as the work is pushed and review-ready/merged, the default is to **remove** the worktree (and the local branch — it is recreatable from remote in seconds); recreate on demand when review fixes arrive. "Might need it later" is not a reason to keep one. The prompts below stay (deletion still requires confirmation), but the recommended option is always "remove".
+**Политика экономии диска (по умолчанию): не держать незанятые worktrees.** Дисковое пространство ограничено (SSD 512 ГБ, Android multi-module worktrees стоят десятки ГБ каждый с кэшами сборки). Как только работа запушена и ready-for-review/смержена, по умолчанию — **удалить** worktree (и локальную ветку — её можно воссоздать с remote за секунды); воссоздавать по требованию когда приходят правки к ревью. «Может понадобится позже» — не причина оставлять. Подсказки ниже остаются (удаление всё ещё требует подтверждения), но рекомендованный вариант всегда «удалить».
 
-When working in a git worktree (not the main checkout), prompt the user about its fate at these moments — once per moment, do not nag:
+При работе в git worktree (не в основном чекауте), спрашивать пользователя о судьбе worktree в эти моменты — один раз за момент, не настаивать:
 
-- **PR/MR merged or branch pushed and review-ready, and the worktree has no uncommitted changes** → ask: keep the worktree (more work expected), or remove it and the local branch (work is done). If user picks "remove", run `git worktree remove <path>` and `git branch -D <branch>` (only after confirming the branch is fully merged or its remote is gone).
-- **Branch pushed, remote-tracking branch is gone (`gone` in `git branch -vv`)** → propose cleanup using `commit-commands:clean_gone` or manual `git worktree remove` + `git branch -D`.
-- **Session-end signal** (user says "закончили", "на сегодня всё", "всё, спасибо", `/exit`-like wrap-up, or you're about to declare a multi-step task complete) → if a worktree exists for this session's work and the work looks finished (everything pushed, PR open or merged, no uncommitted changes) — surface the cleanup option in the wrap-up message. If there are uncommitted changes or unpushed commits — just remind, do not offer to delete.
+- **PR/MR смержен или ветка запушена и ready-for-review, и в worktree нет незафиксированных изменений** → спросить: оставить worktree (ожидается ещё работа), или удалить его и локальную ветку (работа завершена). Если пользователь выбирает «удалить», запустить `git worktree remove <path>` и `git branch -D <branch>` (только после подтверждения, что ветка полностью смержена или её remote исчез).
+- **Ветка запушена, remote-tracking ветка исчезла (`gone` в `git branch -vv`)** → предложить очистку через `commit-commands:clean_gone` или вручную `git worktree remove` + `git branch -D`.
+- **Сигнал конца сессии** (пользователь говорит «закончили», «на сегодня всё», «всё, спасибо», завершение в стиле `/exit`, или вы собираетесь объявить многошаговую задачу завершённой) → если для работы этой сессии существует worktree и работа выглядит законченной (всё запушено, PR открыт или смержен, нет незафиксированных изменений) — предложить вариант очистки в завершающем сообщении. Если есть незафиксированные изменения или незапушенные коммиты — просто напомнить, не предлагать удалять.
 
-Skip the prompt entirely when:
-- The current checkout is the main repo, not a worktree.
-- Work is clearly in-progress (uncommitted changes, unpushed commits, draft PR with active TODOs).
-- The user has just created the worktree in this session.
+Пропустить подсказку полностью когда:
+- Текущий чекаут — основное репо, а не worktree.
+- Работа явно в процессе (незафиксированные изменения, незапушенные коммиты, draft PR с активными TODO).
+- Пользователь только что создал worktree в этой сессии.
 
-Never delete a worktree or branch without explicit confirmation. `git worktree remove --force` and `git branch -D` are not silent operations — name the worktree path and branch in the prompt so the user sees exactly what will be removed.
+Никогда не удалять worktree или ветку без явного подтверждения. `git worktree remove --force` и `git branch -D` — не тихие операции — называть путь worktree и ветку в подсказке, чтобы пользователь видел, что именно будет удалено.

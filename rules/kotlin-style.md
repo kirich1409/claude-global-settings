@@ -4,113 +4,113 @@ paths:
   - "**/*.kts"
 ---
 
-# Kotlin Rules
+# Правила Kotlin
 
-Applies to `.kt` and `.kts` files. Covers code style (visibility, collections, named arguments, empty blocks) plus project conventions a modern model omits by default — value-class validation, parameter nullability, KMP `commonMain` constraints, Clean Architecture + MVI layering. Generic idiomatic Kotlin (null safety, naming, organization) is **not** documented here; trust the model and the [official Kotlin Coding Conventions](https://kotlinlang.org/docs/coding-conventions.html).
+Применяется к файлам `.kt` и `.kts`. Охватывает стиль кода (видимость, коллекции, named arguments, пустые блоки) и проектные соглашения, которые современная модель упускает по умолчанию — валидация value class, nullable параметры, ограничения KMP `commonMain`, слои Clean Architecture + MVI. Общий идиоматичный Kotlin (null safety, именование, организация) **не** документирован здесь; доверяй модели и [официальным соглашениям Kotlin](https://kotlinlang.org/docs/coding-conventions.html).
 
-## Visibility — minimum by default
+## Видимость — минимальная по умолчанию
 
-The visibility of every declaration must be the narrowest one that still works. Always pick from this priority:
+Видимость каждого объявления должна быть наименьшей, при которой всё работает. Всегда выбирать из этого приоритета:
 
-1. **`private`** — first choice. Used inside one file or one class only.
-2. **`internal`** — next choice. Used across files inside the same module.
-3. **`public`** — last resort. Only for declarations that are intentionally part of the module's external API surface.
+1. **`private`** — первый выбор. Используется только внутри одного файла или одного класса.
+2. **`internal`** — следующий выбор. Используется между файлами внутри одного модуля.
+3. **`public`** — последний вариант. Только для объявлений, которые намеренно являются частью внешнего API модуля.
 
-Do not leave declarations at default `public` visibility "just because it compiles". Default `public` is a deliberate API decision, not a fallback.
+Нельзя оставлять объявления с дефолтной `public` видимостью «просто потому что компилируется». Дефолтная `public` — осознанное решение об API, а не запасной вариант.
 
-If the project has a clearly different, established visibility convention, follow the project.
+Если в проекте есть явно другое, устоявшееся соглашение о видимости — следовать проекту.
 
-### How to apply
+### Как применять
 
-- **New code in feature / internal-implementation modules** (`internal/` packages, `feature/.../internal/`, anything not in `api/`) → `internal` by default. Use `private` whenever the symbol is not referenced outside its file/class.
-- **Public API modules** (`api/`, exposed contracts in `:protocol/`, `:new-core/` shared infra) → `public` is acceptable, but only for declarations meant to be used by other modules. Internal helpers in these modules still go to `internal` / `private`.
-- **Top-level functions, extensions, properties** — same rule. A helper used only inside one file → `private`. Used across the module → `internal`. Never make it public unless other modules need it.
-- **Classes, interfaces, sealed hierarchies** — narrowest visibility wins. A sealed class implementation hierarchy used only inside the module must be `internal`.
-- **Constructors** — narrow them too. If a class is instantiated only through a factory or DI, mark the constructor `internal` or `private`.
-- **`companion object` members** — same priorities.
-- **Don't write the `public` keyword explicitly** — it's the Kotlin default. Writing `public class Foo` is redundant; use `class Foo`. The `public` keyword adds noise and signals nothing. Reserve explicit modifiers for `internal` and `private`.
+- **Новый код в feature / internal-implementation модулях** (`internal/` пакеты, `feature/.../internal/`, всё не в `api/`) → `internal` по умолчанию. Использовать `private` всегда, когда символ не используется за пределами своего файла/класса.
+- **Public API модули** (`api/`, экспонируемые контракты в `:protocol/`, `:new-core/` shared infra) → `public` допустимо, но только для объявлений, предназначенных для использования другими модулями. Внутренние хелперы в этих модулях всё равно идут в `internal` / `private`.
+- **Top-level функции, расширения, свойства** — то же правило. Хелпер, используемый только внутри одного файла → `private`. Используется по всему модулю → `internal`. Никогда не делать `public`, если другие модули не нуждаются в этом.
+- **Классы, interfaces, sealed-иерархии** — побеждает наименьшая видимость. Реализация sealed-иерархии, используемая только внутри модуля, должна быть `internal`.
+- **Конструкторы** — тоже сужать. Если класс инстанцируется только через фабрику или DI, пометить конструктор как `internal` или `private`.
+- **Члены `companion object`** — те же приоритеты.
+- **Не писать ключевое слово `public` явно** — это дефолт в Kotlin. `public class Foo` — избыточно; использовать `class Foo`. Ключевое слово `public` добавляет шум и ничего не сигнализирует. Явные модификаторы — только для `internal` и `private`.
 
-### When unsure
+### При сомнении
 
-If you cannot decide between `internal` and `public` — pick `internal`. Widening visibility later is trivial; narrowing it later is a breaking change for anyone who already used the broader form.
+Если не можешь выбрать между `internal` и `public` — выбирай `internal`. Расширить видимость позже тривиально; сузить позже — ломающее изменение для всех, кто уже использовал более широкую форму.
 
 ### `.kts` (Gradle Kotlin DSL)
 
-Same rule applies. Top-level helpers in convention plugins, `build.gradle.kts`, and `settings.gradle.kts` should be `private` if used only in that script, `internal` if shared inside the build module.
+Применяется то же правило. Top-level хелперы в convention plugins, `build.gradle.kts` и `settings.gradle.kts` должны быть `private` если используются только в этом скрипте, `internal` если разделяются внутри build-модуля.
 
-## Collection operations — prefer extension operators over `for` loops
+## Операции над коллекциями — предпочитать операторы-расширения над циклами `for`
 
-For any operation over a collection / `Sequence` / `Iterable` / `Map` / `Flow`, prefer the standard-library extension operator over an imperative `for` loop. The operator name documents intent; a `for` body with `if`/`add`/`continue` hides it.
+Для любой операции над коллекцией / `Sequence` / `Iterable` / `Map` / `Flow`, предпочитать стандартный оператор-расширение над императивным циклом `for`. Имя оператора документирует намерение; тело `for` с `if`/`add`/`continue` скрывает его.
 
-Common mappings:
+Общие соответствия:
 
-- Filter → `filter` / `filterNot` / `filterIsInstance` / `filterNotNull`.
-- Transform → `map` / `mapNotNull` / `mapIndexed` / `flatMap`.
-- Aggregate → `sumOf` / `count` / `maxByOrNull` / `minByOrNull` / `fold` / `reduce`.
-- Group / index → `groupBy` / `associateBy` / `associateWith`.
-- Search → `find` / `firstOrNull` / `any` / `all` / `none`.
-- Side effect over each element → `forEach` / `onEach` (use `onEach` when chaining).
-- Build a collection step-by-step → `buildList` / `buildSet` / `buildMap`.
+- Фильтрация → `filter` / `filterNot` / `filterIsInstance` / `filterNotNull`.
+- Трансформация → `map` / `mapNotNull` / `mapIndexed` / `flatMap`.
+- Агрегация → `sumOf` / `count` / `maxByOrNull` / `minByOrNull` / `fold` / `reduce`.
+- Группировка / индексирование → `groupBy` / `associateBy` / `associateWith`.
+- Поиск → `find` / `firstOrNull` / `any` / `all` / `none`.
+- Побочный эффект для каждого элемента → `forEach` / `onEach` (использовать `onEach` при цепочке).
+- Построение коллекции пошагово → `buildList` / `buildSet` / `buildMap`.
 
-### When `for` is the right choice
+### Когда `for` — правильный выбор
 
-Keep a `for` loop when **any** of these hold — the operator form would be worse:
+Использовать цикл `for`, когда выполняется **хотя бы одно** из условий — форма с оператором была бы хуже:
 
-- Early `return` from the enclosing function based on the loop body (cannot inline-return from `forEach` without `return@label` gymnastics).
-- Multiple side effects per iteration that don't compose into a single transformation (e.g. logging + mutating two unrelated structures + checking cancellation).
-- Index-and-neighbor access where `zipWithNext` / `windowed` would be less clear than direct `for (i in indices)`.
-- Performance-critical hot path where allocation of intermediate collections is measurable — prefer `Sequence` / `asSequence()` first; drop to `for` only when profiled.
+- Ранний `return` из объемлющей функции на основе тела цикла (нельзя inline-return из `forEach` без гимнастики с `return@label`).
+- Несколько побочных эффектов за итерацию, которые не компонуются в одно преобразование (например, логирование + мутация двух несвязанных структур + проверка отмены).
+- Индексный доступ и доступ к соседям, где `zipWithNext` / `windowed` были бы менее понятны, чем прямой `for (i in indices)`.
+- Критичный по производительности горячий путь, где аллокации промежуточных коллекций измеримы — предпочесть `Sequence` / `asSequence()` сначала; переходить к `for` только после профилирования.
 
-When in doubt, write the operator chain. If it ends up needing more than three operators or a `let`-tower, reconsider — but don't fall back to `for` mechanically.
+При сомнении писать цепочку операторов. Если в итоге нужно больше трёх операторов или башня `let` — пересмотреть, но не переходить к `for` механически.
 
-## Named arguments — required for ambiguous calls
+## Named arguments — обязательны для неоднозначных вызовов
 
-Use named arguments when **any** of the following hold:
+Использовать named arguments, когда выполняется **хотя бы одно** из условий:
 
-- The argument is a **primitive type** (`Boolean`, `Int`, `Long`, `String`, etc.) and its meaning is not obvious from the call site alone.
-- **Multiple parameters share the same type** — name every argument of that type. Other arguments in the same call may stay positional unless they fall under another rule.
-- A **lone boolean literal** is the worst offender — `setVisible(true)` tells the reader nothing. Name it even when it is the only argument: `setVisible(visible = true)`.
+- Аргумент — **примитивный тип** (`Boolean`, `Int`, `Long`, `String`, и т.д.) и его смысл не очевиден в месте вызова.
+- **Несколько параметров одного типа** — именовать каждый аргумент этого типа. Другие аргументы в том же вызове могут оставаться позиционными, если не попадают под другое правило.
+- **Одиночный булев литерал** — худший нарушитель: `setVisible(true)` ничего не говорит читателю. Именовать, даже если это единственный аргумент: `setVisible(visible = true)`.
 
 ```kotlin
-// Bad — three Strings, meaning unclear
+// Плохо — три String, смысл неясен
 createUser("Alice", "alice@example.com", "password123")
 
-// Good — same-type args named; positional allowed only when unambiguous
+// Хорошо — аргументы одного типа именованы; позиционные допустимы только когда однозначны
 createUser(name = "Alice", email = "alice@example.com", password = "password123")
 
-// Bad — Boolean argument with no context
+// Плохо — булев аргумент без контекста
 setRetry(true, 3)
 
-// Good
+// Хорошо
 setRetry(enabled = true, maxAttempts = 3)
 ```
 
-### When positional is fine
+### Когда позиционный допустим
 
-- Non-primitive, domain-typed argument whose type already documents the meaning: `show(dialog)`, `navigate(destination)`.
-- Single-argument call where the function name makes the argument obvious: `listOf(items)`, `println(message)`, `delay(500)`. A lone **boolean** literal is never exempt — see above.
-- Well-known stdlib/operator-style calls: `maxOf(a, b)`, `Pair(key, value)`.
+- Non-primitive, domain-типизированный аргумент, тип которого уже документирует смысл: `show(dialog)`, `navigate(destination)`.
+- Вызов с одним аргументом, где имя функции делает аргумент очевидным: `listOf(items)`, `println(message)`, `delay(500)`. Одиночный **булев** литерал никогда не является исключением — см. выше.
+- Хорошо известные вызовы stdlib/operator-style: `maxOf(a, b)`, `Pair(key, value)`.
 
-The test: a reader who sees only the call site — not the function signature — must be able to infer what each argument means without guessing.
+Тест: читатель, который видит только место вызова — не сигнатуру функции — должен суметь вывести смысл каждого аргумента без угадывания.
 
-## Empty blocks — delete the call
+## Пустые блоки — удалять вызов
 
-If a call ends with an empty `{}` block and the call exists only to satisfy a signature, delete it. An empty lambda / `apply {}` / `run {}` / `also {}` / `let {}` / `forEach {}` carries no behaviour and obscures the fact that nothing happens.
+Если вызов заканчивается пустым блоком `{}` и вызов существует только для удовлетворения сигнатуры — удалить его. Пустая лямбда / `apply {}` / `run {}` / `also {}` / `let {}` / `forEach {}` не несёт поведения и скрывает факт того, что ничего не происходит.
 
-### How to apply
+### Как применять
 
-- `something.apply {}` / `something.also {}` / `something.run {}` / `something.let {}` with empty body → delete the whole expression (or replace with the receiver if the value is used).
-- `forEach {}` / `onEach {}` with empty body → delete; the chain has no side effect to perform.
-- Empty `init {}` block in a class → delete.
-- Empty `catch (e: X) {}` — **not covered by this rule**: silently swallowing exceptions is a separate concern (see error-handling). Either log/handle or remove the `try` entirely.
-- Empty body required by an interface / abstract method override → keep, but add a one-line comment stating why nothing is done (`// no-op: <reason>`). Without the comment a reader cannot tell intentional from forgotten.
-- Empty lambda passed as a default-callback argument (`onClick = {}`) — keep only if the API requires non-null; prefer `null` + nullable type when the API allows it.
+- `something.apply {}` / `something.also {}` / `something.run {}` / `something.let {}` с пустым телом → удалить всё выражение (или заменить на receiver, если значение используется).
+- `forEach {}` / `onEach {}` с пустым телом → удалить; в цепочке нет побочного эффекта для выполнения.
+- Пустой блок `init {}` в классе → удалить.
+- Пустой `catch (e: X) {}` — **не подпадает под это правило**: тихое поглощение исключений — отдельная проблема (см. error-handling). Либо логировать/обрабатывать, либо полностью убрать `try`.
+- Пустое тело, требуемое переопределением interface / abstract метода → оставить, но добавить однострочный комментарий, почему ничего не делается (`// no-op: <причина>`). Без комментария читатель не может отличить намеренное от забытого.
+- Пустая лямбда, переданная как default-callback аргумент (`onClick = {}`) — оставлять только если API требует non-null; предпочитать `null` + nullable тип, когда API позволяет.
 
-The rule is about **calls that do nothing and mean nothing**. If the empty block expresses an intentional no-op at an API boundary, it stays — with a comment.
+Правило о **вызовах, которые ничего не делают и ничего не означают**. Если пустой блок выражает намеренный no-op на границе API — он остаётся с комментарием.
 
-## Value Class Validation
+## Валидация value class
 
-Wrapping a primitive in `@JvmInline value class` is the obvious part. The non-obvious part: **add `init { require(...) }` when the wrapper enforces a constraint** — non-blank, valid format, range. The model often skips this without a reminder.
+Обернуть примитив в `@JvmInline value class` — очевидная часть. Неочевидная: **добавить `init { require(...) }` когда обёртка накладывает ограничение** — непустая, валидный формат, диапазон. Модель часто пропускает это без напоминания.
 
 ```kotlin
 @JvmInline
@@ -124,30 +124,28 @@ value class FavoriteId(val value: String) {
 }
 ```
 
-If the wrapped value has no real constraint (e.g. opaque server-generated ID) — skip the `init` block. Validate where validation is meaningful, not as ceremony.
+Если обёрнутое значение не имеет реального ограничения (например, непрозрачный server-generated ID) — пропустить блок `init`. Валидировать там, где валидация имеет смысл, а не как ритуал.
 
-## Parameter Nullability and Overloads
+## Nullable параметры и перегрузки
 
-A nullable parameter on an extension or top-level function is a **design smell**. It usually means the responsibility for handling the absent case belongs one level up, at the call site.
+Nullable параметр на extension или top-level функции — **design smell**. Обычно это означает, что ответственность за обработку отсутствующего значения принадлежит уровнем выше, в месте вызова.
 
-- Extension and top-level functions take non-nullable receivers and parameters whenever possible — `fun String.parse()` not `fun String?.parse()`
-- If a caller may have a nullable value, provide an overload or let the caller use `?.` at the call site
-- Prefer overloads over a single function with nullable/default parameters when the two variants have meaningfully different behaviour — Kotlin overloads are idiomatic and cheap
+- Extension и top-level функции принимают non-nullable receivers и параметры везде, где возможно — `fun String.parse()`, а не `fun String?.parse()`
+- Если у вызывающего может быть nullable значение, предоставить перегрузку или позволить вызывающему использовать `?.` в месте вызова
+- Предпочитать перегрузки вместо одной функции с nullable/default параметрами, когда два варианта имеют существенно разное поведение — перегрузки Kotlin идиоматичны и дёшевы
 
 ## KMP / commonMain
 
-- No imports from `android.*`, `java.*`, `javax.*`, `dalvik.*` in `commonMain`
-- Only Kotlin stdlib and KMP-compatible libraries in `commonMain`
-- `expect/actual` only for platform-specific implementation details — business logic belongs in `commonMain`
-- Prefer `kotlinx.*` equivalents over JVM-only alternatives (e.g., `kotlinx.datetime` over `java.time`, `kotlinx.serialization` over Gson/Moshi)
+- Никаких импортов из `android.*`, `java.*`, `javax.*`, `dalvik.*` в `commonMain`
+- Только Kotlin stdlib и KMP-совместимые библиотеки в `commonMain`
+- `expect/actual` только для platform-specific деталей реализации — бизнес-логика принадлежит `commonMain`
+- Предпочитать `kotlinx.*` эквиваленты вместо JVM-only альтернатив (например, `kotlinx.datetime` вместо `java.time`, `kotlinx.serialization` вместо Gson/Moshi)
 
-## Architecture (Clean Architecture + MVI)
+## Архитектура (Clean Architecture + MVI)
 
-- UseCases are single-responsibility: one public `operator fun invoke()` (or project's chosen convention)
-- Repository **interfaces** live in the domain layer; **implementations** live in the data layer
-- Domain models / entities have **no framework dependencies** (exception: `kotlinx.coroutines`, `kotlinx.datetime`, `kotlinx.serialization` annotations)
-- Mappers are explicit functions or classes — never put mapping logic inside data classes
-- Never expose data-layer types (DTOs, Entities) through repository interfaces — always map to domain models at the layer boundary
-- `viewModelScope` / `lifecycleScope` belong in the Android presentation layer only — not in UseCases or Repositories
-
-
+- UseCase — единственная ответственность: один public `operator fun invoke()` (или принятое в проекте соглашение)
+- **Интерфейсы** Repository живут в domain слое; **реализации** — в data слое
+- Domain модели / entities **не имеют зависимостей от фреймворка** (исключение: `kotlinx.coroutines`, `kotlinx.datetime`, аннотации `kotlinx.serialization`)
+- Маппинг — явные функции или классы, никогда не помещать логику маппинга внутрь data classes
+- Никогда не экспонировать типы data-слоя (DTOs, Entities) через интерфейсы repository — всегда маппировать в domain-модели на границе слоя
+- `viewModelScope` / `lifecycleScope` принадлежат только Android presentation слою — не UseCases или Repositories
