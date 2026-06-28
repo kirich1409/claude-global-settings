@@ -428,7 +428,8 @@
     "ruby-lsp@claude-plugins-official": false,
     "context-mode@context-mode": true,
     "lazyweb@lazyweb": false,
-    "warp@claude-code-warp": true
+    "warp@claude-code-warp": true,
+    "claude-code-wakatime@wakatime": true
   },
   "extraKnownMarketplaces": {
     "ast-index-marketplace": {
@@ -492,6 +493,12 @@
       "source": {
         "source": "github",
         "repo": "warpdotdev/claude-code-warp"
+      }
+    },
+    "wakatime": {
+      "source": {
+        "source": "git",
+        "url": "https://github.com/wakatime/claude-code-wakatime.git"
       }
     }
   },
