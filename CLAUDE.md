@@ -26,3 +26,33 @@ Rules that are not open for discussion. Violating these is an error, not a judgm
 - Long-term maintainability over quick result.
 - **Minimal diff in existing code.** When fixing a bug or making a targeted change, touch only what the task requires. Don't rename variables, don't add input validation, don't restructure functions «for clarity», don't modernize patterns unless explicitly asked. Structural improvements live in a separate refactor commit with the user's consent. Reasoning bumps (`/effort high` and above) amplify the urge to over-edit — push back harder there. Green tests do not justify a bloated diff: over-editing is invisible to the test suite but visible to every reviewer.
 - **Empirical claims need an empirical check — don't conclude from armchair theory.** Before declaring a path infeasible («won't fit», «can't work», «not supported») — or working — on the strength of a calculation, a bandwidth/size estimate, or a theoretical argument, actually run the smallest real test that settles it. Our own math and reasoning can be wrong: a feasibility verdict is a *hypothesis* until a real run confirms it. Don't let a back-of-envelope estimate close a door that a short spike could check; and don't reuse a prior «it's impossible» conclusion without confirming it rested on a real run, not on theory. State explicitly when a claim is theoretical-only vs. empirically verified.
+
+## Rules index
+
+Always-on (loaded unconditionally for every session):
+
+- **ast-index.md** — code search tool hierarchy: ast-index first, LSP second, Grep last; decision matrix; hard rules; index freshness hooks
+- **code-policies.md** — feature flags, breaking changes, architectural decisions; logging pointer
+- **communication.md** — tone, language (Russian), formatting, length, question discipline
+- **context-resilience.md** — state files in `swarm-report/`; templates for state/e2e/debug/report; re-read rule
+- **dependencies.md** — no new deps without approval; plan-stage gate (freshness, CVE, API study); Gradle/Maven rules
+- **external-sources.md** — source routing table; tool discovery & multi-channel use; Context7 workflow; trust tiers T1–T4
+- **git-workflow.md** — branch naming, commit messages, force-push rules, local verification before push, worktree cleanup
+- **github-merge-policy.md** — auto-merge autonomy, anti-stall, personal vs team repo policy
+- **github-ops.md** — idempotent PR/issue/board helpers in `scripts/gh/`; board state machine; anti-hang rules
+- **model-effort-routing.md** — model × effort dispatch heuristic; agent routing guardrails
+- **orchestration.md** — main session boundaries (may/must not); process working files; Skill-first; subagent context delivery; plan mode; anti-patterns
+- **qa-and-testing.md** — verification pyramid L0–L5; public-API coverage gate; test priority P0–P4; broken-test rule; verification source of truth
+- **task-execution.md** — blocking error protocol; root-cause over suppression; scope creep; large output handling
+- **task-types.md** — routing matrix by task type; test feasibility gate; testability assessment; before-state baseline
+- **verify-library-api.md** — API verification before code; stack composition (Android/JVM/JS/other); reference implementations; fast-moving UI guidance (Compose/SwiftUI)
+- **workflow.md** — mandatory gates (preparation, finalize, acceptance, PR promotion); feature and bug-fix flows
+
+Paths-scoped (loaded only when matching files are read):
+
+- **android-cli.md** — Android CLI skills discovery and usage (scoped: Android/Gradle/KMP sources)
+- **code-style.md** — code clarity, mandatory inline comments, legacy code policy (scoped: all source extensions kt/java/swift/m/mm/js/jsx/ts/tsx/py/go/rs/cs/c/cc/cpp/h/hpp/rb/php)
+- **coroutines.md** — Kotlin coroutines style (scoped: `**/*.kt`)
+- **gradle-style.md** — Gradle build file conventions (scoped: `**/*.gradle*`, `**/*.kts`)
+- **kotlin-style.md** — Kotlin code style (scoped: `**/*.kt`)
+- **logging.md** — logger system, log levels, TEMP-LOG convention, redaction (scoped: all source extensions)
