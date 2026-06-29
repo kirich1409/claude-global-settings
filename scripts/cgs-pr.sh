@@ -25,7 +25,16 @@ POLL_INTERVAL=10
 die()  { printf '⚠ cgs-pr: %s\n' "$*" >&2; exit 1; }
 note() { printf '[cgs-pr] %s\n' "$*"; }
 
-gh_to() { timeout 30 gh "$@"; }   # bound every network call
+# Bound every network call so a hung API can't freeze the script. `timeout` is GNU coreutils
+# (absent on stock macOS, where it ships as `gtimeout`); fall back to an unbounded gh if neither.
+# Defined by availability to stay safe under bash 3.2 (macOS) — no empty-array expansion.
+if command -v timeout >/dev/null 2>&1; then
+  gh_to() { timeout 30 gh "$@"; }
+elif command -v gtimeout >/dev/null 2>&1; then
+  gh_to() { gtimeout 30 gh "$@"; }
+else
+  gh_to() { gh "$@"; }
+fi
 
 cmd_new() {
   local slug="${1:-}"
