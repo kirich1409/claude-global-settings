@@ -9,6 +9,14 @@ Parallel expert investigation of a topic before implementation. The Research Con
 launches up to 5 domain agents simultaneously, each investigating their slice independently,
 then synthesizes findings into a single structured report.
 
+**Where it sits.** Research **discovers** — it gathers understanding of an un-understood
+domain: approaches, aspects, feasibility, constraints, external requirements/regulations.
+Its output is *understanding* (a handoff report), not code and not a contract. Downstream:
+`research` → `/write-spec` (fixes the understood direction as a contract) → plan →
+implement. Any link is skipped when its input already exists (domain understood → straight
+to spec; no contract needed → straight to plan). Don't substitute research for fixing a
+contract or vice-versa. See [[workflow]] § Шаг 0 (триаж).
+
 **Synthesis-bias prevention.** The core invariant: **agents that gather data never synthesize
 it.** Each gather-agent runs in isolation with no visibility into the others — only the
 orchestrator merges their findings. This gather/synthesize separation is what makes the

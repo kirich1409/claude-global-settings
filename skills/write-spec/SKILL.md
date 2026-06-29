@@ -63,6 +63,17 @@ laying out options from minimal to full, with a recommended option based on proj
 context. Skip if scope is clearly understood. Trigger on: external services,
 multi-system integration, OS-level capabilities.
 
+**Domain-understanding gate (research-first).** This skill's own research phase (Phase 1)
+assumes the *direction is already chosen* — it fleshes out an understood domain (codebase,
+specific APIs, the integrations you've decided on), it does NOT discover *how the thing
+should work at all* or which approaches exist. If the **how** is still unknown — approaches,
+feasibility, external regulations not yet understood (e.g. "withdraw money" before the
+transfer mechanics / compliance / bank integration are understood) — STOP and run the
+standalone `research` skill first, then return to the spec once understanding is gathered.
+A spec **fixes** what's understood into a contract; it is not the tool for first-time
+discovery. Pipeline: `research` (understand) → `write-spec` (fix as contract) → plan →
+implement. See [[workflow]] § Шаг 0 (триаж).
+
 ### Research track selection
 
 Don't run everything by default. Activate tracks based on what gives useful signal:
