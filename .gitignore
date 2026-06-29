@@ -23,6 +23,9 @@
 !hooks/
 !hooks/**
 
+# === CLOUD SETUP ===
+!cloud-setup.sh
+
 # === AGENTS ===
 !agents/
 !agents/**
