@@ -23,6 +23,7 @@
 - **После merge:** ff основного чекаута (`csync` или `git merge --ff-only origin/main`). Stall-риск: strict-чек + GitHub не авто-обновляет ветки PR → при гонке машин второй PR устаревает и auto-merge зависает; ловить open-but-stale PR громко, не считать `--auto` гарантией merge.
 - Если `--delete-branch` при auto-merge не удалил remote-ветку (`delete_branch_on_merge: false`) — удалить вручную: `git push origin --delete <branch>`.
 - **Helper:** `scripts/cgs-pr.sh new <slug>` поднимает worktree+ветку; после правок `scripts/cgs-pr.sh ship "<title>"` (из worktree) инкапсулирует весь хвост (commit → push → PR → auto-merge → опрос → ff main → уборка). При зависшем/закрытом PR worktree остаётся для разбора. Для удобства завести alias `cgspr="$HOME/.claude/scripts/cgs-pr.sh"` (alias локален, не синкается).
+- **Новая машина / онбординг:** `scripts/bootstrap-machine.sh` сводит чекаут машины на каноничный `origin/main` (ff-only; стоп при незапушенных локальных коммитах/правках, чтобы не потерять — `--force` для жёсткого reset), проверяет `gh auth` и заводит локальные алиасы. Запускать вне активной Claude-сессии (иначе гонка с auto-pull-хуком).
 
 ## Подсказки по очистке worktree
 
