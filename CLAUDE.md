@@ -46,7 +46,7 @@
 - **task-execution.md** — протокол блокирующих ошибок; первопричина над подавлением; scope creep; обработка большого вывода
 - **task-types.md** — матрица маршрутизации по типу задачи; gate проверки тестируемости; оценка тестируемости; baseline состояния до изменений
 - **verify-library-api.md** — верификация API до написания кода; компоновка по стекам (Android/JVM/JS/other); эталонные реализации; руководство по быстро меняющемуся UI (Compose/SwiftUI)
-- **workflow.md** — обязательные gates (preparation, finalize, acceptance, PR promotion); потоки для фич и багфиксов
+- **workflow.md** — Шаг 0 триаж (классификация входящего: тривиально / вопрос / research / spec / декомпозиция / план / сразу); обязательные gates (preparation, finalize, acceptance, PR promotion); потоки для фич и багфиксов
 
 Paths-scoped (загружаются только при чтении соответствующих файлов):
 
