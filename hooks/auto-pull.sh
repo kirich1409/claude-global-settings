@@ -1,14 +1,16 @@
 #!/bin/bash
-# Auto-sync ~/.claude on session start: commit local edits, rebase on remote, push.
+# Auto-sync ~/.claude on session start: fast-forward local main from origin. PULL-ONLY.
+#
+# Model: local main is a pure mirror of origin/main and must stay clean. This hook ONLY
+# fast-forwards main; it never commits, never pushes, never opens PRs. Changes are the
+# changer's responsibility — made on a branch / worktree and merged via a pull request
+# (auto-merge), never on main.
 #
 # Core invariant: NEVER fail silently. Every non-OK outcome is recorded loudly via three
 # channels — ~/.claude/.sync-status (rendered in the statusline on every prompt), an OS
 # notification on hard failures, and stdout (which Claude relays). The hook always exits 0
 # so it can never break a Claude Code session, but it never stays silent about a problem.
-#
-# Phase 1 of the csync rework (see swarm-report/csync-pr-sync-plan.md): the previous version
-# committed "[auto-pull] save local" but NEVER pushed — local changes sat unpushed until a
-# manual csync, which is the root cause of "working on a stale version". This version pushes.
+# A dirty or diverged main is a loud alarm here, never an automatic commit.
 
 set -uo pipefail
 
@@ -17,8 +19,8 @@ STATUS="$REPO/.sync-status"
 
 cd "$REPO" 2>/dev/null || exit 0
 
-# Recursion guard: a `claude -p` spawned by csync's conflict resolver must not re-enter sync
-# (its own SessionStart would trigger this hook again). csync exports CLAUDE_SYNC_ACTIVE=1.
+# Recursion guard: any `claude -p` spawned within sync must not re-enter (its own SessionStart
+# would trigger this hook again). csync exports CLAUDE_SYNC_ACTIVE=1.
 [ -n "${CLAUDE_SYNC_ACTIVE:-}" ] && exit 0
 
 git rev-parse --git-dir >/dev/null 2>&1 || exit 0
@@ -41,12 +43,11 @@ if [ -d .git/rebase-merge ] || [ -d .git/rebase-apply ]; then
   git rebase --abort 2>/dev/null || true
 fi
 
-# Commit local edits so rebase/push has a clean tree
-if ! git diff --quiet 2>/dev/null || ! git diff --cached --quiet 2>/dev/null; then
-  if ! git add -A 2>/dev/null || ! git commit --quiet -m "[auto-pull] save local $(hostname -s)" 2>/dev/null; then
-    alarm "cannot commit local edits — sync skipped; fix git state in ~/.claude"
-    exit 0
-  fi
+# Only ever sync the main checkout's main branch.
+BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "?")
+if [ "$BRANCH" != "main" ]; then
+  warn "checkout on '$BRANCH', not main — sync skipped (main must be the working branch)"
+  exit 0
 fi
 
 # Fetch — offline is a loud (soft) state, not a silent skip
@@ -55,36 +56,31 @@ if ! git fetch --quiet origin 2>/dev/null; then
   exit 0
 fi
 
-UPSTREAM=$(git rev-parse --abbrev-ref '@{upstream}' 2>/dev/null || echo origin/main)
-BEHIND=$(git rev-list --count "HEAD..$UPSTREAM" 2>/dev/null || echo 0)
-
-# Rebase local commits on top of remote when behind
-if [ "$BEHIND" -gt 0 ]; then
-  if ! git rebase --quiet "$UPSTREAM" 2>/dev/null; then
-    git rebase --abort 2>/dev/null || true
-    # Save remote versions of conflicting files for manual merge
-    while IFS= read -r f; do
-      [ -z "$f" ] && continue
-      git show "$UPSTREAM:$f" > "$REPO/$f.remote" 2>/dev/null || true
-    done < <(git diff --name-only HEAD "$UPSTREAM" 2>/dev/null)
-    alarm "merge conflict — remote saved as *.remote; merge them and run csync"
-    exit 0
-  fi
+# Guard: tracked edits on main bypass the PR flow. Do NOT commit them — flag loudly.
+if ! git diff --quiet 2>/dev/null || ! git diff --cached --quiet 2>/dev/null; then
+  alarm "main has uncommitted tracked edits — move them to a branch + PR; main must stay clean"
+  exit 0
 fi
 
-# Push any local commits (the fix for the unpushed-commits root cause)
-AHEAD=$(git rev-list --count "$UPSTREAM..HEAD" 2>/dev/null || echo 0)
+# Guard: local commits ahead of origin bypass the PR flow.
+AHEAD=$(git rev-list --count origin/main..HEAD 2>/dev/null || echo 0)
 if [ "$AHEAD" -gt 0 ]; then
-  if git push --quiet 2>/dev/null; then
+  alarm "main is $AHEAD commit(s) ahead of origin (bypasses PR flow) — reset or move to a branch + PR"
+  exit 0
+fi
+
+# Fast-forward to origin/main when behind.
+BEHIND=$(git rev-list --count HEAD..origin/main 2>/dev/null || echo 0)
+if [ "$BEHIND" -gt 0 ]; then
+  if git merge --ff-only --quiet origin/main 2>/dev/null; then
     clear_status
-    note "synced (pushed $AHEAD, pulled $BEHIND)"
+    note "synced (pulled $BEHIND)"
   else
-    alarm "push failed — $AHEAD local commit(s) NOT synced; run csync"
+    alarm "fast-forward failed — local main diverged; reset to origin/main"
     exit 0
   fi
 else
   clear_status
-  [ "$BEHIND" -gt 0 ] && note "synced (pulled $BEHIND)"
 fi
 
 exit 0
