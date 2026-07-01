@@ -280,7 +280,7 @@
     ],
     "defaultMode": "auto"
   },
-  "model": "opus",
+  "model": "sonnet",
   "hooks": {
     "SessionStart": [
       {
@@ -495,6 +495,12 @@
       "source": {
         "source": "git",
         "url": "https://github.com/wakatime/claude-code-wakatime.git"
+      }
+    },
+    "claude-code-workflows": {
+      "source": {
+        "source": "git",
+        "url": "https://github.com/wshobson/agents.git"
       }
     }
   },
