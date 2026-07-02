@@ -280,7 +280,7 @@
     ],
     "defaultMode": "auto"
   },
-  "model": "sonnet",
+  "model": "fable",
   "hooks": {
     "SessionStart": [
       {
@@ -568,6 +568,7 @@
     }
   },
   "alwaysThinkingEnabled": true,
+  "effortLevel": "xhigh",
   "advisorModel": "opus",
   "showClearContextOnPlanAccept": true,
   "tui": "fullscreen",
