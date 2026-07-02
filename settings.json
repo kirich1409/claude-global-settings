@@ -280,7 +280,7 @@
     ],
     "defaultMode": "auto"
   },
-  "model": "haiku",
+  "model": "fable",
   "hooks": {
     "SessionStart": [
       {
