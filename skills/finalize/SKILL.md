@@ -54,7 +54,7 @@ Round N:
 
 **Exit criteria.** PASS — no BLOCK findings; WARN / NIT listed in report, never block. ESCALATE — after `max_rounds`, BLOCKs remain; dump unresolved findings, caller decides override or return to implementation.
 
-**Max round budget.** Default 3, overridable via `--max-rounds N` (≥ 1). Regularly hitting the cap means Phase A's `code-reviewer` confidence threshold should be tuned (`developer-workflow-experts/agents/code-reviewer.md`), not `max_rounds` silently raised.
+**Max round budget.** Default 3, overridable via `--max-rounds N` (≥ 1). Regularly hitting the cap means Phase A's `code-reviewer` confidence threshold should be tuned (`~/.claude/agents/code-reviewer.md`), not `max_rounds` silently raised.
 
 ---
 
@@ -99,7 +99,7 @@ Surviving correctness findings enter **Round 1**'s fix loop, graded by `failure_
 
 ## Phase A — Semantic review (code-reviewer)
 
-Launch `code-reviewer` (from `developer-workflow-experts`) with task description verbatim, plan artifact path (`docs/plans/<slug>/plan.md`, else legacy `swarm-report/<slug>-plan.md`) if it exists, and `git diff` of all branch changes. Returns PASS / WARN / FAIL with findings on the 0/25/50/75/100 confidence rubric (only above-threshold findings surface).
+Launch `code-reviewer` (`~/.claude/agents/code-reviewer.md`) with task description verbatim, plan artifact path (`docs/plans/<slug>/plan.md`, else legacy `swarm-report/<slug>-plan.md`) if it exists, and `git diff` of all branch changes. Returns PASS / WARN / FAIL with findings on the 0/25/50/75/100 confidence rubric (only above-threshold findings surface).
 
 Non-negotiables violations from applicable `CLAUDE.md` `## Non-negotiables` are always BLOCK regardless of confidence — never moved to "acknowledged risks".
 
@@ -111,7 +111,7 @@ Non-negotiables violations from applicable `CLAUDE.md` `## Non-negotiables` are 
 
 FAIL verdict → this phase has BLOCKs to address before continuing.
 
-**Why Phase A keeps a dedicated `code-reviewer` alongside Phase 0's `/code-review`.** Phase A's `code-reviewer` (from `developer-workflow-experts`) is **not** replaced by the built-in `/code-review`: it owns plan-conformance anchoring and the rule "a `CLAUDE.md` Non-negotiables violation is always BLOCK regardless of confidence" — neither of which the generic `/code-review` performs. The recall the built-in harness adds (removed-behavior, cross-file, altitude, line-by-line correctness) is captured separately by **Phase 0**, deduped against Phase A, rather than by swapping Phase A's reviewer.
+**Why Phase A keeps a dedicated `code-reviewer` alongside Phase 0's `/code-review`.** Phase A's `code-reviewer` (`~/.claude/agents/code-reviewer.md`) is **not** replaced by the built-in `/code-review`: it owns plan-conformance anchoring and the rule "a `CLAUDE.md` Non-negotiables violation is always BLOCK regardless of confidence" — neither of which the generic `/code-review` performs. The recall the built-in harness adds (removed-behavior, cross-file, altitude, line-by-line correctness) is captured separately by **Phase 0**, deduped against Phase A, rather than by swapping Phase A's reviewer.
 
 An earlier version of this gate omitted `/code-review` entirely, on the theory that "a third generic reviewer stacked on Phase A + Phase C only raises duplication." That was contradicted empirically — `/code-review` surfaces real findings the dedicated reviewer and the Phase C quartet miss (removed guards, broken call sites, bandaid-altitude fixes) — so per `~/.claude/CLAUDE.md` (empirical claims beat armchair theory) the harness is now wired in as a **deduped one-shot (Phase 0)**, not stacked per round. The `code-review:code-review` marketplace plugin remains avoided by name (it needs a PR number and reviews no working tree); Phase 0 binds the **core** built-in and degrades gracefully if a foreign install shadows it (see Phase 0 Binding check). The cloud `/code-review ultra` stays a manual pre-merge escape OUTSIDE this gate.
 
@@ -191,7 +191,7 @@ The default `risk_areas`-based trigger requires an explicit declaration in spec/
 
 Same severity × confidence gate as Phase A. Specifics:
 
-- Security-critical at confidence 50 — rely on `code-reviewer`'s **Critical-risk exception** (`developer-workflow-experts/agents/code-reviewer.md` § Critical-risk exception): finding is included with a `[please verify]` marker prefixed to `issue`. Treat as BLOCK; fix or escalate.
+- Security-critical at confidence 50 — rely on `code-reviewer`'s **Critical-risk exception** (`~/.claude/agents/code-reviewer.md` § Critical-risk exception): finding is included with a `[please verify]` marker prefixed to `issue`. Treat as BLOCK; fix or escalate.
 - Performance / architecture + critical ≥ 75: fix if local to the diff; escalate if broader rework needed.
 - No parallel "always fix at 50" rule — the rubric is defined once in `code-reviewer.md` and inherited.
 
@@ -351,6 +351,6 @@ Never paste the report table into chat — the file is for reference.
 
 ## Dependencies
 
-- **Hard** (`plugin.json`): `developer-workflow-experts` — `code-reviewer`, `security-expert`, `performance-expert`, `architecture-expert`.
+- **Hard:** local agents in `~/.claude/agents/` — `code-reviewer.md`, `security-expert.md`, `performance-expert.md`, `architecture-expert.md`.
 - **Optional soft-ref** (Phase C auto-skips when absent): `pr-review-toolkit` (marketplace `claude-plugins-official`) — `pr-test-analyzer`, `silent-failure-hunter`, `type-design-analyzer` (always), `comment-analyzer` (only when the diff touches comments / doc-comments).
 - **Built-in:** `/code-review` (core recall harness — Phase 0; degrades gracefully if a marketplace shadow binds instead), `/simplify`, `/check`.

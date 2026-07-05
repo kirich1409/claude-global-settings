@@ -39,7 +39,7 @@ Read artifact + detect profile → discover agents, pre-select per `profile.revi
 
 ## Persistence (compaction resilience)
 
-Save state to `./swarm-report/multiexpert-review-<slug>-state.md` (or `multiexpert-review-<YYYYMMDD-HHMM>-state.md` if no slug known). Follow the persistent-state template conventions from `~/.claude/CLAUDE.md` § Context compaction resilience.
+Save state to `./swarm-report/multiexpert-review-<slug>-state.md` (or `multiexpert-review-<YYYYMMDD-HHMM>-state.md` if no slug known). Follow the persistent-state template conventions from `rules/context-resilience.md`.
 
 **Slug source** (priority order): explicit caller args (`slug:`), artifact frontmatter `slug:`, artifact filename without extension, timestamp fallback.
 

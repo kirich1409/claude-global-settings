@@ -53,6 +53,6 @@ Paths-scoped (загружаются только при чтении соотв
 - **android-cli.md** — обнаружение и использование Android CLI skills (scoped: Android/Gradle/KMP sources)
 - **code-style.md** — чистота кода, обязательные inline-комментарии, политика legacy-кода (scoped: все исходные расширения kt/java/swift/m/mm/js/jsx/ts/tsx/py/go/rs/cs/c/cc/cpp/h/hpp/rb/php)
 - **coroutines.md** — стиль Kotlin coroutines (scoped: `**/*.kt`)
-- **gradle-style.md** — соглашения Gradle build-файлов (scoped: `**/*.gradle*`, `**/*.kts`)
-- **kotlin-style.md** — стиль кода Kotlin (scoped: `**/*.kt`)
+- **gradle-style.md** — соглашения Gradle build-файлов (scoped: `**/*.gradle.kts`, `**/*.gradle`, `**/libs.versions.toml`)
+- **kotlin-style.md** — стиль кода Kotlin (scoped: `**/*.kt`, `**/*.kts`)
 - **logging.md** — система логирования, уровни логов, соглашение TEMP-LOG, редактирование (scoped: все исходные расширения)

@@ -40,11 +40,11 @@ The setup script creates a full backup before any changes, adds `csync` alias, a
 
 ## Sync
 
-**Pull** is automatic -- `SessionStart` hook runs `git pull --rebase` at the beginning of every Claude Code session.
+PR-only: `main` always stays clean, and every change to a tracked file ships through a branch + pull request with auto-merge -- never a direct commit to `main`.
 
-**Push** is manual -- run `csync` after changing settings, hooks, or skills.
+**Pull** -- `csync` (alias for `hooks/sync-settings.sh`) and the `SessionStart` auto-pull hook (`hooks/auto-pull.sh`) only fetch and fast-forward `main` to `origin/main`. Neither ever commits, pushes, or opens a PR. A dirty or ahead-of-origin `main` is a loud error (statusline + OS notification), not something they auto-fix.
 
-On conflict, both scripts save remote versions as `*.remote` files. Claude auto-merges them at session start (see `CLAUDE.md`), or you can merge manually and run `csync`.
+**Push** -- edit tracked files (`CLAUDE.md`, `rules/`, `settings*.json`, `hooks/`, `scripts/`, `skills/`, `agents/`) on a branch, preferably via a worktree, then open a PR: `scripts/cgs-pr.sh new <slug>` creates the worktree + branch, `scripts/cgs-pr.sh ship "<title>"` commits, pushes, opens the PR, and enables auto-merge.
 
 ## Portability
 
