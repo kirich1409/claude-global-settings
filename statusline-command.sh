@@ -2,7 +2,6 @@
 # Read all of stdin into a variable
 input=$(cat)
 
-MODEL=$(echo "$input" | jq -r '.model.display_name')
 DIR=$(echo "$input" | jq -r '.workspace.current_dir')
 
 GREEN='\033[32m'

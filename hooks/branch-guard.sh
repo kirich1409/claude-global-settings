@@ -6,6 +6,10 @@
 
 INPUT=$(cat)
 
+if ! command -v python3 >/dev/null 2>&1; then
+    echo "WARN: python3 not found — branch-guard cannot parse tool input, skipping check" >&2
+fi
+
 # Extract file_path from tool_input (Claude Code wraps tool arguments under tool_input)
 FILE_PATH=$(echo "$INPUT" | python3 -c "
 import sys, json

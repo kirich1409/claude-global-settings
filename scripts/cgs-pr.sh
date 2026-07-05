@@ -25,16 +25,9 @@ POLL_INTERVAL=10
 die()  { printf '⚠ cgs-pr: %s\n' "$*" >&2; exit 1; }
 note() { printf '[cgs-pr] %s\n' "$*"; }
 
-# Bound every network call so a hung API can't freeze the script. `timeout` is GNU coreutils
-# (absent on stock macOS, where it ships as `gtimeout`); fall back to an unbounded gh if neither.
-# Defined by availability to stay safe under bash 3.2 (macOS) — no empty-array expansion.
-if command -v timeout >/dev/null 2>&1; then
-  gh_to() { timeout 30 gh "$@"; }
-elif command -v gtimeout >/dev/null 2>&1; then
-  gh_to() { gtimeout 30 gh "$@"; }
-else
-  gh_to() { gh "$@"; }
-fi
+# Bound every network call so a hung API can't freeze the script.
+source "$(dirname "${BASH_SOURCE[0]}")/gh/_common.sh"
+gh_to() { gh_with_timeout "$GH_REST_TIMEOUT" gh "$@"; }
 
 cmd_new() {
   local slug="${1:-}"
@@ -55,7 +48,7 @@ cmd_ship() {
   # Must run from inside a worktree on a non-main branch.
   local top branch
   top=$(git rev-parse --show-toplevel 2>/dev/null) || die "not in a git repo"
-  branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
+  branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null) || die "not on a branch (detached HEAD?)"
   [ "$branch" = "main" ] && die "on main — run ship from a chore/<slug> worktree, not main"
   [ "$top" = "$REPO" ] && die "this is the main checkout — run ship from the worktree"
   [ -n "$title" ] || title="$branch"
@@ -73,8 +66,13 @@ cmd_ship() {
   note "pushed $branch"
 
   # Reuse an existing open PR for this branch; else create one (idempotent).
-  local pr
-  pr=$(gh_to pr list --repo "$REMOTE_REPO" --head "$branch" --state open --json number --jq '.[0].number' 2>/dev/null)
+  local pr pr_rc
+  pr=$(gh_to pr list --repo "$REMOTE_REPO" --head "$branch" --state open --json number --jq '.[0].number' 2>&1)
+  pr_rc=$?
+  [ "$pr_rc" -eq 0 ] || die "gh pr list failed (network/API failure): $pr"
+  # stderr is folded into $pr for the error message above; on success only a bare PR
+  # number (or nothing) is expected — anything else is gh noise, not a PR number.
+  [[ "$pr" =~ ^[0-9]*$ ]] || die "unexpected gh pr list output: $pr"
   if [ -z "$pr" ]; then
     pr=$(gh_to pr create --repo "$REMOTE_REPO" --base main --head "$branch" \
           --title "$title" \
@@ -112,7 +110,9 @@ cmd_ship() {
     git -C "$REPO" push --quiet origin --delete "$branch" 2>/dev/null && note "deleted remote $branch"
   fi
 
-  # Remove this worktree + branch from the main checkout (works even though cwd is the worktree).
+  # Remove this worktree + branch from the main checkout. `git worktree remove` refuses to remove
+  # a worktree that is the current directory, so leave it first.
+  cd "$REPO" || die "cannot cd to $REPO"
   git -C "$REPO" worktree remove --force "$top" 2>/dev/null && note "removed worktree $top"
   git -C "$REPO" branch -D "$branch" 2>/dev/null && note "deleted local $branch"
   note "done — main at $(git -C "$REPO" log --oneline -1)"

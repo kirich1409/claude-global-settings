@@ -4,15 +4,12 @@
 # Read the tool input from stdin
 INPUT=$(cat)
 
-# Find the file path
-FILE_PATH=""
-if echo "$INPUT" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('file_path',''))" 2>/dev/null | read -r path; then
-    FILE_PATH="$path"
+if ! command -v python3 >/dev/null 2>&1; then
+    echo "WARN: python3 not found — cross-repo-guard cannot parse tool input, skipping check" >&2
 fi
 
-if [ -z "$FILE_PATH" ]; then
-    FILE_PATH=$(echo "$INPUT" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('file_path', d.get('filePath','')))" 2>/dev/null)
-fi
+# Find the file path
+FILE_PATH=$(echo "$INPUT" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('file_path', d.get('filePath','')))" 2>/dev/null)
 
 # Need both a file path and a current git root
 [ -z "$FILE_PATH" ] && exit 0
@@ -27,11 +24,11 @@ FILE_GIT_ROOT=$(git -C "$(dirname "$FILE_PATH")" rev-parse --show-toplevel 2>/de
 [ -z "$FILE_GIT_ROOT" ] && exit 0
 
 if [ "$CWD_GIT_ROOT" != "$FILE_GIT_ROOT" ]; then
-    echo "CROSS-REPO: File '$FILE_PATH' belongs to a different git repo/worktree."
-    echo "  Current worktree: $CWD_GIT_ROOT"
-    echo "  File worktree:    $FILE_GIT_ROOT"
-    echo ""
-    echo "Please confirm this is intentional before proceeding."
+    echo "CROSS-REPO: File '$FILE_PATH' belongs to a different git repo/worktree." >&2
+    echo "  Current worktree: $CWD_GIT_ROOT" >&2
+    echo "  File worktree:    $FILE_GIT_ROOT" >&2
+    echo "" >&2
+    echo "Please confirm this is intentional before proceeding." >&2
     exit 2
 fi
 
