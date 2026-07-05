@@ -2,6 +2,13 @@
 # Read all of stdin into a variable
 input=$(cat)
 
+# Guard: без jq все поля молча деградировали бы в пустоту — вместо этого
+# выводим минимальный статичный statusline (basename cwd) и выходим.
+if ! command -v jq >/dev/null 2>&1; then
+    printf '%s | jq not found' "$(basename "$PWD")"
+    exit 0
+fi
+
 DIR=$(echo "$input" | jq -r '.workspace.current_dir')
 
 GREEN='\033[32m'
