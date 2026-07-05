@@ -1,23 +1,23 @@
-# SwiftUI Performance — Non-Obvious Rules
+# SwiftUI Performance — неочевидные правила
 
-This file lists only the SwiftUI performance rules a modern Claude model omits or gets wrong without a reminder. Generic guidance — `body` is pure, no object allocation in `body`, no side effects in `body`, basic `withAnimation`, `matchedGeometryEffect` — is **not** documented here; trust the model.
+Этот файл перечисляет только те правила производительности SwiftUI, которые современная модель Claude опускает или ошибочно применяет без напоминания. Общие рекомендации — `body` чист, никаких аллокаций объектов в `body`, никаких side effects в `body`, базовый `withAnimation`, `matchedGeometryEffect` — здесь **не** документируются; доверяй модели.
 
-For view-identity rules (`if` vs `.opacity`, `id: \.self` traps), see `swiftui-patterns.md`. The performance impact is the same as the correctness impact — chosen deliberately is the rule.
+Про правила identity view (`if` vs `.opacity`, ловушки `id: \.self`) — см. `swiftui-patterns.md`. Влияние на производительность такое же, как влияние на корректность — выбирать осознанно, это и есть правило.
 
 ---
 
-## `@Observable` Tracks Per-Property Reads — Granularity Matters
+## `@Observable` отслеживает чтения по каждому свойству — важна гранулярность
 
-`@Observable` is **not** like `@Published` / `objectWillChange`. Each property read in `body` becomes a tracked dependency. Two consequences the model misses:
+`@Observable` — **не** то же самое, что `@Published` / `objectWillChange`. Каждое чтение свойства в `body` становится отслеживаемой зависимостью. Два следствия, которые модель упускает:
 
-1. **Read only what you display.** Touching `model.totalCount` in a hidden modifier or a debug `Text` makes the view re-render whenever `totalCount` changes — even if it's not visible.
+1. **Читать только то, что отображается.** Обращение к `model.totalCount` в скрытом модификаторе или debug-`Text` заставляет view перерисовываться при каждом изменении `totalCount` — даже если он не отображается.
 
-2. **Computed properties on the model that read N stored properties create N dependencies in any caller.** A "convenient" `var summary: String { "\(name) — \(count) items" }` makes every caller re-render on changes to `name` OR `count`.
+2. **Вычисляемые свойства модели, читающие N хранимых свойств, создают N зависимостей у любого вызывающего.** «Удобный» `var summary: String { "\(name) — \(count) items" }` заставляет каждого вызывающего перерисовываться при изменении `name` ИЛИ `count`.
 
-Destructuring at the top of `body` doesn't bypass tracking — both reads still register:
+Деструктуризация в начале `body` не обходит трекинг — оба чтения всё равно регистрируются:
 
 ```swift
-// DON'T — tracks all of name, status, items
+// НЕ ТАК — отслеживает и name, и status, и items
 var body: some View {
     let title = model.name
     let badge = model.status
@@ -26,47 +26,47 @@ var body: some View {
 }
 ```
 
-(This is also covered in `swiftui-state.md`. Same rule, performance-critical.)
+(Это также описано в `swiftui-state.md`. То же правило, критично для производительности.)
 
-## Hoist Allocations Out of `body`
+## Выносить аллокации из `body`
 
-The model emits `let formatter = DateFormatter()` inside `body` from generic Swift habit. SwiftUI re-evaluates `body` constantly — every render allocates a new formatter, configures it, and throws it away. On a `List` with hundreds of rows this is real cost.
+Модель по привычке обычного Swift выдаёт `let formatter = DateFormatter()` внутри `body`. SwiftUI постоянно переоценивает `body` — при каждом рендере аллоцируется новый formatter, конфигурируется и выбрасывается. На `List` с сотнями строк это реальные затраты.
 
 ```swift
-// DO — created once
+// ТАК — создаётся один раз
 private static let priceFormatter: NumberFormatter = {
     let f = NumberFormatter(); f.numberStyle = .currency; return f
 }()
 ```
 
-Same applies to sort/filter/map of large collections. Compute in the model or in a cached computed property — never inline in `body`.
+То же применимо к sort/filter/map больших коллекций. Вычислять в модели или в кэшируемом вычисляемом свойстве — никогда инлайн в `body`.
 
-## `id: \.offset` From `enumerated()` Mis-Associates State
+## `id: \.offset` из `enumerated()` неправильно ассоциирует state
 
-For `ForEach` over a collection that changes shape (insertions, deletions, reorder), array index as identity is wrong:
+Для `ForEach` над коллекцией, меняющей форму (вставки, удаления, переупорядочивание), индекс массива как identity — неправильно:
 
 ```swift
-// DON'T — insert at top: every row's animations and @State move to the wrong row
+// НЕ ТАК — вставка сверху: анимации и @State каждой строки переезжают не на ту строку
 ForEach(Array(items.enumerated()), id: \.offset) { index, item in /* ... */ }
 ```
 
-Use `Identifiable` conformance or an explicit `\.id` keypath. `id: \.self` is acceptable only for immutable collections of simple values.
+Использовать соответствие `Identifiable` или явный keypath `\.id`. `id: \.self` допустим только для неизменяемых коллекций простых значений.
 
-## `.animation(_:value:)` Requires `value`
+## `.animation(_:value:)` требует `value`
 
-`.animation(.default)` without a `value:` parameter is **deprecated** and animates every state change in the subtree, including unrelated ones. The model still emits the value-less form from older training data. Always specify `value:`:
+`.animation(.default)` без параметра `value:` **deprecated** и анимирует каждое изменение state в поддереве, включая несвязанные. Модель всё ещё выдаёт форму без value из старых training-данных. Всегда указывать `value:`:
 
 ```swift
 Text("Count: \(count)")
     .animation(.spring, value: count)
 ```
 
-## Image Memory — `.frame()` Doesn't Downsample
+## Память изображений — `.frame()` не выполняет downsampling
 
-`.frame(width:height:)` only sets the **display** size. The image is still decoded at full resolution and stored in memory at full resolution. On a list with 100 large remote images, this blows up memory even if each thumbnail is 80×80.
+`.frame(width:height:)` задаёт только **отображаемый** размер. Изображение всё равно декодируется в полном разрешении и хранится в памяти в полном разрешении. На списке со 100 большими удалёнными изображениями это раздувает память, даже если каждый thumbnail 80×80.
 
-To actually reduce decode cost: use `preparingThumbnail(of:)` (or downsample at the data layer for known thumbnail sizes). The model writes `AsyncImage(url:).frame(80, 80)` and considers the job done — it isn't.
+Чтобы реально снизить стоимость декодирования: использовать `preparingThumbnail(of:)` (или downsampling на уровне данных для известных размеров thumbnail). Модель пишет `AsyncImage(url:).frame(80, 80)` и считает задачу выполненной — это не так.
 
-## `List` Over `ScrollView + LazyVStack`
+## `List` вместо `ScrollView + LazyVStack`
 
-For typical scrolling content, `List` has built-in cell reuse, prefetching, and platform-correct selection / swipe affordances. `ScrollView { LazyVStack { ForEach { } } }` looks similar but lacks the optimizations and platform behaviors. The model picks `LazyVStack` when it should default to `List` — only choose `LazyVStack` when you genuinely need custom layout that `List` cannot express.
+Для типичного скроллящегося контента `List` имеет встроенное переиспользование ячеек, prefetching и платформо-корректные affordances выбора / свайпа. `ScrollView { LazyVStack { ForEach { } } }` выглядит похоже, но лишён этих оптимизаций и платформенного поведения. Модель выбирает `LazyVStack`, когда по умолчанию должна выбирать `List` — выбирать `LazyVStack` только когда действительно нужен кастомный layout, который `List` выразить не может.

@@ -1,43 +1,43 @@
-# SwiftUI Design System — Non-Obvious Rules
+# SwiftUI Design System — неочевидные правила
 
-This file lists only the design-system rules a modern Claude model omits or gets wrong without a reminder. Generic guidance — "consistency over cleverness", "Apple HIG is baseline", "tokens for spacing/radius/typography", "every interactive element has accessibilityLabel", "previews exist", basic theming syntax — is **not** documented here; trust the model and Apple's HIG.
+Этот файл перечисляет только те правила дизайн-системы, которые современная модель Claude опускает или ошибочно применяет без напоминания. Общие рекомендации — «консистентность важнее изощрённости», «Apple HIG — база», «токены для spacing/radius/typography», «у каждого интерактивного элемента есть accessibilityLabel», «превью существуют», базовый синтаксис теминга — здесь **не** документируются; доверяй модели и HIG от Apple.
 
-For project-rollout playbooks (waves, ownership labels, migration strategy) see your project's design-system README, not this file.
+Про playbook внедрения на уровне проекта (волны, лейблы владения, стратегия миграции) — см. README дизайн-системы проекта, не этот файл.
 
 ---
 
-## Don't Tokenize These
+## Не токенизировать это
 
-Three categories the model often tokenizes redundantly:
+Три категории, которые модель часто токенизирует избыточно:
 
-- **Shadow** — on macOS use `Material`; on iOS keep 2-3 elevations max, do not invent a shadow scale
-- **Opacity** — use `.foregroundStyle(.secondary)` / `.tertiary` / `.quaternary` instead of an `opacity` token
-- **Font weights as separate tokens** — apply `.fontWeight(.semibold)` on text styles directly
+- **Тень (Shadow)** — на macOS использовать `Material`; на iOS держать максимум 2-3 уровня elevation, не изобретать шкалу теней
+- **Прозрачность (Opacity)** — использовать `.foregroundStyle(.secondary)` / `.tertiary` / `.quaternary` вместо токена opacity
+- **Насыщенность шрифта как отдельные токены** — применять `.fontWeight(.semibold)` прямо к текстовым стилям
 
-## Hard Bans (Beyond Generic "No Hardcoded Values")
+## Жёсткие запреты (сверх общего «никаких захардкоженных значений»)
 
-The non-obvious ones the model still emits from older training data:
+Неочевидные случаи, которые модель всё ещё выдаёт из старых training-данных:
 
-| Banned | Use instead |
+| Запрещено | Использовать вместо |
 |---|---|
 | `.foregroundColor(_:)` | `.foregroundStyle(_:)` |
-| `.accentColor(_:)` modifier | `.tint(_:)` + `AccentColor` asset |
-| `RoundedRectangle(cornerRadius: 8)` | `.clipShape(.rect(cornerRadius: ..., style: .continuous))` for continuous corners |
+| модификатор `.accentColor(_:)` | `.tint(_:)` + asset `AccentColor` |
+| `RoundedRectangle(cornerRadius: 8)` | `.clipShape(.rect(cornerRadius: ..., style: .continuous))` для непрерывных углов |
 
-Generic bans (no raw `.padding(16)`, no `Color.black`, no `Font.system(size: 14)` outside icons/canvas) are model-default knowledge — match project tokens when they exist.
+Общие запреты (никаких сырых `.padding(16)`, `Color.black`, `Font.system(size: 14)` вне иконок/canvas) — это знание модели по умолчанию; следовать токенам проекта, где они есть.
 
-## Accessibility Beyond `accessibilityLabel`
+## Accessibility за пределами `accessibilityLabel`
 
-The model writes `accessibilityLabel` by default. Often missed:
+Модель по умолчанию пишет `accessibilityLabel`. Часто упускается:
 
-- **Keyboard shortcuts on primary sheet/form actions** — `⌘Return` for confirm, `⌘.` for cancel
-- **Color-alone signals fail.** Pair color with an SF Symbol (`exclamationmark.triangle.fill` for errors, `checkmark.circle.fill` for success). React to `@Environment(\.accessibilityDifferentiateWithoutColor)`.
-- **Animations gated by `accessibilityReduceMotion`**: `withAnimation(reduceMotion ? nil : .spring) { ... }`
-- **Custom backgrounds gated by `accessibilityReduceTransparency`** — system materials handle this automatically; custom backgrounds must match.
+- **Клавиатурные шорткаты на основных действиях sheet/формы** — `⌘Return` для подтверждения, `⌘.` для отмены
+- **Сигнал только цветом не работает.** Сочетать цвет с SF Symbol (`exclamationmark.triangle.fill` для ошибок, `checkmark.circle.fill` для успеха). Реагировать на `@Environment(\.accessibilityDifferentiateWithoutColor)`.
+- **Анимации, управляемые `accessibilityReduceMotion`**: `withAnimation(reduceMotion ? nil : .spring) { ... }`
+- **Кастомные фоны, управляемые `accessibilityReduceTransparency`** — системные материалы обрабатывают это автоматически; кастомные фоны должны соответствовать.
 
-## Multi-Window: Environment Doesn't Cross Scenes
+## Мультиокна: Environment не пересекает Scenes
 
-`@Environment` values do **not** propagate across `Scene` boundaries automatically. Every `WindowGroup`, `Window`, `Settings`, `MenuBarExtra` must inject the theme/dependency at its own scene root.
+Значения `@Environment` **не** распространяются между границами `Scene` автоматически. Каждый `WindowGroup`, `Window`, `Settings`, `MenuBarExtra` должен внедрять тему/зависимость в корне своей собственной scene.
 
 ```swift
 @main
@@ -52,65 +52,65 @@ struct MyApp: App {
 }
 ```
 
-The model often injects only at the main `WindowGroup` and the second window crashes or shows defaults.
+Модель часто внедряет только в основной `WindowGroup`, и второе окно падает или показывает значения по умолчанию.
 
-## Theming — Hybrid Decision Rule
+## Теминг — гибридное правило принятия решений
 
-- **Static enum** for primitives that do not change at runtime — spacing, radius, motion, typography
-- **Semantic NSColor / system color wrappers** for adaptive colors (auto-handles light/dark/HCR)
-- **Environment-injected struct** only when the user picks between palettes at runtime (terminal themes, accent palettes)
+- **Статичный enum** для примитивов, не меняющихся в runtime — spacing, radius, motion, typography
+- **Семантические обёртки NSColor / системного цвета** для адаптивных цветов (автоматически обрабатывают light/dark/HCR)
+- **Struct, внедряемый через environment**, только когда пользователь выбирает между палитрами в runtime (темы терминала, акцентные палитры)
 
-The model often jumps to environment injection for everything; static enums are simpler and don't need scene-by-scene re-injection.
+Модель часто сразу прыгает к environment injection для всего; статичные enum'ы проще и не требуют повторного внедрения scene за scene.
 
-## Component Styling — `*Style` Static Extensions
+## Стилизация компонентов — статичные extension'ы `*Style`
 
-Expose reusable `ButtonStyle` / `LabelStyle` / `ToggleStyle` etc. via static extensions on the protocol — the call site reads naturally:
+Выставлять переиспользуемые `ButtonStyle` / `LabelStyle` / `ToggleStyle` и т.д. через статичные extension'ы на протоколе — тогда в месте вызова код читается естественно:
 
 ```swift
 extension ButtonStyle where Self == BrandPrimaryButtonStyle {
     static var brandPrimary: Self { .init() }
 }
-// Usage: Button("Save") { ... }.buttonStyle(.brandPrimary)
+// Использование: Button("Save") { ... }.buttonStyle(.brandPrimary)
 ```
 
-`PrimitiveButtonStyle` only when the default tap gesture is insufficient.
+`PrimitiveButtonStyle` — только когда дефолтного tap-жеста недостаточно.
 
-## Previews — Coverage Matrix for Reusable Components
+## Превью — матрица покрытия для переиспользуемых компонентов
 
-Reusable design-system components need preview coverage across:
+Переиспользуемым компонентам дизайн-системы нужно покрытие превью по:
 
-- Light + Dark
-- Increase Contrast (and Dark HCR)
+- Светлая + тёмная тема
+- Increase Contrast (и Dark HCR)
 - Reduce Transparency
-- Dynamic Type at `.xSmall` and `.accessibility2`
-- Disabled state (where applicable)
+- Dynamic Type на `.xSmall` и `.accessibility2`
+- Disabled-состояние (где применимо)
 
-A dedicated catalog scheme (`DesignSystemCatalog` or similar) listing every component is the discovery surface — without it, developers duplicate.
+Выделенная схема-каталог (`DesignSystemCatalog` или аналог), перечисляющая каждый компонент, — это поверхность обнаружения — без неё разработчики дублируют компоненты.
 
 ## macOS 26+ / Liquid Glass
 
-- Rebuilding with Xcode 26 auto-applies Liquid Glass to toolbar, sheet, popover, `NavigationSplitView` sidebar, `Settings` scene. No opt-in needed.
-- **Never on monospaced canvases** (terminal, code editor) — text degrades under refraction. Use `.containerBackground(.thinMaterial, for: .window)` for window background material instead.
-- `.glassEffect(_:in:isEnabled:)` / `GlassEffectContainer` / `.glassEffectID(_:in:)` — for floating UI only (command palette, floating buttons).
-- `Reduce Transparency` / `Increase Contrast` / `Reduce Motion` — system handles fallbacks; custom code must follow.
+- Пересборка с Xcode 26 автоматически применяет Liquid Glass к toolbar, sheet, popover, sidebar `NavigationSplitView`, scene `Settings`. Opt-in не нужен.
+- **Никогда на monospaced canvas** (терминал, редактор кода) — текст деградирует под рефракцией. Использовать `.containerBackground(.thinMaterial, for: .window)` для материала фона окна вместо этого.
+- `.glassEffect(_:in:isEnabled:)` / `GlassEffectContainer` / `.glassEffectID(_:in:)` — только для плавающего UI (командная палитра, плавающие кнопки).
+- `Reduce Transparency` / `Increase Contrast` / `Reduce Motion` — система обрабатывает fallback'и; кастомный код должен следовать этому.
 
-## Dynamic Type on macOS
+## Dynamic Type на macOS
 
-macOS largely ignores Dynamic Type — `@ScaledMetric` and `.dynamicTypeSize` are weakly applied or not applied at all. Write the Dynamic-Type-ready form (`.font(.body)`) anyway, but don't rely on it for user-facing scaling on macOS canvases.
+macOS в основном игнорирует Dynamic Type — `@ScaledMetric` и `.dynamicTypeSize` применяются слабо или вообще не применяются. Всё равно писать Dynamic-Type-ready форму (`.font(.body)`), но не полагаться на неё для user-facing масштабирования на macOS canvas.
 
-For content canvases where scaling matters (terminal, editor): implement a per-app font scale preference (`⌘+` / `⌘−`) and pass the coefficient explicitly.
+Для content-canvas, где масштабирование важно (терминал, редактор): реализовать предпочтение масштаба шрифта на уровне приложения (`⌘+` / `⌘−`) и передавать коэффициент явно.
 
-## i18n Baseline
+## Базовый уровень i18n
 
-Even for English-only apps, set up `Localizable.xcstrings` from day 1:
+Даже для приложений только на английском настраивать `Localizable.xcstrings` с первого дня:
 
-- All user-facing strings via `Text("key", bundle: .module)` (or `LocalizedStringResource`)
-- Test layouts with long strings (German, Russian) — expect 30-40% wider text
-- RTL — `.leading` / `.trailing` alignment, never `.left` / `.right`
+- Все user-facing строки через `Text("key", bundle: .module)` (или `LocalizedStringResource`)
+- Тестировать раскладки с длинными строками (немецкий, русский) — ожидать текст шире на 30-40%
+- RTL — выравнивание `.leading` / `.trailing`, никогда `.left` / `.right`
 
-Retrofitting i18n is ~10× more expensive than building it in.
+Ретрофит i18n примерно в 10 раз дороже, чем встроить его сразу.
 
-## Sources
+## Источники
 
-- Apple HIG, WWDC25 Sessions 323 (SwiftUI new design) and 310 (AppKit new design)
-- NSColor UI element colors documentation
+- Apple HIG, WWDC25 сессии 323 (новый дизайн SwiftUI) и 310 (новый дизайн AppKit)
+- Документация NSColor UI element colors
