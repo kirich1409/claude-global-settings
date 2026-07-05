@@ -1,46 +1,46 @@
-# Swift Concurrency — Non-Obvious Rules
+# Swift Concurrency — неочевидные правила
 
-This file lists only the Swift Concurrency rules a modern Claude model omits or gets wrong without a reminder. Generic idioms — `async`/`await`, `try await`, `async let`, `TaskGroup`, structured concurrency basics, value-type Sendable inference, choosing actor over locks, basic test async syntax — are **not** documented here; trust the model and the [Apple Concurrency book](https://docs.swift.org/swift-book/documentation/the-swift-programming-language/concurrency/).
+Этот файл перечисляет только те правила Swift Concurrency, которые современная модель Claude опускает или ошибочно применяет без напоминания. Общие идиомы — `async`/`await`, `try await`, `async let`, `TaskGroup`, основы structured concurrency, вывод Sendable для value-типов, выбор actor вместо locks, базовый async-синтаксис тестов — здесь **не** документируются; доверяй модели и [книге Apple о Concurrency](https://docs.swift.org/swift-book/documentation/the-swift-programming-language/concurrency/).
 
 ---
 
-## `@MainActor` Placement
+## Размещение `@MainActor`
 
-The model defaults to over-applying `@MainActor` for "safety". Stop it.
+Модель по умолчанию чрезмерно применяет `@MainActor` «для безопасности». Останавливать это.
 
-- **`@Observable` model classes that update UI-bound state** → `@MainActor` (correct).
-- **Service / Repository / DataSource layer** → **never** `@MainActor`. I/O, parsing, mapping must run off the main thread. Annotate the layer with `actor` for thread-safe state, leave dispatcher choice to the call site.
-- **Single method needs main-thread access** → `@MainActor func updateUI(...)` rather than the whole type.
-- **Inside async code** → use `@MainActor` / `MainActor.run { }`, never `DispatchQueue.main.async`.
+- **`@Observable`-классы модели, обновляющие UI-bound state** → `@MainActor` (правильно).
+- **Слой Service / Repository / DataSource** → **никогда** `@MainActor`. I/O, парсинг, маппинг должны выполняться вне главного потока. Аннотировать слой как `actor` для thread-safe state, выбор диспетчера оставлять на стороне вызывающего кода.
+- **Одному методу нужен доступ к main thread** → `@MainActor func updateUI(...)`, а не весь тип целиком.
+- **Внутри async-кода** → использовать `@MainActor` / `MainActor.run { }`, никогда `DispatchQueue.main.async`.
 
-`@MainActor` methods only guarantee main-thread execution when called from async context. Synchronous callers can still execute them off-main on the synthesized thread — assume nothing.
+Методы `@MainActor` гарантируют выполнение на main thread только при вызове из async-контекста. Синхронные вызывающие всё ещё могут выполнить их вне main на синтезированном потоке — не предполагать ничего.
 
-## `Task.detached` Is Not "Escape `@MainActor`"
+## `Task.detached` — это не «побег от `@MainActor`»
 
-`Task.detached` exists for the rare case where you genuinely need a top-level unstructured task with no inherited isolation, priority, or task-local values. The model reaches for it reflexively to "escape" `@MainActor`. Don't.
+`Task.detached` существует для редкого случая, когда действительно нужна top-level unstructured задача без унаследованной isolation, priority или task-local значений. Модель рефлекторно тянется к нему, чтобы «сбежать» от `@MainActor`. Не делать так.
 
-- To run a method off the main actor → mark the method `nonisolated`.
-- To do CPU work in parallel → `async let` or `TaskGroup` from a non-actor context.
-- `Task.detached` is correct only for: orphaned background work that survives the parent, work that explicitly must NOT inherit task-local values, or the rare interop case.
+- Чтобы выполнить метод вне main actor → пометить метод `nonisolated`.
+- Чтобы выполнить CPU-работу параллельно → `async let` или `TaskGroup` из не-actor контекста.
+- `Task.detached` корректен только для: осиротевшей фоновой работы, переживающей родителя; работы, которая явно НЕ должна наследовать task-local значения; редкого случая interop.
 
-## `nonisolated` for Pure Computed Members
+## `nonisolated` для чистых вычисляемых членов
 
-On an actor or `@MainActor` type, mark properties / methods that don't touch mutable state as `nonisolated`. Without it, every read forces an `await`. Model often forgets and creates pointless cross-actor hops.
+На actor или `@MainActor`-типе помечать свойства / методы, не трогающие мутируемый state, как `nonisolated`. Без этого каждое чтение вынуждает `await`. Модель часто забывает об этом и создаёт бессмысленные кросс-actor переходы.
 
 ```swift
 actor OrderCache {
     private var cache: [OrderID: Order] = [:]
-    nonisolated var description: String { "OrderCache" } // ← correct
+    nonisolated var description: String { "OrderCache" } // ← правильно
 }
 ```
 
-## `Task` Cancellation Bridging
+## Мостик отмены `Task`
 
-Three things the model misses:
+Три вещи, которые модель упускает:
 
-1. **Cooperative cancellation in long loops** — `try Task.checkCancellation()` (or `Task.isCancelled`) inside the loop body. Without it, cancellation only takes effect at suspension points.
-2. **Bridging cancellation to non-async APIs** — wrap `URLSessionDataTask` / `OperationQueue` / similar with `withTaskCancellationHandler { ... } onCancel: { task.cancel() }`. The model often writes a `withCheckedThrowingContinuation` without the cancel bridge, leaving the underlying request running.
-3. **Store the `Task` handle** when work should be cancelled on dealloc, navigation, or new request:
+1. **Кооперативная отмена в длинных циклах** — `try Task.checkCancellation()` (или `Task.isCancelled`) внутри тела цикла. Без этого отмена срабатывает только в точках suspension.
+2. **Проброс отмены в не-async API** — оборачивать `URLSessionDataTask` / `OperationQueue` / аналогичное в `withTaskCancellationHandler { ... } onCancel: { task.cancel() }`. Модель часто пишет `withCheckedThrowingContinuation` без моста отмены, оставляя базовый запрос выполняться.
+3. **Хранить handle `Task`**, когда работу нужно отменять при dealloc, навигации или новом запросе:
 
 ```swift
 private var loadTask: Task<Void, Never>?
@@ -50,54 +50,54 @@ func startLoading() {
 }
 ```
 
-## `AsyncStream` / `AsyncThrowingStream` Lifecycle
+## Жизненный цикл `AsyncStream` / `AsyncThrowingStream`
 
-Two silent footguns:
+Два молчаливых footgun'а:
 
-- **`continuation.finish()` is mandatory** when the producer is done. Forgetting it makes `for await` consumers hang forever — not fail, hang.
-- **`continuation.onTermination` must clean up** observers, file handles, network listeners. Without it, every cancelled consumer leaks the underlying resource.
+- **`continuation.finish()` обязателен**, когда producer завершил работу. Забытый вызов заставляет потребителей `for await` зависать навсегда — не падать, а именно зависать.
+- **`continuation.onTermination` должен освобождать ресурсы** — наблюдателей, файловые хендлы, network listeners. Без этого каждый отменённый потребитель течёт по базовому ресурсу.
 
 ```swift
 AsyncStream { continuation in
     let observer = register(...)
-    continuation.onTermination = { _ in unregister(observer) } // ← required
-    // and continuation.finish() once the source is exhausted
+    continuation.onTermination = { _ in unregister(observer) } // ← обязательно
+    // и continuation.finish() как только источник исчерпан
 }
 ```
 
-## `@unchecked Sendable` Discipline
+## Дисциплина `@unchecked Sendable`
 
-`@unchecked Sendable` is for proven thread-safe reference types only — internally synchronized via lock, queue, or atomic primitive. Never use it to silence a Sendable warning on a type that genuinely has data races. The compiler is right; the annotation isn't a fix.
+`@unchecked Sendable` — только для доказанно thread-safe reference-типов, внутренне синхронизированных через lock, queue или atomic-примитив. Никогда не использовать её, чтобы заглушить предупреждение Sendable на типе, у которого действительно есть data races. Компилятор прав; аннотация — не фикс.
 
 ```swift
-// Acceptable — internal lock guards all access
+// Допустимо — внутренний lock защищает весь доступ
 final class AtomicCounter: @unchecked Sendable {
     private let lock = NSLock()
     private var _value = 0
 }
 
-// NOT acceptable — silencing a real race
+// НЕ допустимо — заглушение реальной гонки
 final class MutableThing: @unchecked Sendable {
     var data: [String] = []
 }
 ```
 
-## Swift 6 Strict Concurrency — Migration & Escape Valves
+## Swift 6 Strict Concurrency — миграция и клапаны обхода
 
-Migration ladder (use the project's current rung; raise gradually):
+Лестница миграции (использовать текущую ступень проекта; поднимать постепенно):
 
-1. `-strict-concurrency=targeted` — warnings on annotated APIs only
-2. `-strict-concurrency=complete` — warnings everywhere
-3. Swift 6 language mode — warnings become errors
+1. `-strict-concurrency=targeted` — предупреждения только на аннотированных API
+2. `-strict-concurrency=complete` — предупреждения повсюду
+3. Языковой режим Swift 6 — предупреждения становятся ошибками
 
-Escape valves to use sparingly:
+Клапаны обхода использовать умеренно:
 
-- **`@preconcurrency import ThirdParty`** — acceptable for third-party modules not yet updated for Sendable. **Never** apply `@preconcurrency` to your own types; fix the conformance.
-- **`nonisolated(unsafe)`** — interop-only escape hatch (legacy globals, ObjC bridging). Never a general silencer.
-- `sending` parameter modifier transfers ownership; rarely actionable in normal code.
+- **`@preconcurrency import ThirdParty`** — допустимо для сторонних модулей, ещё не обновлённых под Sendable. **Никогда** не применять `@preconcurrency` к собственным типам; исправлять соответствие.
+- **`nonisolated(unsafe)`** — клапан только для interop (legacy globals, ObjC bridging). Никогда не общий заглушитель.
+- Модификатор параметра `sending` передаёт владение; редко применим в обычном коде.
 
-## Tests — Controllable Clock
+## Тесты — управляемые часы
 
-Async tests must not rely on wall-clock time. Use `Task.sleep` only when a delay is genuinely needed; better, use a controllable clock (`Clock` protocol, `ContinuousClock`, or a project-injected fake clock) so the test can advance time deterministically.
+Async-тесты не должны полагаться на wall-clock время. Использовать `Task.sleep` только когда задержка действительно нужна; лучше — управляемые часы (протокол `Clock`, `ContinuousClock` или внедрённые в проект фейковые часы), чтобы тест мог детерминированно продвигать время.
 
-Never `Thread.sleep` / `usleep` in async tests.
+Никогда `Thread.sleep` / `usleep` в async-тестах.

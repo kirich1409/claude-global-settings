@@ -1,56 +1,56 @@
-# Swift Testing — Non-Obvious Rules
+# Swift Testing — неочевидные правила
 
-This file lists only the testing rules a modern Claude model omits or gets wrong without a reminder. Generic syntax — `@Test`, `#expect`, `@Suite`, basic async tests, `#expect(throws:)`, `XCTAssertEqual` for XCTest, parameterized tests with `arguments:` — is **not** documented here; trust the model and [Apple's Testing docs](https://developer.apple.com/documentation/testing).
+Этот файл перечисляет только те правила тестирования, которые современная модель Claude опускает или ошибочно применяет без напоминания. Общий синтаксис — `@Test`, `#expect`, `@Suite`, базовые async-тесты, `#expect(throws:)`, `XCTAssertEqual` для XCTest, параметризованные тесты с `arguments:` — здесь **не** документируется; доверяй модели и [документации Apple по Testing](https://developer.apple.com/documentation/testing).
 
-For project-config decisions: prefer Swift Testing for new code. UI tests stay XCUITest. Performance `measure {}` stays XCTest. Don't mix Swift Testing and XCTest in the same file.
+Для решений, зависящих от конфигурации проекта: для нового кода предпочитать Swift Testing. UI-тесты остаются на XCUITest. Performance `measure {}` остаётся на XCTest. Не смешивать Swift Testing и XCTest в одном файле.
 
 ---
 
-## `@Suite` Test Isolation
+## Изоляция тестов `@Suite`
 
-Each `@Test` in a `@Suite struct` gets a **fresh instance**. `init` and `deinit` replace XCTest's `setUp` / `tearDown`. There is **no shared mutable state between tests by design** — store dependencies as `let` properties on the suite and each test sees them re-initialized.
+Каждый `@Test` в `@Suite struct` получает **свежий экземпляр**. `init` и `deinit` заменяют `setUp` / `tearDown` из XCTest. По дизайну **нет общего мутируемого state между тестами** — хранить зависимости как `let`-свойства на suite, и каждый тест увидит их заново инициализированными.
 
-The model occasionally tries to share state via `static var` for "performance" — that breaks parallel execution and creates flaky tests.
+Модель иногда пытается шарить state через `static var` «ради производительности» — это ломает параллельное выполнение и создаёт flaky-тесты.
 
 ```swift
 @Suite("Order cancellation")
 struct OrderCancellationTests {
-    let repository = FakeOrderRepository()  // re-created per @Test
+    let repository = FakeOrderRepository()  // пересоздаётся на каждый @Test
     let service: OrderService
     init() { service = OrderService(repository: repository) }
 }
 ```
 
-## `#require` vs `#expect`
+## `#require` против `#expect`
 
-- `#expect(condition)` → assertion that continues on failure (records and proceeds).
-- `try #require(condition)` → guard-equivalent: fails the test AND unwraps. Use it when subsequent code depends on the result.
+- `#expect(condition)` → assertion, которая продолжает выполнение при провале (записывает и идёт дальше).
+- `try #require(condition)` → эквивалент guard: проваливает тест И разворачивает значение. Использовать, когда последующий код зависит от результата.
 
-The model defaults to `#expect` everywhere and writes manual `guard` clauses with `Issue.record`. Use `#require` to compress that:
+Модель по умолчанию везде использует `#expect` и пишет ручные `guard` с `Issue.record`. Использовать `#require`, чтобы сжать это:
 
 ```swift
-let order = try #require(orders.first)  // fails if nil, unwraps if non-nil
+let order = try #require(orders.first)  // проваливает тест, если nil; разворачивает, если не nil
 #expect(order.status == .pending)
 ```
 
-Never `try!` in tests — `try #require` is the correct unwrap.
+Никогда `try!` в тестах — `try #require` является правильным разворачиванием.
 
-## Parallel-by-Default Isolation
+## Изоляция «параллельно по умолчанию»
 
-**Swift Testing runs tests in parallel by default.** Anything touching shared global state — Keychain, file system, `UserDefaults`, environment variables, singletons, network — will race.
+**Swift Testing по умолчанию запускает тесты параллельно.** Всё, что трогает общий глобальный state — Keychain, файловую систему, `UserDefaults`, переменные окружения, singleton'ы, сеть — будет гоняться (race).
 
-For tests that genuinely cannot parallelize: apply `.serialized` trait at the suite or test level.
+Для тестов, которые действительно не могут выполняться параллельно: применять trait `.serialized` на уровне suite или теста.
 
 ```swift
 @Suite("Keychain integration", .serialized)
 struct KeychainTests { /* ... */ }
 ```
 
-This is the most common gotcha when migrating from XCTest. The model is unaware unless told.
+Это самая распространённая ловушка при миграции с XCTest. Модель не в курсе, если ей не сказать.
 
-## Fakes Over Mocks
+## Fakes вместо Mocks
 
-Default to hand-written fakes. The model reaches for mocking frameworks (Cuckoo, Mockingbird) by reflex; in Swift, hand-written fakes are usually clearer and don't need a framework.
+По умолчанию использовать ручные fakes. Модель рефлекторно тянется к mocking-фреймворкам (Cuckoo, Mockingbird); в Swift ручные fakes обычно понятнее и не требуют фреймворка.
 
 ```swift
 final class FakeAPIClient: APIClient, @unchecked Sendable {
@@ -64,34 +64,34 @@ final class FakeAPIClient: APIClient, @unchecked Sendable {
 }
 ```
 
-Reach for mocks only when: (a) a protocol has many methods and the test cares about one interaction; (b) verifying exact call count or order IS the contract under test.
+Использовать mocks только когда: (a) у протокола много методов, а тест интересует одно конкретное взаимодействие; (b) точное проверяемое число вызовов или их порядок И ЕСТЬ проверяемый контракт.
 
-`@unchecked Sendable` on a fake is acceptable when the test is single-threaded; under Swift 6 strict concurrency consider an actor-backed fake or proper synchronization.
+`@unchecked Sendable` на fake допустим, когда тест однопоточный; при строгом Swift 6 concurrency рассмотреть fake на основе actor или собственную синхронизацию.
 
-## AsyncSequence Test Bounds
+## Границы теста для AsyncSequence
 
-Consuming an `AsyncSequence` in a test must be **bounded** — break after N items or apply `.timeLimit`. Without a bound, an unfinished sequence makes the test hang forever, not fail. The model often writes `for await x in sequence { ... }` without an exit condition.
+Потребление `AsyncSequence` в тесте должно быть **ограничено** — прерываться после N элементов или применять `.timeLimit`. Без ограничения незавершённая последовательность заставляет тест зависать навсегда, а не падать. Модель часто пишет `for await x in sequence { ... }` без условия выхода.
 
 ```swift
 for await orders in repository.observeOrders() {
     received.append(orders)
-    if received.count >= 1 { break }  // ← required
+    if received.count >= 1 { break }  // ← обязательно
 }
 ```
 
-Or use `.timeLimit(.minutes(1))` as a safety net.
+Либо использовать `.timeLimit(.minutes(1))` как страховку.
 
-## Traits — `.disabled` Needs a Reason
+## Traits — `.disabled` требует причину
 
-`.disabled` always takes a reason string — without it, disabled tests accumulate as silent dead code:
+`.disabled` всегда принимает строку с причиной — без неё отключённые тесты накапливаются как молчаливый мёртвый код:
 
 ```swift
 @Test("Feature X integration", .disabled("Waiting for API v2 deployment"))
 func featureXIntegration() async throws { /* ... */ }
 ```
 
-Never use `.enabled(if:)` to silence flaky tests. Fix the flake (controllable clock, bounded async, deterministic fakes), don't hide it.
+Никогда не использовать `.enabled(if:)`, чтобы заглушить flaky-тесты. Исправлять сам flake (управляемые часы, ограниченный async, детерминированные fakes), а не прятать его.
 
-## No `Thread.sleep` / `usleep`
+## Никакого `Thread.sleep` / `usleep`
 
-Async tests must not wait via wall-clock sleep. Use `Task.sleep` only when a delay is genuinely needed; better, inject a controllable clock (`Clock` protocol or project-specific fake) so the test advances time deterministically.
+Async-тесты не должны ждать через wall-clock sleep. Использовать `Task.sleep` только когда задержка действительно нужна; лучше — внедрять управляемые часы (протокол `Clock` или специфичный для проекта fake), чтобы тест детерминированно продвигал время.
