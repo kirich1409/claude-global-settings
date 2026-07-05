@@ -1,4 +1,4 @@
-Referenced from: `plugins/developer-workflow/skills/acceptance/SKILL.md` (§Step 3: Run Checks — per-agent sub-check prompts).
+Referenced from: `~/.claude/skills/acceptance/SKILL.md` (§Step 3: Run Checks — per-agent sub-check prompts).
 
 # Acceptance — Per-Agent Sub-Check Prompts
 

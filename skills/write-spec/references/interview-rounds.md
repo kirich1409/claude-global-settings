@@ -1,4 +1,4 @@
-Referenced from: `plugins/developer-workflow/skills/write-spec/SKILL.md` (§Phase 2 Interview).
+Referenced from: `~/.claude/skills/write-spec/SKILL.md` (§Phase 2 Interview).
 
 # Interview Rounds — Question Bank, Round Structure, and Per-Round Prompts
 

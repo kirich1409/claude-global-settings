@@ -1,4 +1,4 @@
-Referenced from: `plugins/developer-workflow/skills/write-spec/SKILL.md` (§Phase 5 Save).
+Referenced from: `~/.claude/skills/write-spec/SKILL.md` (§Phase 5 Save).
 
 # Output Location and Artifact Layout
 

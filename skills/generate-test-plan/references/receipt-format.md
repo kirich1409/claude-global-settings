@@ -1,4 +1,4 @@
-Referenced from: `plugins/developer-workflow/skills/generate-test-plan/SKILL.md` (§Receipt).
+Referenced from: `~/.claude/skills/generate-test-plan/SKILL.md` (§Receipt).
 
 # Test Plan Receipt Format
 

@@ -1,4 +1,4 @@
-Referenced from: `plugins/developer-workflow/skills/acceptance/SKILL.md` (§Step 1: Gather Inputs).
+Referenced from: `~/.claude/skills/acceptance/SKILL.md` (§Step 1: Gather Inputs).
 
 # Acceptance — Source Branches and Spec Frontmatter
 
