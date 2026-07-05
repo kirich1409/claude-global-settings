@@ -479,12 +479,6 @@
       },
       "autoUpdate": true
     },
-    "zai-coding-plugins": {
-      "source": {
-        "source": "directory",
-        "path": "/Users/krozov/.npm/_npx/2f024689b4d0d3b0/node_modules/@z_ai/coding-helper/zai-coding-plugins"
-      }
-    },
     "claude-code-warp": {
       "source": {
         "source": "github",
