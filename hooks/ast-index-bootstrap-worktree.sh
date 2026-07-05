@@ -13,10 +13,6 @@ set -u
 
 INPUT="$(cat)"
 
-# Capture the raw hook payload once, so the actual tool_response field name can be
-# confirmed on first real worktree entry. Remove this line once verified.
-printf '%s' "$INPUT" > /tmp/ast-index-worktree-hook.json 2>/dev/null || true
-
 # Extract a plausible worktree path from the tool_response (then tool_input),
 # checking the common field names. Empty string if nothing matches.
 WT_PATH="$(printf '%s' "$INPUT" | python3 -c '

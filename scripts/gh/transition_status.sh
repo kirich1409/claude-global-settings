@@ -96,6 +96,20 @@ im_check_graphql_errors() {
   fi
 }
 
+im_has_label() {
+  # Exact (case-insensitive) token match against the comma-joined ISSUE_LABELS list — a plain
+  # `grep` substring match would false-positive on e.g. "status:in-review-x" containing
+  # "status:in-review".
+  local target_lc lbl lbl_lc
+  target_lc=$(printf '%s' "$1" | tr '[:upper:]' '[:lower:]')
+  IFS=',' read -ra _im_labels <<< "$ISSUE_LABELS"
+  for lbl in "${_im_labels[@]}"; do
+    lbl_lc=$(printf '%s' "$lbl" | tr '[:upper:]' '[:lower:]')
+    [[ "$lbl_lc" == "$target_lc" ]] && return 0
+  done
+  return 1
+}
+
 im_normalize_status() {
   # Normalize status to lowercase-with-hyphens canonical form
   local raw
@@ -196,13 +210,13 @@ ISSUE_LABELS=$(printf '%s' "$out" | jq -r '[.labels[].name] | join(",")')
 # Derive current status from labels + state (labels-mechanism baseline)
 if [[ "$ISSUE_STATE" == "CLOSED" ]]; then
   CURRENT_LABELS_STATUS="done"
-elif printf '%s' "$ISSUE_LABELS" | grep -qi 'status:in-progress'; then
+elif im_has_label "status:in-progress"; then
   CURRENT_LABELS_STATUS="in-progress"
-elif printf '%s' "$ISSUE_LABELS" | grep -qi 'status:in-review'; then
+elif im_has_label "status:in-review"; then
   CURRENT_LABELS_STATUS="in-review"
-elif printf '%s' "$ISSUE_LABELS" | grep -qi 'status:blocked'; then
+elif im_has_label "status:blocked"; then
   CURRENT_LABELS_STATUS="blocked"
-elif printf '%s' "$ISSUE_LABELS" | grep -qi 'status:ready'; then
+elif im_has_label "status:ready"; then
   CURRENT_LABELS_STATUS="ready"
 else
   CURRENT_LABELS_STATUS="todo"
@@ -412,14 +426,14 @@ else
 
   # Remove old status labels only after the new one is in place.
   # Skip any label that is in TARGET_ADD_LABELS (just added — do not remove it).
-  for lbl in "status:ready" "status:in-progress" "status:in-review" "status:blocked"; do
+  for lbl in "${TARGET_REMOVE_LABELS[@]}"; do
     # Check if lbl is in TARGET_ADD_LABELS
     _skip=false
     for _added in "${TARGET_ADD_LABELS[@]+"${TARGET_ADD_LABELS[@]}"}"; do
       if [[ "$_added" == "$lbl" ]]; then _skip=true; break; fi
     done
     if [[ "$_skip" == true ]]; then continue; fi
-    if printf '%s' "$ISSUE_LABELS" | grep -qF "$lbl"; then
+    if im_has_label "$lbl"; then
       rm_out=$(gh_with_timeout "$GH_REST_TIMEOUT" gh issue edit "$IM_NUMBER" -R "$IM_REPO" --remove-label "$lbl" 2>&1) || {
         im_error "Failed to remove label $lbl: $rm_out" "gh_failed"
         exit 1

@@ -16,14 +16,19 @@
 # Run OUTSIDE an active Claude session (the SessionStart auto-pull hook would race it).
 
 set -uo pipefail
-
-REPO="$HOME/.claude"
-FORCE=0
-[ "${1:-}" = "--force" ] && FORCE=1
+source "$(dirname "${BASH_SOURCE[0]}")/gh/_common.sh"
 
 die()  { printf '⚠ bootstrap: %s\n' "$*" >&2; exit 1; }
 ok()   { printf '✓ %s\n' "$*"; }
 note() { printf '  %s\n' "$*"; }
+
+REPO="$HOME/.claude"
+FORCE=0
+case "${1:-}" in
+  "") : ;;
+  --force) FORCE=1 ;;
+  *) die "unknown flag: $1 (usage: bootstrap-machine.sh [--force])" ;;
+esac
 
 [ -d "$REPO/.git" ] || die "$REPO is not a git repo"
 cd "$REPO" || die "cannot cd to $REPO"
@@ -73,7 +78,7 @@ note "main at $(git log --oneline -1)"
 
 # gh auth — needed to open PRs from this machine. Warn only; never launch interactive login.
 if command -v gh >/dev/null 2>&1; then
-  if gh auth status >/dev/null 2>&1; then
+  if gh_with_timeout "$GH_REST_TIMEOUT" gh auth status >/dev/null 2>&1; then
     ok "gh authenticated"
   else
     note "⚠ gh NOT authenticated — run: gh auth login  (required to open PRs from here)"

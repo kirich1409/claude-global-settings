@@ -12,8 +12,9 @@
 #   --dry-run         Print what would be posted, without writing.
 #
 # IDEMPOTENCY:
-#   Uses a hidden HTML comment marker: <!-- issue-manager:link-pr:<pr-number> -->
-#   If any existing comment on the issue already contains this marker, the script
+#   Uses a hidden HTML comment marker: <!-- issue-manager:link-pr:<pr-repo>#<pr-number> -->
+#   If any existing comment on the issue already contains this marker, or the legacy
+#   pre-repo-qualified marker (<!-- issue-manager:link-pr:<pr-number> -->), the script
 #   exits with action "noop" and does NOT create a duplicate comment.
 #
 # OUTPUT (stdout, JSON):
@@ -58,11 +59,13 @@ im_parse_ref() {
 }
 
 im_parse_pr_ref() {
-  # Sets IM_PR_NUMBER
+  # Sets IM_PR_NUMBER and IM_PR_REPO (IM_PR_REPO empty means "same repo as issue")
   IM_PR_NUMBER=""
+  IM_PR_REPO=""
   local ref="$1"
-  if [[ "$ref" =~ ^https?://github\.com/[^/]+/[^/]+/pull/([0-9]+) ]]; then
-    IM_PR_NUMBER="${BASH_REMATCH[1]}"
+  if [[ "$ref" =~ ^https?://github\.com/([^/]+/[^/]+)/pull/([0-9]+) ]]; then
+    IM_PR_REPO="${BASH_REMATCH[1]}"
+    IM_PR_NUMBER="${BASH_REMATCH[2]}"
   elif [[ "$ref" =~ ^([0-9]+)$ ]]; then
     IM_PR_NUMBER="$ref"
   else
@@ -122,7 +125,12 @@ fi
 
 ISSUE_NUMBER="$IM_NUMBER"
 PR_NUMBER="$IM_PR_NUMBER"
-MARKER="<!-- issue-manager:link-pr:${PR_NUMBER} -->"
+# PR ref without an explicit owner/repo (plain number) is assumed to live in the issue's repo.
+PR_REPO="${IM_PR_REPO:-$IM_REPO}"
+MARKER="<!-- issue-manager:link-pr:${PR_REPO}#${PR_NUMBER} -->"
+# Pre-repo-qualified marker format, kept for idempotency against comments posted by older
+# versions of this script — never write it, only match it so we don't duplicate-post.
+LEGACY_MARKER="<!-- issue-manager:link-pr:${PR_NUMBER} -->"
 
 # ---------------------------------------------------------------------------
 # Idempotency check — scan existing comments for marker
@@ -136,8 +144,8 @@ fi
 
 # `|| true`: head closes the pipe after the first line; under `set -o pipefail` the resulting
 # SIGPIPE on jq would otherwise look like a parse failure. Empty result == marker not found.
-EXISTING=$(printf '%s' "$out" | jq -r --arg marker "$MARKER" \
-  '.comments[] | select(.body | contains($marker)) | .id' 2>/dev/null | head -1 || true)
+EXISTING=$(printf '%s' "$out" | jq -r --arg marker "$MARKER" --arg legacy "$LEGACY_MARKER" \
+  '.comments[] | select((.body | contains($marker)) or (.body | contains($legacy))) | .id' 2>/dev/null | head -1 || true)
 
 if [[ -n "$EXISTING" ]]; then
   jq -n \
@@ -152,7 +160,7 @@ fi
 # Build comment body
 # ---------------------------------------------------------------------------
 
-PR_URL="https://github.com/${IM_REPO}/pull/${PR_NUMBER}"
+PR_URL="https://github.com/${PR_REPO}/pull/${PR_NUMBER}"
 COMMENT_BODY="${MARKER}
 Linked PR: ${PR_URL}"
 
