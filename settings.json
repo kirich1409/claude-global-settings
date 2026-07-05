@@ -372,6 +372,10 @@
           {
             "type": "command",
             "command": "$HOME/.claude/hooks/stash-reminder.sh"
+          },
+          {
+            "type": "command",
+            "command": "$HOME/.claude/hooks/push-branch-guard.sh"
           }
         ]
       }
