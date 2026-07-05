@@ -114,7 +114,7 @@ After a structured upstream step (`write-spec`, `generate-test-plan`, captured `
 
 Only relevant when `has_ui_surface == true` and a scenario source exists (test plan, spec with AC, or `debug.md`). `manual-tester` enforces re-anchoring against this file; acceptance writes it here and re-reads during aggregation. Running-app environment (device, simulator, emulator, browser) is **owned by `manual-tester`** (its Step 0); this skill does not probe devices, run installs, or start dev servers.
 
-Save to `swarm-report/<slug>-e2e-scenario.md` using the canonical template in `~/.claude/CLAUDE.md` § Context compaction resilience (E2E Scenario file). Add fields `Project type: <project_type>` and `Spec source: <what was used>` at the head.
+Save to `swarm-report/<slug>-e2e-scenario.md` using the canonical template in `rules/context-resilience.md` (E2E Scenario file). Add fields `Project type: <project_type>` and `Spec source: <what was used>` at the head.
 
 Bug-fix-specific rule: steps come from `debug.md` reproduction inverted — "Step X triggers the bug" → "Step X no longer triggers the bug".
 

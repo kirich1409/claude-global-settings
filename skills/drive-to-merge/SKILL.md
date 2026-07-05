@@ -181,7 +181,7 @@ In **`--auto` mode** the summary is shown for visibility and the merge executes 
 without waiting. If `isDraft == true` and everything else is merge-ready, promote the PR/MR
 first (`gh pr ready` / `glab mr update --remove-draft`) before running pre-merge checks.
 
-Procedure in [`references/merge.md`](references/merge.md).
+Procedure in [`references/merge.md`](references/merge.md), including the post-merge board sync (best-effort `transition_status.sh <issue> done` — see `rules/github-ops.md` § Доска).
 
 ---
 
