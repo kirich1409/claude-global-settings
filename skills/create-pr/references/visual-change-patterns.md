@@ -1,6 +1,6 @@
 # create-pr — Visual Change Detection Patterns
 
-Referenced from: `plugins/developer-workflow/skills/create-pr/SKILL.md` (§7.3).
+Referenced from: `~/.claude/skills/create-pr/SKILL.md` (§7.3).
 
 Look at changed file paths for:
 - Android/Compose: `*Screen.kt`, `*Composable.kt`, `res/layout/`, `res/drawable/`

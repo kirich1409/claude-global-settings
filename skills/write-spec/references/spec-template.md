@@ -1,4 +1,4 @@
-Referenced from: `plugins/developer-workflow/skills/write-spec/SKILL.md` (§Phase 3 Write Spec Draft).
+Referenced from: `~/.claude/skills/write-spec/SKILL.md` (§Phase 3 Write Spec Draft).
 
 # Spec Draft Template
 

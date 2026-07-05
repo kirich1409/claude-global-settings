@@ -1,4 +1,4 @@
-Referenced from: `plugins/developer-workflow/skills/acceptance/SKILL.md` (§Re-verification Loop).
+Referenced from: `~/.claude/skills/acceptance/SKILL.md` (§Re-verification Loop).
 
 # Acceptance — Re-verification Loop
 

@@ -1,4 +1,4 @@
-Referenced from: `plugins/developer-workflow/skills/write-spec/SKILL.md` (§Phase 1.1 Launch research consortium).
+Referenced from: `~/.claude/skills/write-spec/SKILL.md` (§Phase 1.1 Launch research consortium).
 
 > **Intentional overlap with the `research` skill.** The Codebase / Architecture prompts below
 > are an enriched **superset** of the ones in `../../research/references/expert-prompts.md` (here

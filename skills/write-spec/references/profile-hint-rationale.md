@@ -1,4 +1,4 @@
-Referenced from: `plugins/developer-workflow/skills/write-spec/SKILL.md` (§Phase 4.3 Run multiexpert-review).
+Referenced from: `~/.claude/skills/write-spec/SKILL.md` (§Phase 4.3 Run multiexpert-review).
 
 # Multiexpert-Review `spec` Profile Hint — Rationale
 

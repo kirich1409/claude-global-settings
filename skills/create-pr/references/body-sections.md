@@ -1,6 +1,6 @@
 # create-pr — Body Section Bank
 
-Referenced from: `plugins/developer-workflow/skills/create-pr/SKILL.md` (§7.1).
+Referenced from: `~/.claude/skills/create-pr/SKILL.md` (§7.1).
 
 Available sections (include only those that apply):
 

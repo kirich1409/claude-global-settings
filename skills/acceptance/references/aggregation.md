@@ -1,4 +1,4 @@
-Referenced from: `plugins/developer-workflow/skills/acceptance/SKILL.md` (§Step 4: Aggregate and Write Receipt).
+Referenced from: `~/.claude/skills/acceptance/SKILL.md` (§Step 4: Aggregate and Write Receipt).
 
 # Acceptance — Aggregation, Receipt Format, and Routing
 
