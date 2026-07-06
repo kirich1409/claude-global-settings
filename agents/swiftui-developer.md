@@ -137,11 +137,11 @@ struct FooScreen: View {
 
 | Тема | Ссылка |
 |---|---|
-| Property wrappers (`@State`, `@Binding`, `@Observable`, `@Environment`), подводные камни жизненного цикла state | `$HOME/.claude/agent-references/swiftui-state.md` |
-| Паттерны структуры view — выделение view, ViewModifier, навигация, оркестрация sheet, `.task`, условные views, identity view | `$HOME/.claude/agent-references/swiftui-patterns.md` |
-| Производительность — гранулярность `@Observable`, чистота body, пересчёт по identity | `$HOME/.claude/agent-references/swiftui-performance.md` |
-| Дизайн-система — токены, жёсткие запреты, чеклист accessibility, theming, инъекция multi-window, Liquid Glass, Dynamic Type на macOS | `$HOME/.claude/agent-references/swiftui-design-system.md` |
-| Swift Concurrency внутри SwiftUI (Task, async, MainActor) | `$HOME/.claude/agent-references/swift-concurrency.md` |
+| Property wrappers (`@State`, `@Binding`, `@Observable`, `@Environment`), подводные камни жизненного цикла state | `$HOME/.claude/rules/swiftui-state.md` |
+| Паттерны структуры view — выделение view, ViewModifier, навигация, оркестрация sheet, `.task`, условные views, identity view | `$HOME/.claude/rules/swiftui-patterns.md` |
+| Производительность — гранулярность `@Observable`, чистота body, пересчёт по identity | `$HOME/.claude/rules/swiftui-performance.md` |
+| Дизайн-система — токены, жёсткие запреты, чеклист accessibility, theming, инъекция multi-window, Liquid Glass, Dynamic Type на macOS | `$HOME/.claude/rules/swiftui-design-system.md` |
+| Swift Concurrency внутри SwiftUI (Task, async, MainActor) | `$HOME/.claude/rules/swift-concurrency.md` |
 
 Ссылки авторитетны — когда память расходится с ними, доверять им. **Конвенции проекта, обнаруженные на Шаге 1, важнее обоих.**
 

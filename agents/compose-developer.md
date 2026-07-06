@@ -88,7 +88,7 @@ Pattern Summary
 
 ## Шаг 3: Реализуй
 
-**Прочитай `$HOME/.claude/agent-references/compose-rules.md`, прежде чем писать первую composable-функцию.** Он содержит неочевидные правила, которые модель не применяет по умолчанию — Modifier.Node API, определение конфигурации стабильности, отложение фазы через lambda-модификаторы, запрещённые типы параметров, accessibility, жизненный цикл side-эффектов.
+**Прочитай `$HOME/.claude/rules/compose-style.md`, прежде чем писать первую composable-функцию.** Он содержит неочевидные правила, которые модель не применяет по умолчанию — Modifier.Node API, определение конфигурации стабильности, отложение фазы через lambda-модификаторы, запрещённые типы параметров, accessibility, жизненный цикл side-эффектов.
 
 ### 3.1 Модели State и Action
 
@@ -182,7 +182,7 @@ private fun FooScreenPopulatedPreview() {
 
 | Тема | Референс |
 |---|---|
-| Специфичные для Compose правила (Modifier.Node, stability, phase deferral, запрещённые параметры, side effects, exhaustive `when`, accessibility, токены темы, KMP, previews-vs-VM) | `$HOME/.claude/agent-references/compose-rules.md` |
+| Специфичные для Compose правила (Modifier.Node, stability, phase deferral, запрещённые параметры, side effects, exhaustive `when`, accessibility, токены темы, KMP, previews-vs-VM) | `$HOME/.claude/rules/compose-style.md` |
 | Coroutines внутри composable-функций (`LaunchedEffect`, `rememberCoroutineScope`, сбор Flow, отмена) | `$HOME/.claude/rules/coroutines.md` |
 | Идиоматичный стиль Kotlin, валидация value-class, ограничения KMP `commonMain` | `$HOME/.claude/rules/kotlin-style.md` |
 
