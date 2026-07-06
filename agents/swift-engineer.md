@@ -153,8 +153,8 @@ extension DependencyValues {
 
 | Тема | Ссылка |
 |---|---|
-| Swift Concurrency — размещение `@MainActor`, антипаттерн Task.detached, жизненный цикл AsyncStream, bridging cancellation, дисциплина Sendable, Swift 6 strict mode | `$HOME/.claude/agent-references/swift-concurrency.md` |
-| Swift Testing — изоляция `@Suite`, `#require` vs `#expect`, fakes вместо mocks, изоляция параллельных тестов, границы теста AsyncSequence | `$HOME/.claude/agent-references/swift-testing.md` |
+| Swift Concurrency — размещение `@MainActor`, антипаттерн Task.detached, жизненный цикл AsyncStream, bridging cancellation, дисциплина Sendable, Swift 6 strict mode | `$HOME/.claude/rules/swift-concurrency.md` |
+| Swift Testing — изоляция `@Suite`, `#require` vs `#expect`, fakes вместо mocks, изоляция параллельных тестов, границы теста AsyncSequence | `$HOME/.claude/rules/swift-testing.md` |
 
 Ссылки авторитетны — когда память расходится с ними, доверять им. **Конвенции проекта, обнаруженные на Шаге 1, важнее обоих.**
 

@@ -1,3 +1,8 @@
+---
+paths:
+  - "**/*.swift"
+---
+
 # Swift Concurrency — неочевидные правила
 
 Этот файл перечисляет только те правила Swift Concurrency, которые современная модель Claude опускает или ошибочно применяет без напоминания. Общие идиомы — `async`/`await`, `try await`, `async let`, `TaskGroup`, основы structured concurrency, вывод Sendable для value-типов, выбор actor вместо locks, базовый async-синтаксис тестов — здесь **не** документируются; доверяй модели и [книге Apple о Concurrency](https://docs.swift.org/swift-book/documentation/the-swift-programming-language/concurrency/).

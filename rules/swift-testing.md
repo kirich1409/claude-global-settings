@@ -1,3 +1,8 @@
+---
+paths:
+  - "**/*.swift"
+---
+
 # Swift Testing — неочевидные правила
 
 Этот файл перечисляет только те правила тестирования, которые современная модель Claude опускает или ошибочно применяет без напоминания. Общий синтаксис — `@Test`, `#expect`, `@Suite`, базовые async-тесты, `#expect(throws:)`, `XCTAssertEqual` для XCTest, параметризованные тесты с `arguments:` — здесь **не** документируется; доверяй модели и [документации Apple по Testing](https://developer.apple.com/documentation/testing).

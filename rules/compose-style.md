@@ -1,3 +1,8 @@
+---
+paths:
+  - "**/*.kt"
+---
+
 # Compose Rules
 
 Специфичные для проекта конвенции Compose и неочевидные подводные камни, выходящие за рамки того, что современная модель пишет по умолчанию. Общие идиомы Compose — `remember` для кэшируемых значений, `rememberSaveable` для config changes, `key` в `LazyColumn` для динамических элементов, `derivedStateOf` для производного state, state hoisting, UDF, PascalCase, `on*` callbacks — здесь **не** документируются; доверяй модели и Compose Lint.
