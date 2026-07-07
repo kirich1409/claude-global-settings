@@ -53,8 +53,8 @@ cmd_ship() {
   [ "$top" = "$REPO" ] && die "this is the main checkout — run ship from the worktree"
   [ -n "$title" ] || title="$branch"
 
-  # Commit any pending changes.
-  if ! git diff --quiet || ! git diff --cached --quiet; then
+  # Commit any pending changes (tracked, staged, or untracked).
+  if [ -n "$(git status --porcelain)" ]; then
     git add -A || die "git add failed"
     git commit --quiet -m "$title" || die "commit failed"
     note "committed: $title"
