@@ -101,5 +101,40 @@ add_alias csync '$HOME/.claude/hooks/sync-settings.sh'
 add_alias cgspr '$HOME/.claude/scripts/cgs-pr.sh'
 ok "aliases ensured (run 'source ~/.zshrc' or open a new shell)"
 
+# Cursor CLI adaptation — per-machine symlinks into ~/.cursor (NOT synced) pointing at the
+# synced ~/.claude content. See cursor/README.md. Idempotent; never clobbers a real (non-symlink) file.
+# Safe symlink: create/refresh only if target is absent or already a symlink.
+link_safe() { # link_path -> target
+  local link="$1" target="$2"
+  if [ -e "$link" ] && [ ! -L "$link" ]; then
+    note "⚠ $link exists and is not a symlink — leaving it, Cursor adaptation skipped for it"
+    return 1
+  fi
+  ln -sfn "$target" "$link"
+}
+if [ -d "$REPO/cursor" ]; then
+  # Global always-on layer: ~/AGENTS.md → synced cursor/AGENTS.md (upward-walk makes it global under $HOME).
+  if link_safe "$HOME/AGENTS.md" "$REPO/cursor/AGENTS.md"; then
+    ok "linked ~/AGENTS.md → ~/.claude/cursor/AGENTS.md"
+  fi
+  mkdir -p "$HOME/.cursor/skills"
+  # Custom subagents: ~/.cursor/agents → synced ~/.claude/agents (Cursor loads user agents from ~/.cursor/agents).
+  if link_safe "$HOME/.cursor/agents" "$REPO/agents"; then
+    ok "linked ~/.cursor/agents → ~/.claude/agents"
+  fi
+  # Rule-skills: one symlink per skill into ~/.cursor/skills (kept out of ~/.claude/skills to avoid
+  # polluting Claude Code's skill list; Cursor reads ~/.cursor/skills).
+  if [ -d "$REPO/cursor/skills" ]; then
+    n=0
+    for d in "$REPO"/cursor/skills/*/; do
+      [ -d "$d" ] || continue
+      link_safe "$HOME/.cursor/skills/$(basename "$d")" "$d" && n=$((n+1))
+    done
+    ok "linked $n Cursor rule-skill(s) into ~/.cursor/skills"
+  fi
+else
+  note "cursor/ dir absent in checkout — skipping Cursor CLI symlinks"
+fi
+
 # The SessionStart auto-pull hook lives in settings.json (tracked) — already in place after sync.
 printf '\nDone. This machine is on the PR-only line. Edits go through scripts/cgs-pr.sh (branch -> PR -> auto-merge).\n'

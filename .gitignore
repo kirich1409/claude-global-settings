@@ -39,6 +39,12 @@
 !scripts/
 !scripts/**
 
+# === CURSOR CLI ADAPTATION ===
+!cursor/
+!cursor/*/
+!cursor/*/*
+!cursor/**
+
 
 # === FORCE EXCLUDE ===
 .credentials.json
