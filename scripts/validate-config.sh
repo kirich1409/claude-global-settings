@@ -34,10 +34,11 @@ PAT='/Us''ers/'
 hits=$(git ls-files -z | xargs -0 grep -InI -e "$PAT" -- 2>/dev/null \
   | grep -v -e "${PAT}<" -e 'validate-config: allow' || true)
 if [ -n "$hits" ]; then
-  fail "hardcoded /Users/ paths in tracked files (use \$HOME):"
+  # ${PAT} in the messages (not a literal) so this script never flags itself once tracked.
+  fail "hardcoded ${PAT} paths in tracked files (use \$HOME):"
   printf '%s\n' "$hits" | sed 's/^/    /'
 else
-  ok "no hardcoded /Users/ paths"
+  ok "no hardcoded ${PAT} paths"
 fi
 
 # --- 2. CLAUDE.md rules index <-> rules/*.md ------------------------------------------
