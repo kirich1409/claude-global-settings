@@ -118,9 +118,24 @@ if [ -d "$REPO/cursor" ]; then
     ok "linked ~/AGENTS.md → ~/.claude/cursor/AGENTS.md"
   fi
   mkdir -p "$HOME/.cursor/skills"
-  # Custom subagents: ~/.cursor/agents → synced ~/.claude/agents (Cursor loads user agents from ~/.cursor/agents).
-  if link_safe "$HOME/.cursor/agents" "$REPO/agents"; then
-    ok "linked ~/.cursor/agents → ~/.claude/agents"
+  # Custom subagents: GENERATE model-stripped copies into ~/.cursor/agents (real files, not a symlink).
+  # ~/.claude/agents pin `model: opus/sonnet` for Claude Code (correct there — no model choice). Cursor
+  # would honour that pin and force those models; the `model:` line is stripped so Cursor uses inherit/auto
+  # (free adaptation). Source of truth stays ~/.claude/agents; copies are regenerated on every bootstrap run
+  # — re-run bootstrap after adding/editing an agent, or the copy goes stale. See cursor/README.md.
+  AGENTS_DST="$HOME/.cursor/agents"
+  [ -L "$AGENTS_DST" ] && rm -f "$AGENTS_DST"   # drop legacy whole-dir symlink from earlier versions
+  if [ -e "$AGENTS_DST" ] && [ ! -d "$AGENTS_DST" ]; then
+    note "⚠ $AGENTS_DST exists and is not a directory — skipping Cursor agent generation"
+  else
+    mkdir -p "$AGENTS_DST"
+    acount=0
+    for src in "$REPO"/agents/*.md; do
+      [ -f "$src" ] || continue
+      sed '/^model:/d' "$src" > "$AGENTS_DST/$(basename "$src")"
+      acount=$((acount+1))
+    done
+    ok "generated $acount Cursor agent(s) into ~/.cursor/agents (model pin stripped → inherit/auto)"
   fi
   # Rule-skills: one symlink per skill into ~/.cursor/skills (kept out of ~/.claude/skills to avoid
   # polluting Claude Code's skill list; Cursor reads ~/.cursor/skills).
