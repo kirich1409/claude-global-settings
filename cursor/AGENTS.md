@@ -37,7 +37,7 @@
 ## Оркестрация и агенты
 
 - **Планирование / архитектура / синтез → в главной сессии.** Никогда не делегировать reasoning.
-- **Выбор модели — свободный, не зашивать конкретную.** Cursor выбирает сам (`auto`); направлять только tier'ом когда нужно: механическое/поиск → лёгкая модель, ограниченная реализация → средняя, сложный reasoning → сильная (при поддержке — высокий effort). Непонятно между уровнями → меньший, повысить при первом сбое. Детали и механика (`--model`/`/model`, `cursor-agent models`) → skill `rules-model-effort-routing`.
+- **Выбор модели — свободный, не зашивать конкретную.** Cursor выбирает сам (`auto`); направлять только tier'ом когда нужно: механическое/поиск → лёгкая модель, ограниченная реализация → средняя, сложный reasoning → сильная (при поддержке — высокий effort). Непонятно между уровнями → меньший, повысить при первом сбое. Детали и механика (`--model`/`/model`, `cursor-agent models`) → правило `model-effort-routing`.
 - Специализированные ревью (security/performance/UX/code review) → соответствующий expert-агент, не главная сессия.
 - Доступные кастомные субагенты (в `~/.cursor/agents` → `~/.claude/agents`): architecture-expert, build-engineer, business-analyst, code-reviewer, compose-developer, debugging-expert, dependency-evaluator, devops-expert, kotlin-engineer, manual-tester, performance-expert, project-coordinator, security-expert, source-researcher, swift-engineer, swiftui-developer, ui-accessibility-reviewer, ux-expert. Вызов явно: `/<agent-name>`.
 - **Skill-first:** задача покрыта установленным skill → использовать его, не прямой агент.
@@ -51,20 +51,20 @@
 - **PR promotion** (draft → ready) требует подтверждения пользователя. Draft PR — рутина.
 - **Пирамида верификации L0–L5:** L0 build → L1 static → L2 unit → L3 UI → L4 e2e → L5 ручная. L5 обязателен для бампов, миграций, infra-изменений, «не влияет на поведение». Автор чинит сломанные им тесты в том же прогоне.
 
-## Указатель (rules → skills)
+## Указатель (детальные правила)
 
-Детальные правила загружаются как skills по релевантности (описания-триггеры). Полные версии — в `~/.claude/rules/*.md`:
+Детальные правила — нативные Cursor `.mdc` rules в `~/.cursor/rules/` (полные версии — `~/.claude/rules/*.md`). Always-on правила грузятся по релевантности (Agent-Selected по description); стек-специфичные — авто-attach через `globs` при работе с соответствующими файлами. Покрытие:
 
-- **Поиск по коду** → skill `rules-ast-index` (ast-index CLI первым, LSP вторым, Grep последним). Caveat: freshness-хуки — Claude Code only; в Cursor запускать `ast-index update`/`rebuild` вручную при необходимости.
-- **Зависимости** → skill `rules-dependencies` (никаких новых без одобрения; plan-stage gate: свежесть/CVE/API).
-- **Внешние источники** → skill `rules-external-sources` (маршрутизация источников, tier T1–T4, multi-channel).
-- **Верификация Library API** → skill `rules-verify-library-api` (API truth до написания кода; компоновка по стекам; reference implementations).
-- **Git workflow** → skill `rules-git-workflow` (ветки, коммиты, force-push, PR-only ~/.claude).
-- **QA и тестирование** → skill `rules-qa-and-testing` (пирамида, gate public API, приоритеты P0–P4).
-- **Типы задач** → skill `rules-task-types` (матрица тип→источник истины→пирамида→когда тесты).
-- **Выполнение задач** → skill `rules-task-execution` (блокирующие ошибки, первопричина над подавлением, ожидание по условию).
-- **Устойчивость к сжатию** → skill `rules-context-resilience` (state-файлы в swarm-report).
-- **Model & effort** → skill `rules-model-effort-routing`.
-- **Политики кода** → skill `rules-code-policies` (feature flags, breaking changes, логирование).
+- **Поиск по коду** (`ast-index`): ast-index CLI первым, LSP вторым, Grep последним. Caveat: freshness-хуки — Claude Code only; в Cursor запускать `ast-index update`/`rebuild` вручную.
+- **Зависимости** (`dependencies`): никаких новых без одобрения; plan-stage gate (свежесть/CVE/API).
+- **Внешние источники** (`external-sources`): маршрутизация, tier T1–T4, multi-channel.
+- **Верификация Library API** (`verify-library-api`): API truth до кода; компоновка по стекам; reference implementations.
+- **Git workflow** (`git-workflow`): ветки, коммиты, force-push, PR-only ~/.claude.
+- **QA и тестирование** (`qa-and-testing`): пирамида L0–L5, gate public API, приоритеты P0–P4.
+- **Типы задач** (`task-types`): матрица тип→источник истины→пирамида→когда тесты.
+- **Выполнение задач** (`task-execution`): блокирующие ошибки, первопричина над подавлением, ожидание по условию.
+- **Устойчивость к сжатию** (`context-resilience`): state-файлы в swarm-report.
+- **Model & effort** (`model-effort-routing`): свободный выбор модели, tier'ы, маршрутизация.
+- **Политики кода** (`code-policies`): feature flags, breaking changes, логирование.
 
-Стек-специфичные правила (Kotlin/Swift/Compose/Gradle/SwiftUI) грузятся автоматически при работе с соответствующими файлами (paths-scoped skills).
+Стек-специфичные (Kotlin/Swift/Compose/Gradle/SwiftUI) авто-attach'атся при работе с соответствующими файлами.

@@ -11,8 +11,8 @@
 | Глобальный `~/.claude/CLAUDE.md` + always-on rules | `~/AGENTS.md` (essentials) | symlink `~/AGENTS.md` → `cursor/AGENTS.md` |
 | Кастомные агенты (`~/.claude/agents/`, 18) | `~/.cursor/agents/` (сгенерированные копии с вырезанным `model:`) | bootstrap генерирует из `~/.claude/agents` |
 | Skills семейства developer-workflow | авточтение `~/.claude/skills/` | нативно, без symlink |
-| Always-on rules (детальные) | Cursor skills (description-триггер) | `cursor/skills/rules-*/` → symlink в `~/.cursor/skills/` |
-| Paths-scoped rules (Kotlin/Swift/Compose/Gradle…) | Cursor skills с `paths:` (auto-attach) | `cursor/skills/rules-*/` → symlink в `~/.cursor/skills/` |
+| Always-on rules (детальные) | нативные Cursor `.mdc` rules (Agent-Selected: `description`, `alwaysApply: false`) | `cursor/rules/*.mdc` → symlink в `~/.cursor/rules/` |
+| Paths-scoped rules (Kotlin/Swift/Compose/Gradle…) | нативные Cursor `.mdc` rules (Auto-Attached: `globs`) | `cursor/rules/*.mdc` → symlink в `~/.cursor/rules/` |
 | shell-скрипты (`scripts/gh/`, `ast-index`) | работают как есть | — |
 
 ### Почему именно так (эмпирические факты)
@@ -21,11 +21,12 @@
 - `~/AGENTS.md` **глобален**: Cursor поднимается вверх по дереву каталогов (upward-walk) от cwd, **сквозь границу `.git`**, вплоть до `$HOME`. Значит один `~/AGENTS.md` применяется во всех проектах под `$HOME`. Проверено sentinel-тестами.
 - Агенты в формате Claude Code Cursor загружает, игнорируя незнакомые поля (`tools:`), но поле **`model:` он ЧТИТ** и пиннит эту модель. `~/.claude/agents` пинят `opus`/`sonnet` (для Claude Code — верно, там выбора нет). Чтобы Cursor не форсил конкретную модель, bootstrap генерирует копии в `~/.cursor/agents` с **вырезанной строкой `model:`** → Cursor использует inherit/auto (свободный выбор). Проверено: `/architecture-expert` маршрутизируется; агенты стартовали на пиненных opus/sonnet до стрипа.
 - Skills читаются из `~/.claude/skills` нативно (legacy-compat). Проверено: `finalize`/`check` видны.
-- Rule-skills специально держатся в `cursor/skills/` (а не в `~/.claude/skills/`), чтобы **не засорять** список скиллов Claude Code — он читает `~/.claude/skills`, но не `~/.claude/cursor/skills`. Cursor видит их через symlink'и в `~/.cursor/skills/`.
+- **Нативные `.mdc` rules из `~/.cursor/rules/` работают глобально в CLI** (у CLI ЕСТЬ file-based глобальная локация rules, вопреки прежнему предположению). Проверено sentinel-тестами: `alwaysApply: true` грузится каждую сессию; `globs: **/*.kt` auto-attach'ится, когда `.kt`-файл попадает в контекст (прочитан); multi-glob через запятую (`**/*.kt, **/*.kts`) тоже работает. Поэтому paths-scoped правила — нативные `.mdc` с `globs` (настоящий file-glob триггер), а не skills (в этом билде `paths:` у skills игнорируется).
+- Rules держатся в `cursor/rules/` (а не в `~/.claude/rules/`) и symlink'аются в `~/.cursor/rules/` — Claude Code их не видит (читает `~/.claude/rules`), смешивания нет. Symlink «живой» → правка `cursor/rules/*.mdc` действует сразу, без дрейфа.
 
 ## Always-on слой (essentials)
 
-`cursor/AGENTS.md` содержит только непререкаемое ядро (стратегия «essentials», не полный порт — чтобы не раздувать контекст каждой сессии): §Нельзя нарушать, язык/общение, принципы, границы оркестрации, workflow-gates, указатель на rule-skills. Детальные правила вынесены в skills и грузятся по релевантности.
+`cursor/AGENTS.md` содержит только непререкаемое ядро (стратегия «essentials», не полный порт — чтобы не раздувать контекст каждой сессии): §Нельзя нарушать, язык/общение, принципы, границы оркестрации, workflow-gates, указатель на детальные правила. Детальные always-on правила — нативные `.mdc` rules с `alwaysApply: false` (Agent-Selected), грузятся по релевантности (та же ленивая загрузка, что задумана essentials-стратегией). Paths-scoped — `.mdc` с `globs`, грузятся при работе с соответствующими файлами.
 
 ## Установка на машине
 
@@ -33,7 +34,7 @@
 bash ~/.claude/scripts/bootstrap-machine.sh
 ```
 
-Создаёт symlink'и `~/AGENTS.md`, `~/.cursor/skills/rules-*` и **генерирует** копии агентов в `~/.cursor/agents` (с вырезанным `model:`). Идемпотентно; реальные (не-symlink) файлы не затирает. Запускать вне активной Claude-сессии.
+Создаёт symlink'и `~/AGENTS.md`, `~/.cursor/rules/*.mdc` и **генерирует** копии агентов в `~/.cursor/agents` (с вырезанным `model:`). Также чистит устаревшие битые symlink'и в `~/.cursor/skills` от прежней (skills-based) схемы. Идемпотентно; реальные (не-symlink) файлы не затирает. Запускать вне активной Claude-сессии.
 
 **Важно:** агенты в `~/.cursor/agents` — снимки, регенерируются на каждом запуске bootstrap. После добавления/правки агента в `~/.claude/agents` — **перезапустить bootstrap**, иначе Cursor не увидит изменение (в отличие от «живого» symlink).
 
@@ -49,8 +50,7 @@ bash ~/.claude/scripts/bootstrap-machine.sh
 ## Ограничения / caveat'ы
 
 - `ast-index`: CLI работает, но freshness-хуки — механизм Claude Code; в Cursor обновлять индекс вручную (`ast-index update`/`rebuild`).
-- Always-on rules, ставшие skills, грузятся **по релевантности** (Cursor agent-selected по description), а не безусловно как в Claude Code. Ядро, которое обязано применяться всегда, — в `AGENTS.md`.
+- Детальные always-on rules (`.mdc` с `alwaysApply: false`) грузятся **по релевантности** (Agent-Selected по description), а не безусловно как в Claude Code. Ядро, которое обязано применяться всегда, — в `AGENTS.md`. Если нужно, чтобы конкретное правило применялось всегда — поставить в его `.mdc` `alwaysApply: true` (ценой контекста каждой сессии).
 - Билд Cursor 6-недельной давности на момент адаптации; на более новых билдах авточтение `~/.claude/agents` на user-level может заработать напрямую. Но генерация копий в `~/.cursor/agents` всё равно нужна ради стрипа `model:` — прямое авточтение `~/.claude/agents` вернуло бы пины `opus`/`sonnet`.
-- **`~/AGENTS.md` глобален только для проектов под `$HOME`.** Upward-walk идёт от cwd вверх; проект вне `$HOME` (например `/Volumes/...`, `/tmp`) файл не увидит. Проверено: из `/private/tmp` слой не грузится, из под-каталога `$HOME` — грузится.
-- **`paths:` в skill-frontmatter в этом билде, вероятно, игнорируется** (в `create-skill` doc поля нет; парсинг не ломается — проверено `SKILL_ERROR:NO`). Авто-привязка paths-scoped правил работает через **description** (в каждом описании назван тип файлов), а не через `paths:`. Поле оставлено для forward-compat.
-- **rule-skills — снимки** содержимого `rules/*.md` на момент конвертации; при правке правил они дрейфуют. Регенерировать при существенных изменениях правил (будущая работа — скрипт-генератор `rules/*.md` → `cursor/skills/rules-*`).
+- **`~/AGENTS.md` и `~/.cursor/rules/*.mdc` глобальны только для проектов под `$HOME`.** Upward-walk идёт от cwd вверх; проект вне `$HOME` (например `/Volumes/...`, `/tmp`) их не увидит. Проверено: из `/private/tmp` слой не грузится, из под-каталога `$HOME` — грузится.
+- **Дрейф — только у агентов.** `AGENTS.md` и `.mdc` rules — «живые» symlink'и на синкаемый источник, правка действует сразу. Агенты в `~/.cursor/agents` — снимки (нужна регенерация через `model:`-стрип), после правки `~/.claude/agents` перезапустить bootstrap.
