@@ -117,7 +117,7 @@ if [ -d "$REPO/cursor" ]; then
   if link_safe "$HOME/AGENTS.md" "$REPO/cursor/AGENTS.md"; then
     ok "linked ~/AGENTS.md → ~/.claude/cursor/AGENTS.md"
   fi
-  mkdir -p "$HOME/.cursor/skills"
+  mkdir -p "$HOME/.cursor/skills" "$HOME/.cursor/rules"
   # Custom subagents: GENERATE model-stripped copies into ~/.cursor/agents (real files, not a symlink).
   # ~/.claude/agents pin `model: opus/sonnet` for Claude Code (correct there — no model choice). Cursor
   # would honour that pin and force those models; the `model:` line is stripped so Cursor uses inherit/auto
@@ -137,15 +137,25 @@ if [ -d "$REPO/cursor" ]; then
     done
     ok "generated $acount Cursor agent(s) into ~/.cursor/agents (model pin stripped → inherit/auto)"
   fi
-  # Rule-skills: one symlink per skill into ~/.cursor/skills (kept out of ~/.claude/skills to avoid
-  # polluting Claude Code's skill list; Cursor reads ~/.cursor/skills).
-  if [ -d "$REPO/cursor/skills" ]; then
+  # Rules: symlink each native Cursor .mdc rule into ~/.cursor/rules (global, read by CLI).
+  # paths-scoped rules use `globs:` (auto-attach on matching file in context); always-on use
+  # description-only (Agent-Selected). Kept out of ~/.claude/rules to avoid mixing with Claude Code rules.
+  if [ -d "$REPO/cursor/rules" ]; then
     n=0
-    for d in "$REPO"/cursor/skills/*/; do
-      [ -d "$d" ] || continue
-      link_safe "$HOME/.cursor/skills/$(basename "$d")" "$d" && n=$((n+1))
+    for f in "$REPO"/cursor/rules/*.mdc; do
+      [ -f "$f" ] || continue
+      link_safe "$HOME/.cursor/rules/$(basename "$f")" "$f" && n=$((n+1))
     done
-    ok "linked $n Cursor rule-skill(s) into ~/.cursor/skills"
+    ok "linked $n Cursor rule(s) into ~/.cursor/rules"
+  fi
+  # Cleanup: remove stale rule-skill symlinks from the previous (skills-based) design — any broken
+  # symlink in ~/.cursor/skills that no longer resolves (e.g. old cursor/skills/rules-* targets).
+  if [ -d "$HOME/.cursor/skills" ]; then
+    stale=0
+    for s in "$HOME"/.cursor/skills/*; do
+      [ -L "$s" ] && [ ! -e "$s" ] && { rm -f "$s"; stale=$((stale+1)); }
+    done
+    [ "$stale" -gt 0 ] && note "removed $stale stale rule-skill symlink(s) from ~/.cursor/skills"
   fi
 else
   note "cursor/ dir absent in checkout — skipping Cursor CLI symlinks"
