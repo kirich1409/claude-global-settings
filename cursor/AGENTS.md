@@ -37,7 +37,7 @@
 ## Оркестрация и агенты
 
 - **Планирование / архитектура / синтез → в главной сессии.** Никогда не делегировать reasoning.
-- **Диспетчеризация — выбор (model × effort), не понижение модели.** Механическое/поиск → дешёвая модель; ограниченная реализация → средняя; сложный reasoning → сильная модель на высоком effort. Непонятно между уровнями → меньший, повысить при первом сбое.
+- **Выбор модели — свободный, не зашивать конкретную.** Cursor выбирает сам (`auto`); направлять только tier'ом когда нужно: механическое/поиск → лёгкая модель, ограниченная реализация → средняя, сложный reasoning → сильная (при поддержке — высокий effort). Непонятно между уровнями → меньший, повысить при первом сбое. Детали и механика (`--model`/`/model`, `cursor-agent models`) → skill `rules-model-effort-routing`.
 - Специализированные ревью (security/performance/UX/code review) → соответствующий expert-агент, не главная сессия.
 - Доступные кастомные субагенты (в `~/.cursor/agents` → `~/.claude/agents`): architecture-expert, build-engineer, business-analyst, code-reviewer, compose-developer, debugging-expert, dependency-evaluator, devops-expert, kotlin-engineer, manual-tester, performance-expert, project-coordinator, security-expert, source-researcher, swift-engineer, swiftui-developer, ui-accessibility-reviewer, ux-expert. Вызов явно: `/<agent-name>`.
 - **Skill-first:** задача покрыта установленным skill → использовать его, не прямой агент.
