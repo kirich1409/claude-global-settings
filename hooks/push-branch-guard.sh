@@ -30,8 +30,12 @@ cwd = payload.get("cwd") or "."
 
 PROTECTED = {"main", "master", "develop"}
 
-# Интересуют только команды, реально вызывающие `git push` (в т.ч. `git -C <dir> push`)
-m = re.search(r"\bgit\s+(?:-C\s+\S+\s+)?push\b([^|;&]*)", cmd)
+# Интересуют только команды, реально вызывающие `git push` — в т.ч. с глобальными
+# опциями перед подкомандой: `git -C <dir> push`, `git -c k=v push`, `git --git-dir=… push`.
+m = re.search(
+    r"\bgit\s+(?:(?:-[cC]|--git-dir|--work-tree|--namespace|--exec-path)(?:[=\s]+\S+)?\s+)*push\b([^|;&]*)",
+    cmd,
+)
 if not m:
     sys.exit(0)
 
