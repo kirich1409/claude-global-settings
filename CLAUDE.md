@@ -37,7 +37,7 @@
 - **context-resilience.md** — state-файлы в `swarm-report/`; шаблоны для state/e2e/debug/report; правило перечитывания
 - **dependencies.md** — никаких новых зависимостей без одобрения; plan-stage gate (свежесть, CVE, изучение API); правила Gradle/Maven
 - **external-sources.md** — таблица маршрутизации источников; обнаружение инструментов и multi-channel использование; рабочий процесс Context7; уровни доверия T1–T4
-- **git-workflow.md** — именование веток, сообщения коммитов, правила force-push, локальная верификация перед пушем, очистка worktree
+- **git-workflow.md** — именование веток, сообщения коммитов, правила force-push, размещение worktree (`.worktrees/` в корне проекта, в gitignore), локальная верификация перед пушем, очистка worktree
 - **github-merge-policy.md** — автономия auto-merge, anti-stall, политика для личного vs командного репо
 - **github-ops.md** — идемпотентные хелперы PR/issue/board в `scripts/gh/`; машина состояний доски; правила anti-hang
 - **model-effort-routing.md** — эвристика диспетчеризации model × effort; ограничения маршрутизации агентов

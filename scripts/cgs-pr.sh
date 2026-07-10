@@ -6,8 +6,10 @@
 # cycle (see rules/git-workflow.md § Репозиторий ~/.claude — PR-only).
 #
 # Usage:
-#   cgs-pr new <slug>         Create worktree $HOME/cgs-<slug> on branch chore/<slug> from
-#                             origin/main, print its path. Edit tracked files there.
+#   cgs-pr new <slug>         Create worktree $HOME/.claude/.worktrees/<slug> on branch
+#                             chore/<slug> from origin/main, print its path. Edit tracked
+#                             files there. (.worktrees/ is ignored by the whitelist .gitignore;
+#                             see rules/git-workflow.md § Размещение worktree.)
 #   cgs-pr ship "<title>"     Run FROM the worktree: commit any changes, push, open a PR,
 #                             enable auto-merge (squash), wait until merged, then fast-forward
 #                             the main checkout and remove the worktree + branch.
@@ -33,7 +35,7 @@ cmd_new() {
   local slug="${1:-}"
   [ -n "$slug" ] || die "usage: cgs-pr new <slug>"
   case "$slug" in */*|*' '*) die "slug must be kebab-case, no slashes/spaces";; esac
-  local branch="chore/$slug" wt="$HOME/cgs-$slug"
+  local branch="chore/$slug" wt="$REPO/.worktrees/$slug"
   [ -e "$wt" ] && die "worktree path already exists: $wt"
   git -C "$REPO" fetch --quiet origin || die "fetch failed (network?)"
   git -C "$REPO" worktree add -b "$branch" "$wt" origin/main >/dev/null 2>&1 \
@@ -114,6 +116,7 @@ cmd_ship() {
   # a worktree that is the current directory, so leave it first.
   cd "$REPO" || die "cannot cd to $REPO"
   git -C "$REPO" worktree remove --force "$top" 2>/dev/null && note "removed worktree $top"
+  rmdir "$REPO/.worktrees" 2>/dev/null || true  # drop the container dir when the last worktree is gone
   git -C "$REPO" branch -D "$branch" 2>/dev/null && note "deleted local $branch"
   note "done — main at $(git -C "$REPO" log --oneline -1)"
 }
