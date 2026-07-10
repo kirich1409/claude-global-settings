@@ -8,8 +8,17 @@ if ! command -v python3 >/dev/null 2>&1; then
     echo "WARN: python3 not found — cross-repo-guard cannot parse tool input, skipping check" >&2
 fi
 
-# Find the file path
-FILE_PATH=$(echo "$INPUT" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('file_path', d.get('filePath','')))" 2>/dev/null)
+# Find the file path. Claude Code wraps tool arguments under tool_input (top-level
+# fallback kept for older payloads); NotebookEdit uses notebook_path instead of file_path.
+FILE_PATH=$(echo "$INPUT" | python3 -c "
+import sys, json
+try:
+    d = json.load(sys.stdin)
+    ti = d.get('tool_input', d)
+    print(ti.get('file_path') or ti.get('filePath') or ti.get('notebook_path') or ti.get('notebookPath') or '')
+except Exception:
+    print('')
+" 2>/dev/null)
 
 # Need both a file path and a current git root
 [ -z "$FILE_PATH" ] && exit 0

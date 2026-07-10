@@ -32,10 +32,19 @@ register_merge_driver() {
 echo "=== Claude Code Global Settings Setup ==="
 
 # --- Already set up ---
+# ff-only, как csync/auto-pull: main — чистое зеркало origin/main (PR-only модель),
+# rebase здесь маскировал бы локальные коммиты, которые должны уехать в ветку + PR.
 if [ -d "$CLAUDE_DIR/.git" ]; then
-  echo "Already configured. Pulling latest..."
-  if ! git -C "$CLAUDE_DIR" pull --rebase; then
-    echo "Pull failed. Try: cd ~/.claude && git rebase --abort && git pull --rebase"
+  echo "Already configured. Syncing (ff-only)..."
+  BRANCH=$(git -C "$CLAUDE_DIR" rev-parse --abbrev-ref HEAD 2>/dev/null || echo "?")
+  if [ "$BRANCH" != "main" ]; then
+    echo "Checkout is on '$BRANCH', not main — sync skipped. Switch to main, then run csync."
+    exit 1
+  fi
+  git -C "$CLAUDE_DIR" fetch --quiet origin || { echo "Fetch failed (network?)."; exit 1; }
+  if ! git -C "$CLAUDE_DIR" merge --ff-only origin/main; then
+    echo "main diverged from origin — PR-only model requires a clean main."
+    echo "Move local commits to a branch + PR, then: git -C ~/.claude reset --hard origin/main"
     exit 1
   fi
   register_merge_driver

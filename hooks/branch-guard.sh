@@ -16,7 +16,7 @@ import sys, json
 try:
     d = json.load(sys.stdin)
     ti = d.get('tool_input', d)
-    print(ti.get('file_path', ti.get('filePath', '')))
+    print(ti.get('file_path') or ti.get('filePath') or ti.get('notebook_path') or ti.get('notebookPath') or '')
 except Exception:
     print('')
 " 2>/dev/null)
