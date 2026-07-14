@@ -12,7 +12,7 @@
 | `transition_status.sh <issue> <status>` | Перемещает issue на доске (Projects v2 через GraphQL) или fallback по лейблам. `--dry-run` разрешает без записи. |
 | `get_completion_signal.sh <issue>` | Завершён ли issue? (merged PR > open PR > none) |
 | `get_dependencies.sh <issue>` | Блокирующие зависимости: sub-issues + «blocked by #N» / «depends on #N». |
-| `list_issues.sh` / `fetch_issue.sh` | Запрос/получение issues (state, labels, body, node id). |
+| `list_issues.sh` / `fetch_issue.sh` | Запрос/получение issues (state, labels, body, node id, таймстемпы). `list_issues.sh` отдаёт `updated_at` для всего списка — staleness без доп. вызовов; тела там нет намеренно. `fetch_issue.sh --with-comments` добавляет тред (`author`, `created_at`, `body`, `edited`) — по умолчанию выключено, тела комментариев не ограничены по размеру. |
 | `add_comment.sh` / `link_pr.sh` | Marker-idempotent комментарий / привязка PR. |
 
 ## Идемпотентность — каждая мутация трекера должна быть resume-safe

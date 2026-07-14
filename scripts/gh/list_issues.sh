@@ -17,15 +17,17 @@
 # OUTPUT (stdout, JSON):
 #   Success: JSON array of issue objects. Each object:
 #     {
-#       "number":  <int>,
-#       "title":   <string>,
-#       "state":   "OPEN"|"CLOSED",
-#       "labels":  [{"id":<string>,"name":<string>,"color":<string>},...],
-#       "url":     <string>,
-#       "node_id": <string>
+#       "number":     <int>,
+#       "title":      <string>,
+#       "state":      "OPEN"|"CLOSED",
+#       "labels":     [{"id":<string>,"name":<string>,"color":<string>},...],
+#       "url":        <string>,
+#       "node_id":    <string>,
+#       "updated_at": <string>   -- ISO-8601 UTC; staleness signal, no extra call
 #     }
 #   Note: body is omitted for list output to keep payloads compact.
-#         Use fetch_issue.sh to retrieve the full body of a specific issue.
+#         Use fetch_issue.sh to retrieve the full body of a specific issue,
+#         or fetch_issue.sh --with-comments for the comment thread.
 #
 #   Error:
 #     {"error":<string>,"code":<string>}
@@ -97,17 +99,18 @@ if [[ -n "$NUMBERS" ]]; then
       exit 1
     fi
     if ! out=$(gh_with_timeout "$GH_REST_TIMEOUT" gh issue view "$n" -R "$REPO" \
-      --json id,number,title,state,labels,url 2>&1); then
+      --json id,number,title,state,labels,url,updatedAt 2>&1); then
       im_error "$out" "gh_failed"
       exit 1
     fi
     item=$(printf '%s' "$out" | jq '{
-      number:  .number,
-      title:   .title,
-      state:   .state,
-      labels:  [.labels[] | {id: .id, name: .name, color: .color}],
-      url:     .url,
-      node_id: .id
+      number:     .number,
+      title:      .title,
+      state:      .state,
+      labels:     [.labels[] | {id: .id, name: .name, color: .color}],
+      url:        .url,
+      node_id:    .id,
+      updated_at: .updatedAt
     }')
     results=$(printf '%s' "$results" | jq --argjson item "$item" '. + [$item]')
   done
@@ -125,16 +128,17 @@ if ! out=$(gh_with_timeout "$GH_REST_TIMEOUT" gh issue list -R "$REPO" \
   --state "$STATE" \
   --limit "$LIMIT" \
   "${LABEL_FLAGS[@]+"${LABEL_FLAGS[@]}"}" \
-  --json id,number,title,state,labels,url 2>&1); then
+  --json id,number,title,state,labels,url,updatedAt 2>&1); then
   im_error "$out" "gh_failed"
   exit 1
 fi
 
 printf '%s' "$out" | jq '[.[] | {
-  number:  .number,
-  title:   .title,
-  state:   .state,
-  labels:  [.labels[] | {id: .id, name: .name, color: .color}],
-  url:     .url,
-  node_id: .id
+  number:     .number,
+  title:      .title,
+  state:      .state,
+  labels:     [.labels[] | {id: .id, name: .name, color: .color}],
+  url:        .url,
+  node_id:    .id,
+  updated_at: .updatedAt
 }]'
