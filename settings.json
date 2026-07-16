@@ -308,6 +308,11 @@
     "defaultMode": "auto"
   },
   "model": "fable",
+  "skillOverrides": {
+    "evaluate-dependency": "off",
+    "find-skills": "off",
+    "kotlin-tooling-cocoapods-spm-migration": "off"
+  },
   "hooks": {
     "SessionStart": [
       {
@@ -473,11 +478,10 @@
     "remember@claude-plugins-official": true,
     "code-simplifier@claude-plugins-official": true,
     "claude-md-management@claude-plugins-official": true,
-    "hookify@claude-plugins-official": true,
-    "code-review@claude-plugins-official": true,
-    "pr-review-toolkit@claude-plugins-official": true,
+    "hookify@claude-plugins-official": false,
+    "code-review@claude-plugins-official": false,
     "ast-index@ast-index-marketplace": true,
-    "kotlin-lsp@claude-plugins-official": true,
+    "kotlin-lsp@claude-plugins-official": false,
     "context-mode@context-mode": true,
     "warp@claude-code-warp": true,
     "claude-code-wakatime@wakatime": true
@@ -611,12 +615,14 @@
     }
   },
   "alwaysThinkingEnabled": true,
-  "advisorModel": "opus",
+  "effortLevel": "high",
+  "advisorModel": "fable",
   "showClearContextOnPlanAccept": true,
   "tui": "fullscreen",
   "channelsEnabled": true,
   "autoMemoryEnabled": true,
   "skipDangerousModePermissionPrompt": true,
+  "skipWorkflowUsageWarning": true,
   "remoteControlAtStartup": true,
   "inputNeededNotifEnabled": true,
   "agentPushNotifEnabled": true,
