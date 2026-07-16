@@ -11,11 +11,7 @@
 
 ## Синхронизация ~/.claude
 
-`~/.claude` — публичный git-репо (`kirich1409/claude-global-settings`), синхронизируемый между машинами. Модель — **PR-only**: `main` всегда чистая, изменения доставляются только через PR с auto-merge.
-
-- Использовать `$HOME/.claude/...` в конфигах/hooks. Никогда не хардкодить `/Users/<username>/...`.
-- **`csync` (alias) и SessionStart auto-pull — только синхронизация (pull):** fetch + fast-forward `main`. Они никогда не коммитят, не пушат и не открывают PR. Грязный или убежавший вперёд `main` — громкая ошибка (statusline + OS-нотификация), не авто-коммит.
-- **Любая правка tracked-файла** (CLAUDE.md, rules, settings, hooks, scripts, skills, agents) идёт через **ветку/worktree → PR → auto-merge**, а не правкой на `main`. Доставка изменения — ответственность того, кто его внёс, не sync-скрипта. Основной чекаут всегда остаётся на `main`. Полный порядок — [[git-workflow]] § Репозиторий ~/.claude.
+`~/.claude` — публичный git-репо (`kirich1409/claude-global-settings`), синхронизируемый между машинами, модель **PR-only**. Полное правило (paths-scoped, грузится только при работе с tracked-файлами `~/.claude`) — [[claude-repo-pr-workflow]]. `csync` и SessionStart auto-pull — только pull, никогда не коммитят/не пушат.
 
 ## Принципы
 
@@ -52,6 +48,7 @@
 Paths-scoped (загружаются только при чтении соответствующих файлов):
 
 - **android-cli.md** — обнаружение и использование Android CLI skills (scoped: Android/Gradle/KMP sources)
+- **claude-repo-pr-workflow.md** — PR-only модель репозитория `~/.claude` (main-протекция, auto-merge, helper-скрипты, bootstrap) (scoped: tracked-файлы `~/.claude`: CLAUDE.md/rules/settings/hooks/scripts/skills/agents)
 - **code-style.md** — чистота кода, обязательные inline-комментарии, политика legacy-кода (scoped: все исходные расширения kt/java/swift/m/mm/js/jsx/ts/tsx/py/go/rs/cs/c/cc/cpp/h/hpp/rb/php)
 - **compose-style.md** — неочевидные конвенции Compose и подводные камни за рамками дефолтов модели (Modifier.Node, stability, phase deferral, accessibility) (scoped: `**/*.kt`)
 - **coroutines.md** — стиль Kotlin coroutines (scoped: `**/*.kt`)
