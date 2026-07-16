@@ -41,8 +41,10 @@ before flipping to `approved`.
   model. (The mandatory Phase 3 inline `multiexpert-review` call and the Phase 3.5 adversarial
   red-team Agent call are the review gate built into this skill, not downstream chains — these are
   the sanctioned in-skill invocations.)
-- `progress.md` is the live ledger: as each `T-N` lands, check its box and append a one-line
-  learning. The implementer commits plan + code together so the PR shows the plan that produced the
-  change.
+- Execution status is tracked at two levels (SKILL.md Phase 5): a live `TodoWrite` list seeded from
+  `tasks.md` gives moment-to-moment status in the Claude Code interface (one item `in_progress`,
+  flipped to `completed` on acceptance), while `progress.md` is the durable committed ledger — as
+  each `T-N` lands, check its box and append a one-line learning. A task is done only when both agree.
+  The implementer commits plan + code together so the PR shows the plan that produced the change.
 - `create-pr` discovers `docs/plans/<slug>/plan.md` and references it in the PR body; `finalize`
   anchors its `code-reviewer` pass on the same plan. No extra wiring needed beyond writing the file.
