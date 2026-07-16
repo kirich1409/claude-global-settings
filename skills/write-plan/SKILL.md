@@ -218,21 +218,11 @@ On `review_verdict: escalate`, do not flip to `approved`. Retire (delete) the st
 
 ## Phase 5: Hand Off
 
-Execution is tracked at **two** levels — seed both before touching code:
-
-- **TodoWrite — live status in the Claude Code interface.** At the start of execution, seed a
-  `TodoWrite` list with one item per `T-N` from `tasks.md` (item text = the task title; keep them in
-  `tasks.md` order so dependencies are respected). This is the in-session view that renders live in
-  the CC UI: exactly one task is `in_progress` at a time, flip it to `completed` the moment its
-  acceptance passes, then start the next. `progress.md` is a committed file and cannot show
-  moment-to-moment status during a run — that is what this list is for. If execution happens across
-  agents, whoever implements re-seeds the list from `tasks.md` at the start of their turn.
-- **`progress.md` — the durable committed ledger.** As each `T-N` completes, check its box and append
-  a one-line learning. This is the audit trail that survives the session and lands in the PR.
-
-Keep the two in sync: a `T-N` is done only when its TodoWrite item is `completed` **and** its
-`progress.md` box is checked. Then suggest the next step (implement the tasks; then `/write-tests`,
-`/check`, `/finalize`, `/acceptance`).
+This skill **authors** the plan; it does not execute it. Initialize `progress.md` with one unchecked
+box per `T-N` and an empty learnings log — the durable execution ledger the executor updates as work
+lands. Then suggest the next step: `/implement-plan` to execute the plan task-by-task (it seeds the
+live `TodoWrite` status list and drives the `tasks.md` DAG via specialist subagents), then
+`/write-tests`, `/check`, `/finalize`, `/acceptance`.
 
 See [`references/output-layout.md`](references/output-layout.md) for path conventions, the
 confirmation message, gitignore notes, and the hand-off rules (do-not-auto-invoke, the toolbox model,

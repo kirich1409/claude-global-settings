@@ -108,11 +108,11 @@ build/lint target — never "looks right".
 
 ## `docs/plans/<slug>/progress.md`
 
-Initialize with one unchecked box per task and an empty learnings log. The implementer updates this
-as work proceeds; it carries state across sessions and fresh-context runs (so a stop/resume or an
-autonomous loop never loses its place). This is the durable committed ledger; the live in-session
-view during execution is a `TodoWrite` list seeded from `tasks.md` (SKILL.md Phase 5) — keep the two
-in sync (a task is done only when its TodoWrite item is `completed` and its box here is checked).
+Initialize with one unchecked box per task and an empty learnings log. The implementer (`/implement-plan`)
+updates this as work proceeds; it carries state across sessions and fresh-context runs (so a
+stop/resume or an autonomous loop never loses its place). This is the durable committed ledger; the
+live in-session status during execution is a `TodoWrite` list the executor seeds from `tasks.md` —
+kept in sync so a task is done only when its TodoWrite item is `completed` and its box here is checked.
 
 ```markdown
 # Progress: <title>
