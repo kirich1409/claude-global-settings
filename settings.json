@@ -363,6 +363,16 @@
         ]
       },
       {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$HOME/.claude/hooks/validate-config-on-edit.sh",
+            "timeout": 30
+          }
+        ]
+      },
+      {
         "matcher": "*",
         "hooks": [
           {

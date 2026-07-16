@@ -151,6 +151,32 @@ else
   ok "agent frontmatter present"
 fi
 
+# --- 9. Permission rules semantics in settings.json --------------------------------------
+# Write(<path>) rules are silently ignored by file permission checks — only Edit(<path>)
+# covers file-editing tools (Write/Edit/NotebookEdit). A Write() deny rule therefore looks
+# like protection while protecting nothing (the exact incident this check exists for).
+if [ -f settings.json ]; then
+  PERM_OUT="$(mktemp)"
+  python3 - > "$PERM_OUT" <<'PYEOF'
+import json
+cfg = json.load(open("settings.json"))
+perms = cfg.get("permissions") or {}
+bad = []
+for key in ("allow", "deny", "ask"):
+    for rule in perms.get(key) or []:
+        # Bare "Write" (tool-level allow) is valid; "Write(<anything>)" is dead config.
+        if rule.startswith("Write("):
+            bad.append(f"{key}:{rule}")
+print(" ".join(bad))
+PYEOF
+  badperm=$(cat "$PERM_OUT"); rm -f "$PERM_OUT"
+  if [ -n "$badperm" ]; then
+    fail "Write(<path>) permission rules are ignored by file checks — use Edit(<path>): $badperm"
+  else
+    ok "no Write(<path>) permission rules"
+  fi
+fi
+
 echo
 if [ "$FAIL" -ne 0 ]; then
   echo "validate-config: FAIL"

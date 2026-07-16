@@ -37,7 +37,7 @@ if not cmd:
 PATTERNS = [
     (r'(^|[\s"\'`=@:/(])\.env(\.[\w.-]+)?($|[\s"\'`);|&<>])', "файл .env*"),
     (r'(^|[\s"\'`=@:])(\./)?secrets/', "каталог secrets/"),
-    (r'(~|\$HOME|/Users/[^/\s]+|/home/[^/\s]+)/\.(ssh|aws|gnupg|kube)($|[/\s"\'`;|&)])',
+    (r'(~|\$HOME|/Users/[^/\s]+|/home/[^/\s]+)/\.(ssh|aws|gnupg|kube)($|[/\s"\'`;|&)])',  # validate-config: allow
      "~/.ssh, ~/.aws, ~/.gnupg, ~/.kube"),
     (r'\bid_(rsa|ed25519|ecdsa|dsa)\b', "приватный SSH-ключ"),
     (r'\.(pem|p12|pfx)($|[\s"\'`;|&)])', "ключ/сертификат (*.pem/*.p12/*.pfx)"),
