@@ -105,23 +105,54 @@ as `completed` and begin at the first unchecked one. Keep exactly one task `in_p
 For each task, honoring the chosen strategy:
 
 1. **Mark `in_progress`** in TodoWrite.
-2. **Dispatch a specialist subagent** ([[model-effort-routing]] for `model × effort`; a `paths:`-scoped
-   style rule for the task's files — `kotlin-style`, `swiftui-*`, etc. — is passed in the prompt since
-   subagents don't load it until they touch the file, per [[orchestration]]). The dispatch brief carries:
-   the task block verbatim (title, `files`, `acceptance`, `check`), the relevant slice of `plan.md`
-   (approach, decisions, constraints), the **minimal-diff** mandate (touch only what the task requires
-   — CLAUDE.md Principles), and the instruction to **run the `check` itself** and return a structured
-   pass/fail verdict with evidence (test output, build target, grep result). A parallel layer dispatches
-   its siblings concurrently, each in its own worktree.
-3. **On the `check` passing:** mark the TodoWrite item `completed`, check the task's box in
-   `progress.md`, and append one learning line (surprises, gotchas, decisions taken). For a parallel
-   layer, integrate each passing worktree back into the working branch one at a time; a merge conflict
-   demotes the remaining siblings to sequential.
-4. **On failure / blocked:** per [[task-execution]] — diagnose, one autonomous retry (re-dispatch with
-   the failure evidence), then STOP and surface if still failing. Never mark a task done on a failing
-   or unrun `check`. `progress.md` stays truthful so `--resume` restarts exactly here.
+2. **Dispatch a specialist subagent** ([[model-effort-routing]] for `model × effort` — always specify
+   the model explicitly, an omitted model silently inherits the session's most expensive one across
+   every parallel sibling). Brief via the **dispatch contract** below.
+3. **Read only the status line** the subagent returns (details live in its report file — see below),
+   then act per the **status protocol** below.
+4. **On DONE (check passed):** mark the TodoWrite item `completed`, check the task's box in
+   `progress.md`, append one learning line (surprises, gotchas, decisions). For a parallel layer,
+   integrate each passing worktree into the working branch one at a time; a merge conflict demotes the
+   remaining siblings to sequential (see reference §3–4).
 
-The main session only **reads** each subagent's verdict — it does not run the builds/tests itself.
+The main session only **reads** each subagent's status — it never runs the builds/tests itself.
+
+### Dispatch contract
+
+Hand the subagent **file paths, not pasted content** — everything pasted into a dispatch prompt stays
+resident in the orchestrator's context and is re-read every later turn (a real session hit 42k chars,
+99 % of it prior-task history). This is the concrete form of the [[orchestration]] "keep the main
+session lean" rule. Write a per-task brief file to scratch (`./swarm-report/<slug>-brief-<T-N>.md`)
+containing the task block from `tasks.md` verbatim (`files`, `interface`, `acceptance`, `check`) plus
+the relevant slice of `plan.md` (approach, decisions, Global constraints). The dispatch prompt itself
+is short — five parts:
+
+1. **Where it fits** — one line (which task, which layer).
+2. **Brief path** — the scratch file above; tell the subagent to read it.
+3. **Neighbour interfaces** — the `produces:` lines of the tasks this one `consumes:` from (and, in a
+   parallel layer, its siblings' `produces:`). This is the cross-task API the subagent can't see —
+   inject it explicitly, or independent tasks drift on each other's names/types.
+4. **Constraints** — the **minimal-diff** mandate (touch only what the task requires — CLAUDE.md
+   Principles) and any `paths:`-scoped style rule for the task's files (`kotlin-style`, `swiftui-*`),
+   which the subagent doesn't load until it touches the file.
+5. **Report path** — where to write its full report + diff (`./swarm-report/<slug>-report-<T-N>.md`),
+   and the instruction to **run the `check` itself** and put the evidence there. The prompt returns
+   only the status line.
+
+### Status protocol
+
+The subagent returns one status (evidence in its report file — do not ask it to inline the diff):
+
+| Status | Meaning | Orchestrator reaction |
+|---|---|---|
+| `DONE` | `check` run and passed | Integrate + mark complete (step 4). |
+| `DONE_WITH_CONCERNS` | passed, but the subagent flags a risk/smell | Record the concern in `progress.md`; mark complete; surface if it affects later tasks. |
+| `BLOCKED` | cannot proceed (missing access, plan contradicts reality) | Do not retry blindly — diagnose per [[task-execution]]; if the plan drifted, STOP and report. |
+| `NEEDS_CONTEXT` | missing an interface/decision it needs | Supply the missing neighbour interface or decision and re-dispatch. |
+
+Never re-dispatch the **same** task to the **same** model unchanged — change something (more context,
+a more capable model, or split the task smaller) or escalate. One autonomous retry, then STOP and
+surface, leaving `progress.md` truthful so `--resume` restarts exactly here.
 
 ---
 

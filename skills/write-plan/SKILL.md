@@ -128,9 +128,11 @@ fill every placeholder. Shape:
   without confirming it exists and suffices is not done (qa-and-testing §6, §0; task-types
   § Before-state baseline).
 - **`tasks.md`** — ordered list `T-N`, each with: short title, dependencies (`after: T-…`), the
-  files it touches, and **acceptance** in Given/When/Then or "THE SYSTEM SHALL …" form, plus the
-  check that proves it (test name, grep, build target). Tasks are small enough to implement and
-  verify in one focused pass.
+  files it touches, an **`interface:`** contract (`consumes` / `produces` — the exact symbols/signatures
+  this task takes from earlier tasks and exposes to later ones, so a subagent seeing only its own task
+  knows its neighbours' API and independent tasks can run in parallel without drift), and **acceptance**
+  in Given/When/Then or "THE SYSTEM SHALL …" form, plus the check that proves it (test name, grep,
+  build target). Tasks are small enough to implement and verify in one focused pass.
 - **`progress.md`** — initialize with every `T-N` as an unchecked box and an empty Learnings log.
 
 The plan must reference, not restate, the spec's acceptance criteria (cite `AC-N` ids); `tasks.md`

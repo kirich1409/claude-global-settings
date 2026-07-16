@@ -49,6 +49,11 @@ current working branch:
 4. **On an integration conflict:** stop parallel integration for that layer, keep the already-integrated
    results, and re-run the remaining siblings sequentially on the now-updated branch. A conflict means
    the disjointness assumption was wrong — demote, don't force.
+5. **Verify the layer as a whole.** Each sibling's `check` passed in *its own* worktree — that does not
+   prove they pass *together* on the merged branch. After the whole layer is integrated, dispatch one
+   verification (build + the union of the layer's `check`s, or a quick whole-change smoke) **before**
+   starting the next layer. A green pass in isolation plus a red pass after merge is exactly the
+   cross-task breakage worktree isolation can hide. Do not proceed on isolated greens alone.
 
 For a purely sequential run, no worktree is needed: the implementer works the current tree directly
 (still a subagent — the main session never edits code).

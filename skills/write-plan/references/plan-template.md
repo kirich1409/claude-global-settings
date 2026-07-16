@@ -90,12 +90,14 @@ is what makes autonomous execution safe.
 ## T-1 — <short title>
 - after: none
 - files: `<path>`, `<path>`
+- interface: consumes <none> · produces <public symbols / signatures / files this task exposes for later tasks, e.g. `fun cache.get(key): Entry?`, `OfflineStore`>
 - acceptance: GIVEN <precondition> WHEN <action> THEN <observable result>   (or: THE SYSTEM SHALL <…>)
 - check: <test name / grep / build target that proves acceptance>   (satisfies AC-1)
 
 ## T-2 — <short title>
 - after: T-1
 - files: `<path>`
+- interface: consumes <symbols this task depends on from prior tasks, e.g. T-1's `OfflineStore`> · produces <what T-2 exposes>
 - acceptance: <Given/When/Then or SHALL statement>
 - check: <how it is verified>   (satisfies AC-2, AC-3)
 ```
@@ -103,6 +105,13 @@ is what makes autonomous execution safe.
 Acceptance phrasing: prefer Given/When/Then for behaviour, "THE SYSTEM SHALL …" (EARS) for
 invariants/constraints. Always pair acceptance with a concrete `check` — a test name, a grep, a
 build/lint target — never "looks right".
+
+The `interface:` line is the contract between tasks. A subagent implementing a task sees **only that
+task**, not its neighbours — so it needs the exact names/signatures it `consumes` from earlier tasks
+and must publish what it `produces` for later ones. This is what lets `implement-plan` execute
+independent tasks **in parallel** without the two subagents drifting on each other's unwritten API;
+`consumes: none · produces: none` is fine for a self-contained task. Keep signatures concrete
+(names + types), not prose.
 
 ---
 
