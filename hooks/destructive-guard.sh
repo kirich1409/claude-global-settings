@@ -82,7 +82,7 @@ def is_critical_target(t):
         rest = t[len(next(p for p in SYSTEM_PREFIXES if t.startswith(p))):]
         if rest == "" or rest.startswith("/") or rest == "*":
             return True
-    # Домашняя директория целиком по абсолютному пути: /home/x, /Users/x (но не глубже)
+    # Домашняя директория целиком по абсолютному пути: /home/<name>, /Users/<name> (но не глубже)
     m = re.match(r'^/(?:home|Users)(?:/[^/]+)?/?$', t)
     return bool(m)
 
