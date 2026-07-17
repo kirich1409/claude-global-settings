@@ -128,9 +128,11 @@ fill every placeholder. Shape:
   without confirming it exists and suffices is not done (qa-and-testing §6, §0; task-types
   § Before-state baseline).
 - **`tasks.md`** — ordered list `T-N`, each with: short title, dependencies (`after: T-…`), the
-  files it touches, and **acceptance** in Given/When/Then or "THE SYSTEM SHALL …" form, plus the
-  check that proves it (test name, grep, build target). Tasks are small enough to implement and
-  verify in one focused pass.
+  files it touches, an **`interface:`** contract (`consumes` / `produces` — the exact symbols/signatures
+  this task takes from earlier tasks and exposes to later ones, so a subagent seeing only its own task
+  knows its neighbours' API and independent tasks can run in parallel without drift), and **acceptance**
+  in Given/When/Then or "THE SYSTEM SHALL …" form, plus the check that proves it (test name, grep,
+  build target). Tasks are small enough to implement and verify in one focused pass.
 - **`progress.md`** — initialize with every `T-N` as an unchecked box and an empty Learnings log.
 
 The plan must reference, not restate, the spec's acceptance criteria (cite `AC-N` ids); `tasks.md`
@@ -218,9 +220,11 @@ On `review_verdict: escalate`, do not flip to `approved`. Retire (delete) the st
 
 ## Phase 5: Hand Off
 
-Keep `progress.md` as the live execution ledger: as each `T-N` completes, check its box and append a
-one-line learning. Suggest the next step (implement the tasks; then `/write-tests`, `/check`,
-`/finalize`, `/acceptance`).
+This skill **authors** the plan; it does not execute it. Initialize `progress.md` with one unchecked
+box per `T-N` and an empty learnings log — the durable execution ledger the executor updates as work
+lands. Then suggest the next step: `/implement-plan` to execute the plan task-by-task (it seeds the
+live `TodoWrite` status list and drives the `tasks.md` DAG via specialist subagents), then
+`/write-tests`, `/check`, `/finalize`, `/acceptance`.
 
 See [`references/output-layout.md`](references/output-layout.md) for path conventions, the
 confirmation message, gitignore notes, and the hand-off rules (do-not-auto-invoke, the toolbox model,

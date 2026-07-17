@@ -5,7 +5,7 @@ description: >
   re-request review, loop until merged.
   Triggers: "drive this PR to merge", "get this PR merged", "monitor CI and reviews",
   "ship this PR", "land this PR", "take this PR all the way", "merge this PR for me".
-  Do NOT use for creating new PRs (use create-pr) or code written from scratch (use implement).
+  Do NOT use for creating new PRs (use create-pr) or executing a plan from scratch (use implement-plan).
 ---
 
 # Drive to Merge
