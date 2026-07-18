@@ -39,6 +39,10 @@
 !scripts/
 !scripts/**
 
+# === DOCS ===
+!docs/
+!docs/**
+
 
 # === FORCE EXCLUDE ===
 .credentials.json
