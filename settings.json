@@ -288,10 +288,6 @@
         "hooks": [
           {
             "type": "command",
-            "command": "$HOME/.claude/hooks/cross-repo-guard.sh"
-          },
-          {
-            "type": "command",
             "command": "$HOME/.claude/hooks/branch-guard.sh"
           }
         ]
@@ -301,10 +297,6 @@
         "hooks": [
           {
             "type": "command",
-            "command": "$HOME/.claude/hooks/cross-repo-guard.sh"
-          },
-          {
-            "type": "command",
             "command": "$HOME/.claude/hooks/branch-guard.sh"
           }
         ]
@@ -312,10 +304,6 @@
       {
         "matcher": "NotebookEdit",
         "hooks": [
-          {
-            "type": "command",
-            "command": "$HOME/.claude/hooks/cross-repo-guard.sh"
-          },
           {
             "type": "command",
             "command": "$HOME/.claude/hooks/branch-guard.sh"
