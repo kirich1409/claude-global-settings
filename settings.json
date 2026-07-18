@@ -19,6 +19,7 @@
       "TaskGet",
       "WebSearch",
       "EnterPlanMode",
+      "EnterWorktree",
       "Skill",
       "NotebookEdit",
       "Read(~/.gradle/**)",
