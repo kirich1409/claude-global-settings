@@ -46,6 +46,7 @@ Select expert tracks:
 | **Web** | See criteria below — conditional, skip for purely internal topics |
 | **Docs** | Topic involves specific libraries/frameworks with external documentation |
 | **Dependencies** | Topic involves adding, replacing, or evaluating JVM/KMP deps |
+| **OSS Examples** | See criteria below — conditional, launch when real-world code usages or a feasibility check would settle the question |
 | **Architecture** | Topic affects module boundaries, layer design, or API contracts |
 
 **Web track inclusion** — launch when ANY of the following holds, otherwise skip:
@@ -56,6 +57,20 @@ Select expert tracks:
 
 Skipping Web on purely internal topics avoids generic web noise and saves a track for
 something that adds signal.
+
+**OSS Examples track inclusion** — launch when ANY of the following holds, otherwise skip:
+- The question is a feasibility check ("can we do X with Y?", "is Z possible?") where a working
+  usage in a live project is positive evidence it's achievable — matching CLAUDE.md's rule that
+  empirical claims need empirical grounding. (A working example proves *possible*; absence of one
+  never proves *impossible* — only a real spike can. See the `oss-examples` agent semantics.)
+- A wiring / integration / configuration pattern is needed that docs cover thinly, and seeing how
+  real projects assemble it would settle it.
+- You need to confirm an API is actually used in the wild the way the docs imply.
+
+Skip for purely internal topics and for questions a vendor's official docs already answer cleanly.
+**Boundary with Web:** Web gathers articles, discussions, and consensus *about* an approach;
+OSS Examples gathers the *code itself* — real usages, from source. Launch both when a topic needs
+both the discourse and the working code.
 
 ### Clarifying questions (round-loop)
 
@@ -89,6 +104,7 @@ If the topic resolves to **only one** expert track after applying selection crit
 | Codebase only | Delegate to a single `Explore` agent inline |
 | Docs only | Use a library-docs lookup tool (Context7-style) directly |
 | Dependencies only | Use a dependency/version lookup tool directly (e.g. the `maven-mcp` skill family if installed) |
+| OSS Examples only | Launch a single `source-researcher` instance (`focus: oss-examples`) inline |
 | Architecture only | Delegate to `architecture-expert` agent directly |
 | Web only | Answer inline with the available web-search tool; if none is available, answer from training knowledge and explicitly note the limitation |
 
@@ -114,14 +130,15 @@ the exact launch prompts):
 |---|---|---|
 | Codebase | `Explore` | (built-in default) |
 | Architecture | `architecture-expert` | (agent default) |
-| Web / Docs / Dependencies | `source-researcher` (one independent instance each, `focus: web` / `library-docs` / `dependency-intelligence`) | pinned in the agent — `sonnet` / `medium` |
+| Web / Docs / Dependencies / OSS Examples | `source-researcher` (one independent instance each, `focus: web` / `library-docs` / `dependency-intelligence` / `oss-examples`) | pinned in the agent — `sonnet` / `medium` |
 
-The three external tracks do **not** carry a hardcoded toolset: `source-researcher` discovers
+The four external tracks do **not** carry a hardcoded toolset: `source-researcher` discovers
 the tools/MCP actually reachable at runtime and queries every relevant channel of its class,
 per the single method in `rules/external-sources.md` § *Tool discovery & multi-channel use*
-(inherited by the agent — not restated in the prompt). Keeping the three as **separate**
-instances preserves the synthesis-bias invariant — never merge them into one `source-researcher`
-call. The codebase-bound tracks keep their verbatim prompts (Explore and architecture-expert have
+(inherited by the agent — not restated in the prompt). The `oss-examples` track additionally
+draws its channel catalog from `rules/external-sources.md` § *Каналы поиска по open-source коду*.
+Keeping the four as **separate** instances preserves the synthesis-bias invariant — never merge
+them into one `source-researcher` call. The codebase-bound tracks keep their verbatim prompts (Explore and architecture-expert have
 different jobs and toolchains).
 
 ### State persistence
@@ -145,6 +162,7 @@ Started: {date}
 - [ ] Web — {launched | skipped: reason}
 - [ ] Docs — {launched | skipped: reason}
 - [ ] Dependencies — {launched | skipped: reason}
+- [ ] OSS Examples — {launched | skipped: reason}
 - [ ] Architecture — {launched | skipped: reason}
 
 ## Findings

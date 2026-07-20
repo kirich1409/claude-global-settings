@@ -11,9 +11,37 @@
 | Context7 | Документация опубликованных библиотек/фреймворков, текущий API/миграция | Код проекта, отладка собственного кода; один провал `resolve-library-id` → стоп, не гнаться за синонимами |
 | `WebSearch`/`WebFetch` | По умолчанию для всего, что не покрыто выше | — |
 | Raw README через `raw.githubusercontent.com` | Последний вариант для конкретного репо | — |
-| Reference implementations (стек-сэмплы / popular OSS) | «Как реально собрать/соединить X» — паттерны wiring/DI/boilerplate/слоёв из реального кода; см. `rules/verify-library-api.md` | API-truth (сигнатуры) — это usage-срез, не спека |
+| Reference implementations (стек-сэмплы / popular OSS) | «Как реально собрать/соединить X» — паттерны wiring/DI/boilerplate/слоёв из реального кода; см. `rules/verify-library-api.md` и § *Каналы поиска по open-source коду* ниже | API-truth (сигнатуры) — это usage-срез, не спека |
 
 Никогда не использовать `WebFetch` для rendered GitHub-страниц (`https://github.com/...`) — HTML шумный/дорогой; использовать raw README.
+
+## Каналы поиска по open-source коду
+
+Единственный каталог каналов этого класса — агент `source-researcher` (`focus: oss-examples`) и скилл `research` ссылаются сюда, не дублируют. Два режима поиска; уровни доверия и guardrails берутся из `rules/verify-library-api.md` § *Reference implementations* (не переопределяются здесь).
+
+**Режим A — внутрь известной библиотеки** («как это реально реализовано / точная сигнатура в версии X»):
+
+| Канал | Что даёт | Tier |
+|---|---|---|
+| `ksrc` | Сорсы **подключённых** JVM/Gradle-зависимостей из Gradle cache — точная pinned-версия проекта | T1 |
+| `maven-mcp` + source jar | Найти артефакт в Maven Central и получить его сорсы **любой** версии, в т.ч. не подключённой к проекту (кандидат на добавление, сравнение версий) | T1 (официальный артефакт) |
+| Android Code Search (`cs.android.com`) | AOSP + androidx/Jetpack: исходники платформы и Jetpack по веткам/версиям; плюс внутренние usages platform-API внутри самого AOSP | T1/T2 |
+| Репо библиотеки на GitHub/GitLab (raw-файлы, теги релизов) | Сорсы + тесты/сэмплы библиотеки, когда source jar не публикуется | T1/T2 |
+
+**Режим B — по всей вселенной OSS** («кто и как реально использует X; существует ли рабочий пример Y»):
+
+| Канал | Что даёт | Tier |
+|---|---|---|
+| GitHub code search (MCP `search_code` / `search_repositories`; `WebSearch` c `site:github.com` как fallback) | Usages символа/паттерна по всему GitHub, фильтры по языку/пути/репо | по репо-источнику (ниже) |
+| grep.app | Быстрый regexp-поиск по популярным GitHub-репо (JSON API `grep.app/api/search`) | по репо-источнику |
+| Sourcegraph public (`sourcegraph.com`) | Кросс-хостовый поиск (GitHub + GitLab и др.), структурные запросы | по репо-источнику |
+| Android Code Search | Как AOSP/Jetpack сами используют API — эталонные usages для Android | T1/T2 |
+| `searchcode.com`, прочие агрегаторы | Fallback-обнаружение, когда прямые каналы недоступны | T3/T4 |
+
+Оговорки:
+- **Tier присваивается репозиторию-источнику, а не поисковому каналу.** Для режима B канал — лишь транспорт; найденный код тирится по `verify-library-api.md`: vendor-endorsed стек-сэмпл → T1/T2, domain-OSS → T3, случайный репо → T4. Никогда не единственный источник для API-truth — cross-check с T1/T2.
+- **Доступность каналов варьируется по окружению** (`ksrc` требует локального Gradle cache; `maven-mcp` / GitHub MCP могут быть не подключены; grep.app / Sourcegraph могут блокироваться сетевой политикой сессии). Список — seed для discovery, не гарантия: применять дисциплину 3 шагов (обнаружение → все доступные каналы → cross-check), недоступный класс фиксировать как явное ограничение.
+- **Rendered GitHub-страницы не тянуть `WebFetch`'ем** — raw-файлы или MCP (правило выше).
 
 ## Обнаружение инструментов и multi-channel использование
 
