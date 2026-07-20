@@ -1,6 +1,6 @@
 # Research Consortium — Expert Prompt Templates
 
-Phase 2 launches each expert in one parallel message. Each agent runs independently — never share one agent's findings with another. Two **codebase-bound** tracks (Codebase, Architecture) use the verbatim prompts below on Explore / architecture-expert; the three **external** tracks (Web, Docs, Dependencies) run on the `source-researcher` agent (see *External tracks* below).
+Phase 2 launches each expert in one parallel message. Each agent runs independently — never share one agent's findings with another. Two **codebase-bound** tracks (Codebase, Architecture) use the verbatim prompts below on Explore / architecture-expert; the four **external** tracks (Web, Docs, Dependencies, OSS Examples) run on the `source-researcher` agent (see *External tracks* below).
 
 > **Intentional overlap with the `write-spec` skill.** The Codebase / Architecture prompts
 > here overlap with `../../write-spec/references/research-prompts.md`, where they appear as an
@@ -22,17 +22,17 @@ before code* for stack composition, § *Trust assessment* for tiers). That rule 
 and is inherited by every subagent, so the `source-researcher` agent and the Explore /
 architecture tracks all apply the same discipline without restating it.
 
-The three **external** tracks (Web / Docs / Dependencies) do not get a hardcoded tool in their
-prompt — they run on the **`source-researcher`** agent, which does its own runtime discovery.
-The two **codebase-bound** tracks keep their own prompts (Explore and architecture-expert have
-different jobs and toolchains).
+The four **external** tracks (Web / Docs / Dependencies / OSS Examples) do not get a hardcoded
+tool in their prompt — they run on the **`source-researcher`** agent, which does its own runtime
+discovery. The two **codebase-bound** tracks keep their own prompts (Explore and architecture-expert
+have different jobs and toolchains).
 
 ---
 
 ## External tracks — launch via the `source-researcher` agent
 
-Web, Docs, and Dependencies are three **independent** instances of `source-researcher`, each
-with a different `focus` (independence per instance preserves the synthesis-bias invariant —
+Web, Docs, Dependencies, and OSS Examples are four **independent** instances of `source-researcher`,
+each with a different `focus` (independence per instance preserves the synthesis-bias invariant —
 do not collapse them into one call). The agent already knows its method and report structure;
 the launch prompt only supplies focus + topic + constraints. Model/effort are pinned in the
 agent definition (`sonnet` / `medium`) — do not override unless the topic clearly needs more.
@@ -53,9 +53,10 @@ Track → focus mapping:
 
 | Track | `focus` | Covers |
 |---|---|---|
-| Web | `web` | industry practice, trade-offs, pitfalls, real-world examples, ≤12-mo developments, consensus |
+| Web | `web` | industry practice, trade-offs, pitfalls, ≤12-mo developments, consensus — from articles and discussion (the *discourse* about an approach, not the code) |
 | Docs | `library-docs` | API reference, guides, changelogs, migration/compat, version-specific behavior |
 | Dependencies | `dependency-intelligence` | current vs latest versions, CVEs, KMP/AGP compat, health, breaking changes, alternatives |
+| OSS Examples | `oss-examples` | real usages in open-source code, feasibility evidence ("does a working example exist?"), current wiring/integration patterns — pointers to repo/file/version, not embedded code. Channel catalog: `rules/external-sources.md` § *Каналы поиска по open-source коду* |
 
 The detailed per-class angles that used to live here now live in the agent's system prompt
 (`agents/source-researcher.md`) and in `external-sources.md` — single source, no restating.
