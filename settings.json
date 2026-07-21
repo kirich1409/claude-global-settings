@@ -288,10 +288,6 @@
         "hooks": [
           {
             "type": "command",
-            "command": "$HOME/.claude/hooks/cross-repo-guard.sh"
-          },
-          {
-            "type": "command",
             "command": "$HOME/.claude/hooks/branch-guard.sh"
           }
         ]
@@ -301,10 +297,6 @@
         "hooks": [
           {
             "type": "command",
-            "command": "$HOME/.claude/hooks/cross-repo-guard.sh"
-          },
-          {
-            "type": "command",
             "command": "$HOME/.claude/hooks/branch-guard.sh"
           }
         ]
@@ -312,10 +304,6 @@
       {
         "matcher": "NotebookEdit",
         "hooks": [
-          {
-            "type": "command",
-            "command": "$HOME/.claude/hooks/cross-repo-guard.sh"
-          },
           {
             "type": "command",
             "command": "$HOME/.claude/hooks/branch-guard.sh"
@@ -383,7 +371,8 @@
     "kotlin-lsp@claude-plugins-official": false,
     "context-mode@context-mode": true,
     "warp@claude-code-warp": true,
-    "claude-code-wakatime@wakatime": true
+    "claude-code-wakatime@wakatime": true,
+    "quickai@alexgladkov": true
   },
   "extraKnownMarketplaces": {
     "ast-index-marketplace": {
@@ -447,6 +436,12 @@
       "source": {
         "source": "git",
         "url": "https://github.com/wshobson/agents.git"
+      }
+    },
+    "alexgladkov": {
+      "source": {
+        "source": "github",
+        "repo": "AlexGladkov/claude"
       }
     }
   },

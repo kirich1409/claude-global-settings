@@ -27,7 +27,7 @@
 - **Стек-сэмплы** (под фреймворк/стек проекта), vendor-endorsed → **T1/T2**: `android/nowinandroid`, `android/compose-samples`, `android/architecture-samples`, `JetBrains/compose-multiplatform` examples, Apple `developer.apple.com/tutorials/sample-apps` / `pointfreeco/isowords`, `shadcn-ui/taxonomy`.
 - **Domain-OSS** — популярное OSS-приложение **той же предметной сферы** (мессенджер при разработке мессенджера, notes при notes) → **T3**: чужой intent, может нести конвенции команды / антипаттерны. Никогда не единственный источник; cross-check с API-truth.
 
-**Discovery (как найти правильный):** vendor-endorsed > всё остальное. Дальше — свежесть коммитов и release cadence, динамика issues, «used by», репутация мейнтейнера/организации; **не голые звёзды** (накручиваются). Domain-уровень: GitHub topics (`sample-app`, `reference-architecture`), awesome-list'ы, поиск `"{домен} app {язык} open source architecture"`.
+**Discovery (как найти правильный):** vendor-endorsed > всё остальное. Дальше — свежесть коммитов и release cadence, динамика issues, «used by», репутация мейнтейнера/организации; **не голые звёзды** (накручиваются). Domain-уровень: GitHub topics (`sample-app`, `reference-architecture`), awesome-list'ы, поиск `"{домен} app {язык} open source architecture"`. Помимо поиска целого эталонного репо доступен точечный поиск **usages по коду** (когда нужен пример конкретного вызова/паттерна, а не вся архитектура) — каналы в `rules/external-sources.md` § *Каналы поиска по open-source коду*.
 
 **Guardrails (обязательны):**
 - **Pointer, не embed** — ссылаться на репо/файл (`owner/repo` + путь), не копировать код в правила/контекст: иначе stale + раздувание контекста.
