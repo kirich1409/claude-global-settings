@@ -202,7 +202,7 @@
     ],
     "defaultMode": "auto"
   },
-  "model": "fable",
+  "model": "sonnet",
   "skillOverrides": {
     "evaluate-dependency": "off",
     "find-skills": "off",
