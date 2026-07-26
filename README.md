@@ -79,6 +79,25 @@ what actually loaded. For a per-file breakdown while debugging path-scoped or la
 rules, register an [`InstructionsLoaded`](https://code.claude.com/docs/en/hooks) hook
 temporarily — it reports each file's path and load reason as it loads.
 
+## Effort sweep
+
+`effort` values must be measured per model, not carried over: the Opus 5 docs say to re-run a
+sweep on real workloads rather than reusing settings from an earlier model. Pick three tasks
+you actually repeat — one mechanical, one implementation, one review — and run each at three
+levels, comparing cost against whether the result held up:
+
+```bash
+for e in low medium high; do
+  printf '%s' "$TASK" | claude -p --model opus --output-format json \
+    | jq -c "{effort:\"$e\"} + (.usage | {output_tokens, cache_creation_input_tokens}) + {cost:.total_cost_usd}"
+done
+```
+
+Set the level per agent in its frontmatter `effort:`, not globally — the whole point is that a
+mechanical worker and a root-cause debugger want different settings. Step down only where the
+lower level held quality on your own tasks; the docs are explicit that `low` and `medium` are
+usable far more widely on Opus 5 than on earlier models.
+
 ## Portability
 
 - Use `$HOME/.claude/...` in paths, never `/Users/<username>/...`
