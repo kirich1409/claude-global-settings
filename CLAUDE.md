@@ -32,24 +32,14 @@
 - **orchestration.md** — когда делегировать, что наследует субагент
 - **task-execution.md** — ожидание по условию, блокирующие ошибки, большой вывод
 
-Загружаются по `paths:` при работе с соответствующими файлами:
+Загружаются по `paths:` при работе с соответствующими файлами — содержание смотреть в самом правиле:
 
-- **android-cli.md** — Android CLI skills (Android/Gradle/KMP)
-- **claude-repo-pr-workflow.md** — PR-only модель `~/.claude` (tracked-файлы конфига)
-- **code-policies.md** — feature flags, breaking changes, архитектурные решения (исходники)
-- **code-style.md** — чистота кода, inline-комментарии, legacy (исходники)
-- **compose-style.md** — Modifier.Node, stability, phase deferral, accessibility (`**/*.kt`)
-- **coroutines.md** — стиль Kotlin coroutines (`**/*.kt`)
-- **gradle-style.md** — соглашения build-файлов (`**/*.gradle.kts`, `**/*.gradle`, `**/libs.versions.toml`)
-- **kotlin-style.md** — стиль Kotlin (`**/*.kt`, `**/*.kts`)
-- **logging.md** — уровни, соглашение TEMP-LOG, редактирование секретов (исходники)
-- **swift-concurrency.md** — `@MainActor`, Task.detached, Sendable, Swift 6 strict (`**/*.swift`)
-- **swift-testing.md** — изоляция `@Suite`, `#require` vs `#expect`, fakes (`**/*.swift`)
-- **swiftui-design-system.md** — токены, theming, accessibility (`**/*.swift`)
-- **swiftui-patterns.md** — `AnyView` vs generics, identity view, ViewModifier (`**/*.swift`)
-- **swiftui-performance.md** — гранулярность `@Observable`, чистота body (`**/*.swift`)
-- **swiftui-state.md** — property wrappers, заморозка `@State` из `init` (`**/*.swift`)
-- **testing-gate.md** — гейт покрытия публичного API, red-green, первопричина (исходники)
+- исходники: **code-policies.md**, **code-style.md**, **logging.md**, **testing-gate.md**
+- `**/*.kt`, `**/*.kts`: **kotlin-style.md**, **coroutines.md**, **compose-style.md**
+- `**/*.swift`: **swift-concurrency.md**, **swift-testing.md**, **swiftui-state.md**, **swiftui-patterns.md**, **swiftui-performance.md**, **swiftui-design-system.md**
+- Gradle-файлы: **gradle-style.md**
+- Android/KMP: **android-cli.md**
+- tracked-файлы `~/.claude`: **claude-repo-pr-workflow.md**
 
 ## Скиллы для рабочих процессов
 
