@@ -14,7 +14,7 @@ delegates to a platform engineer agent: `kotlin-engineer` / `compose-developer` 
 Kotlin/Android targets, or `swift-engineer` / `swiftui-developer` for Swift/iOS targets.
 The skill's job is discovery, planning, delegation, and verification.
 
-**Author-fixes-broken-tests rule** — see `~/.claude/rules/qa-and-testing.md` § 4. Skipping or `@Ignore`-ing without a tracked follow-up issue is not allowed.
+**Author-fixes-broken-tests rule** — see `~/.claude/skills/verification/references/priorities.md` § Whoever broke a test fixes it. Skipping or `@Ignore`-ing without a tracked follow-up issue is not allowed.
 
 **Disambiguation:**
 - *Intentional behaviour change* — your new test asserts a different (intentional) outcome from a pre-existing test → update the older test in the same run, with a one-line comment explaining the new contract.
@@ -47,7 +47,7 @@ Check standard test locations — Kotlin: `src/test/`, `src/androidTest/`, `src/
 
 **Skip in Regression Mode.** Compare the public API surface against existing test coverage: no references → fully untested; partial references missing edge cases → partially tested; comprehensive coverage → skip.
 
-Public-API coverage gate — see `~/.claude/rules/qa-and-testing.md` § 1.
+Public-API coverage gate — see `~/.claude/skills/verification/references/priorities.md` § Public-API coverage gate.
 
 ### 1.5 Check for existing test plan
 
@@ -57,7 +57,7 @@ Look for a test plan in `docs/testplans/` covering the target. If found, read it
 
 ## Phase 2: Discover Test Infrastructure
 
-Testing infra detection — see `~/.claude/rules/qa-and-testing.md` § 5 for project-marker files. Inspect 3-5 existing test files plus the relevant build configuration to discover the framework, assertion library, mocking / test-double approach, async-testing helpers, UI-testing stack, and naming / file-placement conventions. Compile results into a structured **Test Infrastructure Summary** that the Phase 4 engineer agent consumes verbatim.
+Testing infra detection — see `~/.claude/skills/verification/references/priorities.md` § Test infrastructure is defined by the project. Inspect 3-5 existing test files plus the relevant build configuration to discover the framework, assertion library, mocking / test-double approach, async-testing helpers, UI-testing stack, and naming / file-placement conventions. Compile results into a structured **Test Infrastructure Summary** that the Phase 4 engineer agent consumes verbatim.
 
 The goal is simple: generated tests must look hand-written. Never introduce a new framework or style that isn't already present in the project.
 
@@ -102,7 +102,7 @@ For each untested or partially tested class/function, determine:
 
 **Skip this phase in Regression Mode** — a regression scenario is always a single focused test case; no prioritization is needed.
 
-Test priority — see `~/.claude/rules/qa-and-testing.md` § 2. If the target is large (more than 5 classes to test), present the list with a one-line note on each (complexity, risk surface) and ask the user which to prioritize; recommend starting with the highest-complexity / highest-risk subset. If the target is small (5 or fewer classes), proceed without asking.
+Test priority — see `~/.claude/skills/verification/references/priorities.md` § Priority framework. If the target is large (more than 5 classes to test), present the list with a one-line note on each (complexity, risk surface) and ask the user which to prioritize; recommend starting with the highest-complexity / highest-risk subset. If the target is small (5 or fewer classes), proceed without asking.
 
 ### 3.3 Lightweight plan
 

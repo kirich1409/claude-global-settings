@@ -15,7 +15,7 @@ Its output is *understanding* (a handoff report), not code and not a contract. D
 `research` → `/write-spec` (fixes the understood direction as a contract) → plan →
 implement. Any link is skipped when its input already exists (domain understood → straight
 to spec; no contract needed → straight to plan). Don't substitute research for fixing a
-contract or vice-versa. See [[workflow]] § Шаг 0 (триаж).
+contract or vice-versa. See the triage step (classification).
 
 **Synthesis-bias prevention.** The core invariant: **agents that gather data never synthesize
 it.** Each gather-agent runs in isolation with no visibility into the others — only the
@@ -134,9 +134,9 @@ the exact launch prompts):
 
 The four external tracks do **not** carry a hardcoded toolset: `source-researcher` discovers
 the tools/MCP actually reachable at runtime and queries every relevant channel of its class,
-per the single method in `rules/external-sources.md` § *Tool discovery & multi-channel use*
+per the single method in `skills/research-sources/SKILL.md` § Three-step discipline
 (inherited by the agent — not restated in the prompt). The `oss-examples` track additionally
-draws its channel catalog from `rules/external-sources.md` § *Каналы поиска по open-source коду*.
+draws its channel catalog from `skills/research-sources/references/oss-channels.md`.
 Keeping the four as **separate** instances preserves the synthesis-bias invariant — never merge
 them into one `source-researcher` call. The codebase-bound tracks keep their verbatim prompts (Explore and architecture-expert have
 different jobs and toolchains).

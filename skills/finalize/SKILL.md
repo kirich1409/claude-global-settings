@@ -15,7 +15,7 @@ Code-quality pass over the current branch. Multi-round review-and-fix loop focus
 
 `finalize` orchestrates a one-shot built-in `/code-review` deep scan + `code-reviewer` + `/simplify` + the optional `pr-review-toolkit` quartet + conditional expert reviews — none of those alone catches the full set of recurring patterns (removed-behavior regressions, cross-file breakage, wrong-altitude bandaids, over-engineered abstractions, silent failures, fragile types, weak coverage).
 
-**Author fixes broken tests** is enforced per `~/.claude/rules/qa-and-testing.md` § 4. A `/check` between phases that surfaces test failures triggers an inline fix in the same round — owned by the engineer agent that produced the change. Round-end exit is impossible while tests remain red.
+**Author fixes broken tests** is enforced per `~/.claude/skills/verification/references/priorities.md` § Whoever broke a test fixes it. A `/check` between phases that surfaces test failures triggers an inline fix in the same round — owned by the engineer agent that produced the change. Round-end exit is impossible while tests remain red.
 
 Procedural detail lives in reference files loaded only when the corresponding phase runs. SKILL.md stays the stable orchestration contract.
 

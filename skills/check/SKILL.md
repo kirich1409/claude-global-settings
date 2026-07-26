@@ -24,7 +24,7 @@ Mechanical verification pass — detect project tooling, run build + lint + type
 
 ## Phase 1: Detect tooling
 
-Marker-file detection (`gradlew`, `package.json`, `Cargo.toml`, `Package.swift`, `*.xcodeproj`, `pyproject.toml`, `go.mod`, `Makefile`) follows the table in `~/.claude/rules/qa-and-testing.md` § Test infrastructure detection markers. Stack-specific defaults below override that table only where the test runner alone is insufficient for a full check.
+Marker-file detection (`gradlew`, `package.json`, `Cargo.toml`, `Package.swift`, `*.xcodeproj`, `pyproject.toml`, `go.mod`, `Makefile`) follows the table in `~/.claude/skills/verification/references/priorities.md` § Test infrastructure is defined by the project. Stack-specific defaults below override that table only where the test runner alone is insufficient for a full check.
 
 If multiple stacks are detected (monorepo) — run checks for each. No marker found → escalate to the caller.
 
@@ -101,7 +101,7 @@ For each command: capture exit code; on failure, capture last ~50 lines of stder
 
 Runs after the test category. Even when build / lint / typecheck / tests all pass, a new public symbol with no matching test fails this gate — the early check; the late audit lives in `finalize` Phase D.
 
-**Symbol classification, trivial-no-test allow-list, and test-matching priority** — see `~/.claude/rules/qa-and-testing.md` § Public-API coverage gate.
+**Symbol classification, trivial-no-test allow-list, and test-matching priority** — see `~/.claude/skills/verification/references/priorities.md` § Public-API coverage gate.
 
 **When the gate runs:** current branch differs from the remote default branch (derive base via `git remote show origin | grep "HEAD branch"`, fallbacks `main`/`master`/`develop`; operate on `git diff $(git merge-base origin/<base> HEAD)..HEAD`). Branch at default → skip silently. `--no-coverage-gate` → record as `skipped: [coverage]`.
 

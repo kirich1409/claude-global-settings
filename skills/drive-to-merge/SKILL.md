@@ -53,6 +53,8 @@ stays the stable orchestration contract.
 | [`references/delegation.md`](references/delegation.md) | Phase 3: edit / delegate / ask-in-thread / dismiss; reply-delivery safety rules; commit + push; re-request review (humans + Copilot) |
 | [`references/polling.md`](references/polling.md) | Phase 4: ScheduleWakeup schedule, delaySeconds matrix, cache-window tuning, poll-cap blocker |
 | [`references/merge.md`](references/merge.md) | Phase 5: pre-merge checks, confirmation UX, final re-check, merge commands; Phase 2.6 rebase companion |
+| [`references/tracker-ops.md`](references/tracker-ops.md) | Tracker mechanics: the `scripts/gh/` toolkit, idempotent mutations, Projects v2 board state machine, GitHub↔GitLab mapping, anti-hang rules |
+| [`references/autonomy.md`](references/autonomy.md) | Native auto-merge vs non-blocking polling, per-repo autonomy profile (personal vs team), offering autonomy up front, parallel PRs |
 
 ---
 
@@ -181,7 +183,7 @@ In **`--auto` mode** the summary is shown for visibility and the merge executes 
 without waiting. If `isDraft == true` and everything else is merge-ready, promote the PR/MR
 first (`gh pr ready` / `glab mr update --remove-draft`) before running pre-merge checks.
 
-Procedure in [`references/merge.md`](references/merge.md), including the post-merge board sync (best-effort `transition_status.sh <issue> done` — see `rules/github-ops.md` § Доска).
+Procedure in [`references/merge.md`](references/merge.md), including the post-merge board sync (best-effort `transition_status.sh <issue> done` — see `skills/drive-to-merge/references/tracker-ops.md` § The board).
 
 ---
 

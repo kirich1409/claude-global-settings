@@ -16,7 +16,7 @@ Scale recall to blast radius using signals finalize already materializes pre-loo
 | Tier | Fires when (any) |
 |---|---|
 | **max** | ≥ 1 *narrow* security pattern in the diff, OR declared `risk_areas` ∈ {auth, payment, pii, data-migration}, OR a DB-migration path — same bar that triggers a full Phase D security review; a missed bug here is the most expensive. |
-| **xhigh** | tech / infra-layer change (network, storage, auth, DI per `~/.claude/rules/task-types.md`), OR new public API spanning ≥ 2 modules, OR diff > 500 LOC or > 15 files. High blast radius. |
+| **xhigh** | tech / infra-layer change (network, storage, auth, DI per `~/.claude/skills/verification/references/task-types.md`), OR new public API spanning ≥ 2 modules, OR diff > 500 LOC or > 15 files. High blast radius. |
 | **high** | new public API symbol, OR cross-module dependency change, OR diff > 150 LOC or > 6 files. Default for substantive features. |
 | **medium** | everything else above the trivial-skip bar — localized change, no risk signal. |
 

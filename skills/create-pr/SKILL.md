@@ -251,7 +251,7 @@ glab mr update --description "<body>"
 Output:
 > Draft PR created: `<url>`
 
-**Board sync (best-effort).** If the body references an issue (`Closes #N` / `Fixes #N` / `Resolves #N`) and the repo has a Projects v2 board, move the card: `$HOME/.claude/scripts/gh/transition_status.sh <N> in-progress`. No linked issue or no board → skip silently, the script already degrades gracefully. See `rules/github-ops.md` § Доска.
+**Board sync (best-effort).** If the body references an issue (`Closes #N` / `Fixes #N` / `Resolves #N`) and the repo has a Projects v2 board, move the card: `$HOME/.claude/scripts/gh/transition_status.sh <N> in-progress`. No linked issue or no board → skip silently, the script already degrades gracefully. See `skills/drive-to-merge/references/tracker-ops.md` § The board.
 
 ### 9b. Mode `--refresh`
 

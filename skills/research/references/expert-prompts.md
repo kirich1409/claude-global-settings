@@ -6,7 +6,7 @@ Phase 2 launches each expert in one parallel message. Each agent runs independen
 > here overlap with `../../write-spec/references/research-prompts.md`, where they appear as an
 > enriched superset. The two files are kept separate **on purpose** so each skill stays
 > self-contained — do not merge them into a shared file. (Both skills route external-source
-> gathering through the same `source-researcher` agent + `rules/external-sources.md`, so that
+> gathering through the same `source-researcher` agent + `skills/research-sources/SKILL.md`, so that
 > method *is* shared — only the codebase prompts are intentionally duplicated.)
 
 All prompts must include this line: *"Respond in the same language as the research topic description."*
@@ -17,7 +17,7 @@ All prompts must include this line: *"Respond in the same language as the resear
 
 The method for discovering reachable tools/MCP, querying **all** relevant channels of a class,
 and cross-checking by trust tier is **not duplicated here**. It lives in one place:
-`rules/external-sources.md` § *Tool discovery & multi-channel use* (+ § *Verify library API
+`skills/research-sources/SKILL.md` § Three-step discipline (+ § *Verify library API
 before code* for stack composition, § *Trust assessment* for tiers). That rule is unconditional
 and is inherited by every subagent, so the `source-researcher` agent and the Explore /
 architecture tracks all apply the same discipline without restating it.
@@ -56,7 +56,7 @@ Track → focus mapping:
 | Web | `web` | industry practice, trade-offs, pitfalls, ≤12-mo developments, consensus — from articles and discussion (the *discourse* about an approach, not the code) |
 | Docs | `library-docs` | API reference, guides, changelogs, migration/compat, version-specific behavior |
 | Dependencies | `dependency-intelligence` | current vs latest versions, CVEs, KMP/AGP compat, health, breaking changes, alternatives |
-| OSS Examples | `oss-examples` | real usages in open-source code, feasibility evidence ("does a working example exist?"), current wiring/integration patterns — pointers to repo/file/version, not embedded code. Channel catalog: `rules/external-sources.md` § *Каналы поиска по open-source коду* |
+| OSS Examples | `oss-examples` | real usages in open-source code, feasibility evidence ("does a working example exist?"), current wiring/integration patterns — pointers to repo/file/version, not embedded code. Channel catalog: `skills/research-sources/references/oss-channels.md` |
 
 The detailed per-class angles that used to live here now live in the agent's system prompt
 (`agents/source-researcher.md`) and in `external-sources.md` — single source, no restating.

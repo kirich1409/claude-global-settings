@@ -24,7 +24,7 @@ decides, dispatches, and integrates; the implementer subagents write files and r
    right `model × effort` ([[model-effort-routing]]), never by the main session.
 2. **Two-level status.** `TodoWrite` is the live in-session view rendered in the Claude Code
    interface; `progress.md` is the durable committed ledger that survives compaction and resume
-   ([[context-resilience]]). A task is done only when both agree.
+   (`long-task-state` skill). A task is done only when both agree.
 3. **Every task is gated by its own `check`.** A task is `completed` only after the specialist runs
    the `check` from `tasks.md` and it passes — never on "looks done".
 4. **Strategy is chosen from the plan, at launch.** The `after:` dependency graph and per-task risk
@@ -69,7 +69,7 @@ STOP and redirect if:
 
 Read the plan's **Verification & Sources** section now — it defines the whole-change gate for Phase 4,
 and for a migration / "shouldn't change behavior" task it names a before-state baseline that must be
-captured **before** the first edit ([[qa-and-testing]], [[task-types]]).
+captured **before** the first edit (`verification` skill, `verification` skill (references/task-types.md)).
 
 ---
 
@@ -160,7 +160,7 @@ surface, leaving `progress.md` truthful so `--resume` restarts exactly here.
 
 Per-task checks prove each task; they do not prove the whole change is coherent. After the last task,
 run the plan's **Verification & Sources** contract — the pyramid levels L0–L5 it declares
-([[qa-and-testing]]). Delegate this (invoke `/check`, or a verifier/general-purpose subagent in the
+(`verification` skill). Delegate this (invoke `/check`, or a verifier/general-purpose subagent in the
 background for a long build) — never run it in the main session. L5 (working-app) is mandatory for
 library bumps, migrations, and infra-layer changes; if the plan marked a mandatory level and it's
 skipped, name it and the tracked exception rather than passing silently.

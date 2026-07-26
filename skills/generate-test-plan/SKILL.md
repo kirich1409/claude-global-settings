@@ -69,7 +69,7 @@ Sources may be a text spec (PRD / AC / user story), a Figma mockup, or existing 
 
 ### Non-UI detector — when to use the lightweight template
 
-Non-UI test plan trigger — see `~/.claude/rules/qa-and-testing.md` § 3. When the trigger fires, drop mockup-driven sections (Steps / Expected Result columns) and produce TCs whose behaviour is fully captured by Given/When/Then — focus on input validation, state transitions, and error paths. Mixed features (backend + thin UI) default to the standard format.
+Non-UI test plan trigger — see `~/.claude/skills/verification/references/priorities.md` § Lightweight plan for non-UI surfaces. When the trigger fires, drop mockup-driven sections (Steps / Expected Result columns) and produce TCs whose behaviour is fully captured by Given/When/Then — focus on input validation, state transitions, and error paths. Mixed features (backend + thin UI) default to the standard format.
 
 When the detector triggers, note it in the Findings section of the permanent file:
 `**Lightweight template applied** — no UI surface detected; TCs use Given/When/Then only.`
@@ -129,7 +129,7 @@ This heuristic is the canonical reference for picking a TC type within this plug
 
 ### Priority
 
-Priority framework — see `~/.claude/rules/qa-and-testing.md` § 2.
+Priority framework — see `~/.claude/skills/verification/references/priorities.md` § Priority framework.
 
 ### Tier
 
