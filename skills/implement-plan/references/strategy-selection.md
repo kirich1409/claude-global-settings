@@ -61,7 +61,7 @@ For a purely sequential run, no worktree is needed: the implementer works the cu
 ## 4. Resume semantics
 
 `--resume` reads `progress.md` as the source of truth (never the chat or the ephemeral TodoWrite list,
-which does not survive a session — [[context-resilience]]):
+which does not survive a session — `long-task-state` skill):
 
 - Every `[x]` task is treated as `completed`; its TodoWrite item is seeded `completed`.
 - Execution restarts at the first `[ ]` task, recomputing layers over the *remaining* tasks so an

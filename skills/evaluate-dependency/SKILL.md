@@ -15,6 +15,12 @@ whether the user asks "should we use X?" or you are about to edit `build.gradle[
 `gradle/libs.versions.toml`, or `pom.xml` to add a coordinate that is not already present.
 Upgrading an already-used dependency is out of scope (that is a version/changelog lookup).
 
+**Plan-stage gate.** Adding or updating a dependency is a plan-stage decision, and the plan
+must carry four outputs — identification, freshness, vulnerabilities, API study — before
+implementation starts. Full requirements, the plan block format, ecosystem fallbacks, and the
+implementation-time check are in
+[`references/plan-gate.md`](references/plan-gate.md).
+
 **Graceful degradation — non-negotiable.** This skill must run without any MCP server. When a
 Maven dependency-intelligence capability is available, use it for the deep objective metrics;
 when it is not, fall back to web evidence and say so. Describe the data you need (latest

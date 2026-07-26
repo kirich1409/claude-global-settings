@@ -57,3 +57,6 @@ hooks/mempal_precompact_hook.sh
 hooks/mempal_save_hook.sh
 RTK.md
 projects/
+
+# Worktrees created per rules/git-workflow.md
+.worktrees/

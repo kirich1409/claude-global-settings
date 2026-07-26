@@ -198,15 +198,23 @@
       "Bash(pnpm publish*)",
       "Bash(docker push*)",
       "Bash(pod trunk push*)",
-      "Bash(firebase deploy*)"
+      "Bash(firebase deploy*)",
+      "Bash(git commit *--no-verify*)",
+      "Bash(git commit *--no-gpg-sign*)",
+      "Bash(git push *--no-verify*)",
+      "Bash(git -c commit.gpgsign=false*)",
+      "Bash(git -c core.hooksPath=*)",
+      "Bash(git commit -n*)",
+      "Bash(git rebase *--no-gpg-sign*)",
+      "Bash(git merge *--no-gpg-sign*)",
+      "Bash(git cherry-pick *--no-gpg-sign*)"
     ],
     "defaultMode": "auto"
   },
-  "model": "sonnet",
+  "model": "opus",
   "skillOverrides": {
-    "evaluate-dependency": "off",
-    "find-skills": "off",
-    "kotlin-tooling-cocoapods-spm-migration": "off"
+    "evaluate-dependency": "on",
+    "find-skills": "off"
   },
   "hooks": {
     "SessionStart": [
@@ -508,8 +516,6 @@
       ]
     }
   },
-  "alwaysThinkingEnabled": true,
-  "effortLevel": "high",
   "advisorModel": "fable",
   "showClearContextOnPlanAccept": true,
   "tui": "fullscreen",

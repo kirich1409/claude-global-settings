@@ -6,7 +6,7 @@ Shared [Claude Code](https://claude.ai/claude-code) configuration synced across 
 
 - `settings.json` -- hooks, permissions, enabled plugins, marketplace sources
 - `CLAUDE.md` -- global instructions loaded every session
-- `rules/` -- modular rule files (orchestration, QA, external sources, style, git workflow, ...)
+- `rules/` -- modular rule files; those without frontmatter load every session, those with `paths:` load only when a matching file is read
 - `hooks/` -- shell hooks for session automation and safety guards (private `rtk`/`mempal` hooks excluded)
 - `agents/` -- custom agent definitions
 - `skills/` -- custom skills (directories only, not symlinks)
@@ -46,6 +46,57 @@ PR-only: `main` always stays clean, and every change to a tracked file ships thr
 **Pull** -- `csync` (alias for `hooks/sync-settings.sh`) and the `SessionStart` auto-pull hook (`hooks/auto-pull.sh`) only fetch and fast-forward `main` to `origin/main`. Neither ever commits, pushes, or opens a PR. A dirty or ahead-of-origin `main` is a loud error (statusline + OS notification), not something they auto-fix.
 
 **Push** -- edit tracked files (`CLAUDE.md`, `rules/`, `settings*.json`, `hooks/`, `scripts/`, `skills/`, `agents/`) on a branch, preferably via a worktree, then open a PR: `scripts/cgs-pr.sh new <slug>` creates the worktree + branch, `scripts/cgs-pr.sh ship "<title>"` commits, pushes, opens the PR, and enables auto-merge.
+
+## Context budget
+
+Everything in `CLAUDE.md`, unconditional `rules/`, and agent/skill frontmatter is loaded at
+the start of every session — and again in every subagent, whose own base context is only
+~4.6k tokens, so the same payload weighs far more there. Four tiers, cheapest first:
+
+| Tier | Mechanism | Loads when | Main session | Subagent |
+|---|---|---|---|---|
+| 1 | `rules/*.md` without frontmatter | always | full cost | full cost, inherited |
+| 2 | `rules/*.md` with `paths:` | a matching file is read | 0 | 0 until read |
+| 3 | skill | Claude judges it relevant | ~190 t of description | 0 |
+| 4 | agent `skills:` preload | that agent starts | 0 | full, only there |
+
+Put a rule in tier 1 only if every session needs it. Anything keyed to a file type belongs in
+tier 2; anything keyed to a kind of task belongs in tier 3. Tier 4 exists because 17 of 23
+agents omit `Skill` from `tools` and cannot load a skill themselves.
+
+Measure before and after changing this layer, rather than estimating:
+
+```bash
+# baseline in an empty directory, then the same with the layer pasted in as the prompt
+printf 'Reply with exactly: ok' | claude -p --model haiku --output-format json | jq '.usage'
+cat CLAUDE.md rules/<unconditional>.md > /tmp/layer.txt
+{ cat /tmp/layer.txt; printf '\n\nok'; } | claude -p --model haiku --output-format json | jq '.usage'
+```
+
+Sum `input_tokens`, `cache_creation_input_tokens`, and `cache_read_input_tokens`; the
+difference between the two runs is what the layer costs. `/context` in a live session shows
+what actually loaded. For a per-file breakdown while debugging path-scoped or lazily loaded
+rules, register an [`InstructionsLoaded`](https://code.claude.com/docs/en/hooks) hook
+temporarily — it reports each file's path and load reason as it loads.
+
+## Effort sweep
+
+`effort` values must be measured per model, not carried over: the Opus 5 docs say to re-run a
+sweep on real workloads rather than reusing settings from an earlier model. Pick three tasks
+you actually repeat — one mechanical, one implementation, one review — and run each at three
+levels, comparing cost against whether the result held up:
+
+```bash
+for e in low medium high; do
+  printf '%s' "$TASK" | claude -p --model opus --output-format json \
+    | jq -c "{effort:\"$e\"} + (.usage | {output_tokens, cache_creation_input_tokens}) + {cost:.total_cost_usd}"
+done
+```
+
+Set the level per agent in its frontmatter `effort:`, not globally — the whole point is that a
+mechanical worker and a root-cause debugger want different settings. Step down only where the
+lower level held quality on your own tasks; the docs are explicit that `low` and `medium` are
+usable far more widely on Opus 5 than on earlier models.
 
 ## Portability
 
