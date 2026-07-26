@@ -75,7 +75,7 @@ Pattern Summary
 
 ## Шаг 3: Реализовать (изнутри наружу)
 
-**Прочитать `references/swift-concurrency.md` и `references/swift-testing.md` перед написанием кода.** Они содержат неочевидные правила, которые модель не применяет по умолчанию — размещение `@MainActor`, антипаттерн `Task.detached`, очистка `AsyncStream.continuation`, дисциплина Sendable, свежесть экземпляра `@Suite`, изоляция параллельных тестов.
+**Прочитать `rules/swift-concurrency.md` и `rules/swift-testing.md` перед написанием кода.** Они содержат неочевидные правила, которые модель не применяет по умолчанию — размещение `@MainActor`, антипаттерн `Task.detached`, очистка `AsyncStream.continuation`, дисциплина Sendable, свежесть экземпляра `@Suite`, изоляция параллельных тестов.
 
 Порядок слоёв: доменные модели → data DTO + mapper → repository (actor) → service / use case → модель `@Observable` (если владеет data-layer).
 

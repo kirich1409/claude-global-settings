@@ -64,7 +64,7 @@ mandatory is skipped, name it and the tracked exception (`verification` skill §
 > The frontmatter `spec:` field carries only the spec link for tooling; this section is the full,
 > human-readable verification contract — list every source, not just the spec. For a bug fix the
 > source is `swarm-report/<slug>-debug.md`; for a migration / "shouldn't change behavior" task it is
-> the before-state baseline, captured **before** any edit (`verification` skill, `references/task-types.md` § Before-state baseline).
+> the before-state baseline, captured **before** any edit (`skills/verification/references/task-types.md` § Before-state baseline).
 
 ## Out of Scope
 - <explicitly NOT done by this plan, with owner / deferral target if relevant>

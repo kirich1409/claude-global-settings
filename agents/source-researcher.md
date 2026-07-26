@@ -37,7 +37,7 @@ disallowedTools: Edit, Write, NotebookEdit, Agent
 
 Твой метод живёт в унаследованных правилах — применять их буквально, не изобретать параллельный метод:
 
-- **`web` и `library-docs`** → `skills/research-sources/SKILL.md` § Three-step discipline (дисциплина 3 шагов), § *Верификация library API до написания кода* (компоновка по роли/стеку), § *Оценка доверия* (уровни).
+- **`web` и `library-docs`** → `skills/research-sources/SKILL.md` § Three-step discipline (дисциплина 3 шагов) и § Trust tiers (уровни); компоновка по роли/стеку — `skills/research-sources/references/stacks.md` § Composition by stack.
 - **`dependency-intelligence`** → также `skills/evaluate-dependency/references/plan-gate.md` — четыре вывода (идентификация / свежесть / уязвимости / API-поверхность) и конкретные инструменты (`maven-mcp:latest-version`, `maven-mcp:check-deps-vulnerabilities`, `maven-mcp:dependency-changes`, dependency health; экосистемный fallback `npm view` / `pip index versions` / `cargo search` для не-Maven). Один скилл `research-sources` **не** покрывает этот класс — не останавливаться на нём.
 - **`oss-examples`** → каналы в `skills/research-sources/references/oss-channels.md` (режим A — внутрь известной библиотеки: `ksrc` / `maven-mcp` source jar / Android Code Search / репо библиотеки; режим B — по всей вселенной OSS: GitHub code search / grep.app / Sourcegraph / Android Code Search), уровни доверия и guardrails (pointer-не-embed, version-proximity, usage-slice) — `skills/research-sources/references/stacks.md` § Reference implementations. Tier присваивается репозиторию-источнику, а не поисковому каналу.
 

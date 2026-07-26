@@ -16,7 +16,9 @@ Skill-first: если установленный скилл покрывает �
 Не долетает автоматически:
 
 - **`paths:`-scoped правила** — загружаются, когда агент прочитает подходящий файл. Если правило нужно ему раньше, назвать ключевой момент в prompt.
-- **Explore и Plan** пропускают `CLAUDE.md` и правила целиком. Нужное им — класть в prompt.
+- **Explore и Plan** пропускают `CLAUDE.md` и правила целиком. Нужное им — класть в prompt. Для поиска по коду это означает, что `ast-index.md` до них не доходит никогда, хотя ищут в основном они. Готовый блок для вставки в prompt:
+
+  > Use `ast-index` via Bash before Grep: `search "q"`, `file "Name"`, `class "Name"`, `usages "Name"`, `implementations "Name"`, `callers "fn"`. Grep only for regex or string-literal search, or when ast-index returns nothing. Before `Read` on a file over ~500 lines, run `ast-index outline <file>` and read only the targeted slice via `offset`/`limit`. On "Index not found" run `ast-index rebuild`; never silently fall back to Grep.
 - **Скиллы** — агент с тулом `Skill` найдёт нужный сам; агенту без него содержимое скилла доставляется полем `skills:` в его frontmatter (preload, проверено).
 
 В prompt делегирования: задача, релевантные пути, ограничения, ожидаемая форма вывода.

@@ -202,10 +202,28 @@ for f in sorted(tracked):
     if not f.endswith(".md"):
         continue
     for n, line in enumerate(open(f, encoding="utf-8", errors="replace"), 1):
-        for ref in re.findall(r"`([A-Za-z0-9_.-]+\.md)`", line):
-            if ref in EXTERNAL or ref in basenames:
+        for ref in re.findall(r"`((?:[A-Za-z0-9_.-]+/)*[A-Za-z0-9_.-]+\.md)`", line):
+            base = os.path.basename(ref)
+            if "<" in ref or ref.startswith(".") or DATED.match(base):
                 continue
-            if "<" in ref or ref.startswith(".") or DATED.match(ref):
+            if base in EXTERNAL:
+                continue
+            # Paths under these prefixes are produced per project at runtime, not tracked here.
+            if ref.split("/")[0] in ("docs", "swarm-report"):
+                continue
+            if "/" in ref:
+                # Try every ancestor of the referencing file as a base, then the repo root.
+                # This accepts both "references/x.md" from a SKILL.md and the same sibling
+                # form written from inside references/ itself.
+                base_dir = os.path.dirname(f)
+                found = ref in tracked
+                while base_dir and not found:
+                    if os.path.normpath(os.path.join(base_dir, ref)) in tracked:
+                        found = True
+                    base_dir = os.path.dirname(base_dir)
+                if found:
+                    continue
+            elif ref in basenames:
                 continue
             bad.append(f"{f}:{n}:{ref}")
 print(" ".join(bad))

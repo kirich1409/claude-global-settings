@@ -125,7 +125,7 @@ fill every placeholder. Shape:
   assert each is collected and **sufficient** to verify the finished change, and state the testing
   strategy (pyramid levels L0–L5 that apply). For a migration or "shouldn't change behavior" task the
   baseline is captured **before** implementation, not promised — a plan that only names a source
-  without confirming it exists and suffices is not done (`verification` skill § Source of truth; `references/task-types.md`
+  without confirming it exists and suffices is not done (`skills/verification/references/priorities.md` § Source of truth for verification; `skills/verification/references/task-types.md`
   § Before-state baseline).
 - **`tasks.md`** — ordered list `T-N`, each with: short title, dependencies (`after: T-…`), the
   files it touches, an **`interface:`** contract (`consumes` / `produces` — the exact symbols/signatures

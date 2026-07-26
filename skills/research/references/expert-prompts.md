@@ -17,7 +17,7 @@ All prompts must include this line: *"Respond in the same language as the resear
 
 The method for discovering reachable tools/MCP, querying **all** relevant channels of a class,
 and cross-checking by trust tier is **not duplicated here**. It lives in one place:
-`skills/research-sources/SKILL.md` § Three-step discipline (+ `references/stacks.md` for stack
+`skills/research-sources/SKILL.md` § Three-step discipline (+ `skills/research-sources/references/stacks.md` for stack
 composition, § Trust tiers for tiering). It is a skill, not an unconditional rule, so it is
 **not** inherited automatically: `source-researcher` receives it through the `skills:` preload
 in its frontmatter, and any other track that needs it either invokes the skill or gets the key

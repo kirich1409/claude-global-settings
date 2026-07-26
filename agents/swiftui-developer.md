@@ -79,9 +79,9 @@ Pattern Summary
 
 ## Шаг 3: Реализовать
 
-**Прочитать `references/swiftui-state.md` и `references/swiftui-patterns.md` перед написанием первого view.** Они содержат неочевидные правила, которые модель пропускает — заморозка `@State` после init, per-property трекинг `@Observable`, `@ObservationIgnored`, identity view для сохранения state, жизненный цикл `.task`, ловушки `id: \.self`.
+**Прочитать `rules/swiftui-state.md` и `rules/swiftui-patterns.md` перед написанием первого view.** Они содержат неочевидные правила, которые модель пропускает — заморозка `@State` после init, per-property трекинг `@Observable`, `@ObservationIgnored`, identity view для сохранения state, жизненный цикл `.task`, ловушки `id: \.self`.
 
-Про дизайн-систему / accessibility / theming см. `references/swiftui-design-system.md`. Про экраны с тяжёлым пересчётом или тяжёлыми списками см. `references/swiftui-performance.md`.
+Про дизайн-систему / accessibility / theming см. `rules/swiftui-design-system.md`. Про экраны с тяжёлым пересчётом или тяжёлыми списками см. `rules/swiftui-performance.md`.
 
 ### 3.1 Паттерн экрана
 

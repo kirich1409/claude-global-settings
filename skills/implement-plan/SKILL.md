@@ -69,7 +69,7 @@ STOP and redirect if:
 
 Read the plan's **Verification & Sources** section now — it defines the whole-change gate for Phase 4,
 and for a migration / "shouldn't change behavior" task it names a before-state baseline that must be
-captured **before** the first edit (`verification` skill, `references/task-types.md`).
+captured **before** the first edit (`verification` skill, `skills/verification/references/task-types.md`).
 
 ---
 
