@@ -37,6 +37,7 @@
 - Gradle-файлы: **gradle-style.md**
 - Android/KMP: **android-cli.md**
 - tracked-файлы `~/.claude`: **claude-repo-pr-workflow.md**
+- `agents/*.md`, `skills/**/SKILL.md`: **description-budget.md**
 
 ## Скиллы для рабочих процессов
 
