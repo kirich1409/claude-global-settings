@@ -95,7 +95,6 @@
       "Bash($HOME/.claude/scripts/gh/*)",
       "Bash(~/.claude/scripts/gh/*)",
       "Bash(./gradlew:*)",
-      "Skill(claude-md-management:revise-claude-md)",
       "mcp__mobile__screenshot",
       "mcp__mobile__list_devices",
       "mcp__mobile__set_device",
@@ -372,15 +371,13 @@
     "security-guidance@claude-plugins-official": true,
     "remember@claude-plugins-official": true,
     "code-simplifier@claude-plugins-official": true,
-    "claude-md-management@claude-plugins-official": true,
     "hookify@claude-plugins-official": false,
     "code-review@claude-plugins-official": false,
     "ast-index@ast-index-marketplace": true,
     "kotlin-lsp@claude-plugins-official": false,
     "context-mode@context-mode": true,
     "warp@claude-code-warp": true,
-    "claude-code-wakatime@wakatime": true,
-    "quickai@alexgladkov": true
+    "claude-code-wakatime@wakatime": true
   },
   "extraKnownMarketplaces": {
     "ast-index-marketplace": {
@@ -444,12 +441,6 @@
       "source": {
         "source": "git",
         "url": "https://github.com/wshobson/agents.git"
-      }
-    },
-    "alexgladkov": {
-      "source": {
-        "source": "github",
-        "repo": "AlexGladkov/claude"
       }
     }
   },
