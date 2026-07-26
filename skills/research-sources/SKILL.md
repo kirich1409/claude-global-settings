@@ -2,7 +2,8 @@
 name: research-sources
 description: >-
   Route a question to the right external source and weigh what comes back. Covers the
-  source routing table (project code, ksrc, android docs, Context7, web, raw README),
+  source routing table (project code, ksrc, android docs, Context7, Claude Code harness
+  docs, web, raw README),
   the discover-then-use-every-channel discipline, T1-T4 trust tiers and conflict
   resolution, per-stack API-truth composition, reference implementations, and
   open-source code-search channels.
@@ -36,6 +37,7 @@ use, which may be legacy or an anti-pattern.
 | `android docs search`/`fetch` | API truth + guides for Android/Jetpack/Compose/AGP/SDK | Non-Android libraries |
 | `~/.android/cli/skills/**/SKILL.md` | Bundled Android CLI skills — structured workflows (migrations; Wear/XR/edge-to-edge/Compose styles/R8/Perfetto). Discovery: `android skills find <kw>` | API truth; non-Android tasks |
 | Context7 | Docs for published libraries/frameworks, current API and migration | Project code, debugging your own logic |
+| `code.claude.com/docs` + official `plugin-dev` skills | The harness itself: settings, hooks, permissions, skill/agent frontmatter, limits and context budgets | Library APIs; how this repo happens to be configured |
 | `WebSearch`/`WebFetch` | Default for anything not covered above | — |
 | Raw README via `raw.githubusercontent.com` | Last resort for a specific repo | — |
 | Reference implementations | "How do you actually wire X together" — DI, boilerplate, layering, from real code | API truth (signatures) — that is a usage slice, not a spec |
