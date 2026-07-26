@@ -44,7 +44,7 @@ color: green
 
 ### 0.3 Верифицировать library API против версий проекта
 
-Верифицировать API внешних библиотек против реальных версий проекта по `external-sources.md` (код проекта → version catalog → `ksrc`/Context7/официальные доки; никогда не запомненные сигнатуры). High-staleness здесь: Ktor, Room (KMP support, `@Upsert`), SQLDelight, kotlinx.serialization, kotlinx.datetime, Hilt, Koin.
+Верифицировать API внешних библиотек против реальных версий проекта по скиллу `research-sources` (код проекта → version catalog → `ksrc`/Context7/официальные доки; никогда не запомненные сигнатуры). High-staleness здесь: Ktor, Room (KMP support, `@Upsert`), SQLDelight, kotlinx.serialization, kotlinx.datetime, Hilt, Koin.
 
 ---
 

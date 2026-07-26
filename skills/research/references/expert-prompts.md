@@ -17,10 +17,11 @@ All prompts must include this line: *"Respond in the same language as the resear
 
 The method for discovering reachable tools/MCP, querying **all** relevant channels of a class,
 and cross-checking by trust tier is **not duplicated here**. It lives in one place:
-`skills/research-sources/SKILL.md` § Three-step discipline (+ § *Verify library API
-before code* for stack composition, § *Trust assessment* for tiers). That rule is unconditional
-and is inherited by every subagent, so the `source-researcher` agent and the Explore /
-architecture tracks all apply the same discipline without restating it.
+`skills/research-sources/SKILL.md` § Three-step discipline (+ `references/stacks.md` for stack
+composition, § Trust tiers for tiering). It is a skill, not an unconditional rule, so it is
+**not** inherited automatically: `source-researcher` receives it through the `skills:` preload
+in its frontmatter, and any other track that needs it either invokes the skill or gets the key
+point stated in its prompt.
 
 The four **external** tracks (Web / Docs / Dependencies / OSS Examples) do not get a hardcoded
 tool in their prompt — they run on the **`source-researcher`** agent, which does its own runtime
@@ -59,7 +60,7 @@ Track → focus mapping:
 | OSS Examples | `oss-examples` | real usages in open-source code, feasibility evidence ("does a working example exist?"), current wiring/integration patterns — pointers to repo/file/version, not embedded code. Channel catalog: `skills/research-sources/references/oss-channels.md` |
 
 The detailed per-class angles that used to live here now live in the agent's system prompt
-(`agents/source-researcher.md`) and in `external-sources.md` — single source, no restating.
+(`agents/source-researcher.md`) and in the `research-sources` skill — single source, no restating.
 
 ---
 

@@ -177,6 +177,46 @@ PYEOF
   fi
 fi
 
+# --- 10. Backticked <name>.md references in agents/ + skills/ resolve to a real file ---------
+# Rules moved into skills leave prose pointers like `qa-and-testing.md` behind. The [[links]]
+# check only covers wiki-links, so plain filename mentions rotted silently until a /doctor run
+# found ~10 of them. This resolves every backticked *.md mention against the repo.
+REF_OUT="$(mktemp)"
+python3 - > "$REF_OUT" <<'PYEOF'
+import os, re, subprocess
+tracked = set(subprocess.run(["git","ls-files"],capture_output=True,text=True).stdout.split())
+basenames = {os.path.basename(f) for f in tracked}
+# Names that legitimately refer to files outside this repo or to per-project artifacts.
+EXTERNAL = {
+    "CLAUDE.md","CLAUDE.local.md","AGENTS.md","README.md","SKILL.md","MEMORY.md",
+    "package.json","tests.json","progress.md","tasks.md",
+    # Per-project artifacts produced at runtime, not files tracked here.
+    "debug.md","coverage-audit.md","CHANGELOG.md","RELEASE_NOTES.md","baseline.md",
+    "e2e-scenario.md","state.md","report.md",
+}
+DATED = re.compile(r"^\d{4}-\d{2}-\d{2}-")
+bad = []
+for f in sorted(tracked):
+    if not (f.startswith("agents/") or f.startswith("skills/")):
+        continue
+    if not f.endswith(".md"):
+        continue
+    for n, line in enumerate(open(f, encoding="utf-8", errors="replace"), 1):
+        for ref in re.findall(r"`([A-Za-z0-9_.-]+\.md)`", line):
+            if ref in EXTERNAL or ref in basenames:
+                continue
+            if "<" in ref or ref.startswith(".") or DATED.match(ref):
+                continue
+            bad.append(f"{f}:{n}:{ref}")
+print(" ".join(bad))
+PYEOF
+badrefs=$(cat "$REF_OUT"); rm -f "$REF_OUT"
+if [ -n "$badrefs" ]; then
+  fail "backticked .md references with no matching file (moved or deleted?):$badrefs"
+else
+  ok "all backticked .md references resolve"
+fi
+
 echo
 if [ "$FAIL" -ne 0 ]; then
   echo "validate-config: FAIL"

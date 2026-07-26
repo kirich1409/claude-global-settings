@@ -15,7 +15,7 @@ Its output is *understanding* (a handoff report), not code and not a contract. D
 `research` → `/write-spec` (fixes the understood direction as a contract) → plan →
 implement. Any link is skipped when its input already exists (domain understood → straight
 to spec; no contract needed → straight to plan). Don't substitute research for fixing a
-contract or vice-versa. See the triage step (classification).
+contract or vice-versa.
 
 **Synthesis-bias prevention.** The core invariant: **agents that gather data never synthesize
 it.** Each gather-agent runs in isolation with no visibility into the others — only the

@@ -29,9 +29,9 @@ color: "cyan"
 
 ### 0.3 Верифицировать API против версий проекта
 
-Верифицировать API внешних библиотек против реальных версий проекта по `external-sources.md` (код проекта → version catalog → `ksrc`/Context7/официальные доки; никогда не запомненные сигнатуры). Проверить deployment target перед использованием более нового API. High-staleness здесь: Observation, Navigation (`navigationDestination`, type-safe routes), Adaptive layouts, `Animation`/`Transition`, `WindowGroup`/`Settings`/`MenuBarExtra`, Liquid Glass на macOS 26+.
+Верифицировать API внешних библиотек против реальных версий проекта по скиллу `research-sources` (код проекта → version catalog → `ksrc`/Context7/официальные доки; никогда не запомненные сигнатуры). Проверить deployment target перед использованием более нового API. High-staleness здесь: Observation, Navigation (`navigationDestination`, type-safe routes), Adaptive layouts, `Animation`/`Transition`, `WindowGroup`/`Settings`/`MenuBarExtra`, Liquid Glass на macOS 26+.
 
-SwiftUI выпускает один крупный релиз в год с малой обратной совместимостью — сверх API-truth сверяться с **текущим рекомендуемым подходом** перед реализацией по `external-sources.md` § *Быстро меняющийся декларативный UI* (MCP `apple-doc-mcp-server`, когда подключён, WWDC / What's New, примеры кода Apple, Apple Developer Forums). Сайт доков Apple — SPA — предпочитать MCP сырому WebFetch.
+SwiftUI выпускает один крупный релиз в год с малой обратной совместимостью — сверх API-truth сверяться с **текущим рекомендуемым подходом** перед реализацией по `skills/research-sources/references/stacks.md` § *Fast-moving declarative UI* (MCP `apple-doc-mcp-server`, когда подключён, WWDC / What's New, примеры кода Apple, Apple Developer Forums). Сайт доков Apple — SPA — предпочитать MCP сырому WebFetch.
 
 ---
 

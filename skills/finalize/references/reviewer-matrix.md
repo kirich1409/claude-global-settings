@@ -72,7 +72,7 @@ Late-stage coverage audit complementing the early `/check` Phase 3.5 gate (#154)
 
 **Skip when ANY:** (1) trivial diff (single file, < 50 LOC, no new public API, refactor-only); (2) `--skip-coverage-audit` (recorded verbatim in finalize report); (3) no test infrastructure for the affected module — short-circuit with a follow-up issue ("add test harness for X"). Never silently skip.
 
-Reuses existing engineer agents (`kotlin-engineer` / `swift-engineer` / `compose-developer` / `swiftui-developer`) with a coverage-audit prompt. The agent reads `docs/testplans/<slug>-test-plan.md`, the diff, and test files; writes `swarm-report/<slug>-coverage-audit.md`; on gaps, writes missing tests in the same Task call and re-runs `/check` (author-fixes-tests, qa-and-testing.md § 4).
+Reuses existing engineer agents (`kotlin-engineer` / `swift-engineer` / `compose-developer` / `swiftui-developer`) with a coverage-audit prompt. The agent reads `docs/testplans/<slug>-test-plan.md`, the diff, and test files; writes `swarm-report/<slug>-coverage-audit.md`; on gaps, writes missing tests in the same Task call and re-runs `/check` (author-fixes-tests, `skills/verification/references/priorities.md`).
 
 **Schema for `swarm-report/<slug>-coverage-audit.md`:**
 

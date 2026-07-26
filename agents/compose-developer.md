@@ -34,9 +34,9 @@ color: cyan
 
 ### 0.3 Верифицировать API относительно версий проекта
 
-Верифицировать API внешних библиотек относительно фактических версий проекта согласно `external-sources.md` (код проекта → version catalog → `ksrc`/Context7/официальная документация; никогда не запомненные сигнатуры). Здесь высокая скорость устаревания: компоненты Material 3, ресурсы CMP, Navigation, Adaptive, Animation, Insets.
+Верифицировать API внешних библиотек относительно фактических версий проекта согласно скиллу `research-sources` (код проекта → version catalog → `ksrc`/Context7/официальная документация; никогда не запомненные сигнатуры). Здесь высокая скорость устаревания: компоненты Material 3, ресурсы CMP, Navigation, Adaptive, Animation, Insets.
 
-Compose быстро развивается — сверх API-truth, перед реализацией нетривиальной области сверяйся с **текущим рекомендуемым подходом** по `external-sources.md` § *Fast-moving declarative UI* (референс-приложения вроде `nowinandroid`, What's New / release-notes, changelog `maven-mcp`, issue-трекеры). Для CMP core Compose API отслеживает **соответствующий номер версии Jetpack Compose** — проверь, что этот номер действительно вышел/стабилен в CMP.
+Compose быстро развивается — сверх API-truth, перед реализацией нетривиальной области сверяйся с **текущим рекомендуемым подходом** по `skills/research-sources/references/stacks.md` § *Fast-moving declarative UI* (референс-приложения вроде `nowinandroid`, What's New / release-notes, changelog `maven-mcp`, issue-трекеры). Для CMP core Compose API отслеживает **соответствующий номер версии Jetpack Compose** — проверь, что этот номер действительно вышел/стабилен в CMP.
 
 ---
 

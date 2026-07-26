@@ -13,7 +13,7 @@ description: >-
 
   Do NOT use for: running the checks themselves (use check), the code-quality review loop
   (use finalize), acceptance against a spec (use acceptance), or authoring test code
-  (use write-tests).
+  (use write-tests), or authoring a structured test-plan document with enumerated cases (use generate-test-plan — this skill decides *which levels and why*, that one writes the cases).
 ---
 
 # Verification

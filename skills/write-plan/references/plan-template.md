@@ -50,7 +50,7 @@ need to re-research.>
 ## Verification & Sources
 <How the FINISHED implementation is verified — the contract `/acceptance` checks against. Distinct
 from the per-task `check` in tasks.md: that proves each task; this proves the whole change is done
-and correct. Mandatory output — a plan without it cannot be approved (qa-and-testing §6, §0).>
+and correct. Mandatory output — a plan without it cannot be approved (`verification` skill § Source of truth).>
 
 | Source of truth | Type | Status | Sufficient for verification? |
 |---|---|---|---|
@@ -59,12 +59,12 @@ and correct. Mandatory output — a plan without it cannot be approved (qa-and-t
 **Testing strategy (pyramid levels):** L0 build always + <levels that apply, e.g. L1 static, L2 unit,
 L3 UI, L5 manual> — <one line: why these levels for this change>. L5 is mandatory for library bumps,
 migrations, and infra-layer (network/storage/auth/DI) changes. If a level the routing matrix marks
-mandatory is skipped, name it and the tracked exception (qa-and-testing §1/§4) — never a silent skip.
+mandatory is skipped, name it and the tracked exception (`verification` skill § Public-API gate / broken tests) — never a silent skip.
 
 > The frontmatter `spec:` field carries only the spec link for tooling; this section is the full,
 > human-readable verification contract — list every source, not just the spec. For a bug fix the
 > source is `swarm-report/<slug>-debug.md`; for a migration / "shouldn't change behavior" task it is
-> the before-state baseline, captured **before** any edit (task-types § Before-state baseline).
+> the before-state baseline, captured **before** any edit (`verification` skill, `references/task-types.md` § Before-state baseline).
 
 ## Out of Scope
 - <explicitly NOT done by this plan, with owner / deferral target if relevant>

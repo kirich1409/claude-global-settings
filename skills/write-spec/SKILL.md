@@ -72,7 +72,7 @@ transfer mechanics / compliance / bank integration are understood) — STOP and 
 standalone `research` skill first, then return to the spec once understanding is gathered.
 A spec **fixes** what's understood into a contract; it is not the tool for first-time
 discovery. Pipeline: `research` (understand) → `write-spec` (fix as contract) → plan →
-implement. See the triage step (classification).
+implement.
 
 ### Research track selection
 

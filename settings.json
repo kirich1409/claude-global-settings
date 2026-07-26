@@ -198,7 +198,11 @@
       "Bash(pnpm publish*)",
       "Bash(docker push*)",
       "Bash(pod trunk push*)",
-      "Bash(firebase deploy*)"
+      "Bash(firebase deploy*)",
+      "Bash(git commit *--no-verify*)",
+      "Bash(git commit *--no-gpg-sign*)",
+      "Bash(git push *--no-verify*)",
+      "Bash(git * -c commit.gpgsign=false*)"
     ],
     "defaultMode": "auto"
   },

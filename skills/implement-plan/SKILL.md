@@ -69,7 +69,7 @@ STOP and redirect if:
 
 Read the plan's **Verification & Sources** section now — it defines the whole-change gate for Phase 4,
 and for a migration / "shouldn't change behavior" task it names a before-state baseline that must be
-captured **before** the first edit (`verification` skill, `verification` skill (references/task-types.md)).
+captured **before** the first edit (`verification` skill, `references/task-types.md`).
 
 ---
 
@@ -185,7 +185,7 @@ so the PR shows the plan that produced the change.
   only safe when "done" is checkable; flag and stop.
 - **Plan contradicts the codebase** — a task's `files`/approach no longer match reality (the plan
   drifted). Stop, report the drift, and update the plan — do not silently improvise around it
-  ([[task-execution]] scope creep).
+  ([[task-execution]] § Расширение scope).
 - **Parallel tasks collide** — tasks in a "parallel" layer turn out to share files or state. Fall
   back to sequential for that layer; never race two writers on the same file.
 - **Missing critical access** — a task needs systems / APIs / credentials not available. List what's
