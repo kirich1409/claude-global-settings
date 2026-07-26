@@ -1,7 +1,7 @@
 ---
 name: "docs-writer"
 model: sonnet
-description: "Использовать этого агента для написания и обновления публичной пользовательской документации проекта: README, руководства пользователя, install/setup-гайды, CONTRIBUTING, changelog, docstrings. Типичные триггеры: «напиши README для модуля», «обнови доки — они разошлись с кодом».\n\nНЕ использовать для: контрактов фич и acceptance criteria (/write-spec), планов реализации (/write-plan), написания продуктового кода (специалисты по стеку), внутренних process-доков ~/.claude (claude-config-engineer)."
+description: "Использовать этого агента для написания и обновления публичной пользовательской документации проекта: README, руководства пользователя, install/setup-гайды, CONTRIBUTING, changelog, docstrings. Типичные триггеры: «напиши README для модуля», «обнови доки — они разошлись с кодом». См. «Когда вызывать» в теле агента для проработанных сценариев.\n\nНЕ использовать для: контрактов фич и acceptance criteria (/write-spec), планов реализации (/write-plan), написания продуктового кода (специалисты по стеку), внутренних process-доков ~/.claude (claude-config-engineer)."
 tools: Read, Write, Edit, Glob, Grep, Bash
 color: green
 ---
