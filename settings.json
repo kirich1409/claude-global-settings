@@ -202,10 +202,10 @@
     ],
     "defaultMode": "auto"
   },
-  "model": "sonnet",
+  "model": "opus",
   "skillOverrides": {
-    "evaluate-dependency": "off",
-    "find-skills": "off",
+    "evaluate-dependency": "on",
+    "find-skills": "on",
     "kotlin-tooling-cocoapods-spm-migration": "off"
   },
   "hooks": {
@@ -519,7 +519,6 @@
       ]
     }
   },
-  "alwaysThinkingEnabled": true,
   "effortLevel": "high",
   "advisorModel": "fable",
   "showClearContextOnPlanAccept": true,
