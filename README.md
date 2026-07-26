@@ -73,8 +73,11 @@ cat CLAUDE.md rules/<unconditional>.md > /tmp/layer.txt
 { cat /tmp/layer.txt; printf '\n\nok'; } | claude -p --model haiku --output-format json | jq '.usage'
 ```
 
-The `InstructionsLoaded` hook (`hooks/log-instructions-loaded.sh`) logs every instruction file
-as it loads, with its size and load reason, to `~/.claude/instructions-loaded.log`.
+Sum `input_tokens`, `cache_creation_input_tokens`, and `cache_read_input_tokens`; the
+difference between the two runs is what the layer costs. `/context` in a live session shows
+what actually loaded. For a per-file breakdown while debugging path-scoped or lazily loaded
+rules, register an [`InstructionsLoaded`](https://code.claude.com/docs/en/hooks) hook
+temporarily — it reports each file's path and load reason as it loads.
 
 ## Portability
 
