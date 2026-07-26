@@ -205,8 +205,7 @@
   "model": "opus",
   "skillOverrides": {
     "evaluate-dependency": "on",
-    "find-skills": "off",
-    "kotlin-tooling-cocoapods-spm-migration": "off"
+    "find-skills": "off"
   },
   "hooks": {
     "SessionStart": [
