@@ -125,31 +125,56 @@ else
   ok "all tracked .sh pass bash -n"
 fi
 
-# --- 7. Skill frontmatter name matches its directory -------------------------------------
-badskill=""
-for f in skills/*/SKILL.md; do
-  [ -f "$f" ] || continue
-  dir=$(basename "$(dirname "$f")")
-  name=$(awk -F': *' '/^name:/{print $2; exit}' "$f")
-  [ "$name" = "$dir" ] || badskill="$badskill $dir(name:$name)"
-done
-if [ -n "$badskill" ]; then
-  fail "skill frontmatter name != directory:$badskill"
-else
-  ok "skill names match directories"
-fi
+# --- 7-8. Agent and skill frontmatter actually parses as YAML ----------------------------
+# grep for "^name:" only proves the line exists. A description holding an unescaped quote
+# closes its scalar early and makes the whole block unparseable — the agent then silently
+# vanishes from the session's roster while a presence check still reports OK. Parse it.
+FM_OUT="$(mktemp)"
+python3 - > "$FM_OUT" <<'PYEOF'
+import glob, os, sys
+try:
+    import yaml
+except ImportError:
+    print("FATAL PyYAML missing — install it (pip install pyyaml) so frontmatter can be parsed")
+    sys.exit(0)
 
-# --- 8. Agent files have frontmatter with name ------------------------------------------
-badagent=""
-for f in agents/*.md; do
-  [ -f "$f" ] || continue
-  head -1 "$f" | grep -q '^---$' && grep -q '^name:' "$f" || badagent="$badagent $(basename "$f")"
-done
-if [ -n "$badagent" ]; then
-  fail "agent files missing frontmatter/name:$badagent"
+def frontmatter(path):
+    text = open(path, encoding="utf-8").read()
+    if not text.startswith("---\n"):
+        raise ValueError("no frontmatter: file does not start with ---")
+    parts = text[4:].split("\n---\n", 1)
+    if len(parts) != 2:
+        raise ValueError("frontmatter is not closed by ---")
+    data = yaml.safe_load(parts[0])
+    if not isinstance(data, dict):
+        raise ValueError("frontmatter is not a mapping")
+    return data
+
+for path in sorted(glob.glob("agents/*.md")) + sorted(glob.glob("skills/*/SKILL.md")):
+    label = path
+    try:
+        fm = frontmatter(path)
+    except Exception as exc:
+        first = str(exc).splitlines()[0]
+        print(f"BAD {label}: {first}")
+        continue
+    for field in ("name", "description"):
+        if not str(fm.get(field) or "").strip():
+            print(f"BAD {label}: {field} is missing or empty")
+    if path.startswith("skills/"):
+        directory = os.path.basename(os.path.dirname(path))
+        if str(fm.get("name") or "").strip() != directory:
+            print(f"BAD {label}: name '{fm.get('name')}' != directory '{directory}'")
+PYEOF
+if grep -q '^FATAL' "$FM_OUT"; then
+  fail "$(sed -n 's/^FATAL //p' "$FM_OUT")"
+elif [ -s "$FM_OUT" ]; then
+  fail "agent/skill frontmatter problems:"
+  sed 's/^BAD /    /' "$FM_OUT"
 else
-  ok "agent frontmatter present"
+  ok "agent and skill frontmatter parses as YAML"
 fi
+rm -f "$FM_OUT"
 
 # --- 9. Permission rules semantics in settings.json --------------------------------------
 # Write(<path>) rules are silently ignored by file permission checks — only Edit(<path>)
