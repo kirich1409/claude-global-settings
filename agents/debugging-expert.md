@@ -1,7 +1,7 @@
 ---
 name: "debugging-expert"
 model: opus
-effort: high
+effort: medium
 description: "Использовать этого агента при расследовании багов, падений тестов, крашей или неожиданного поведения, чтобы найти первопричину ДО попытки исправления. Этот агент выполняет анализ только для чтения — он не изменяет код."
 tools: Read, Glob, Grep, Bash
 disallowedTools: Edit, Write, NotebookEdit

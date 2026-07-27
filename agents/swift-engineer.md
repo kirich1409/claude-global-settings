@@ -1,7 +1,7 @@
 ---
 name: "swift-engineer"
 model: sonnet
-effort: medium
+effort: low
 description: "Использовать этого агента, когда нужно писать Swift-код для iOS или macOS приложений — бизнес-логику, data layer, networking, модели, repositories, services, platform-specific код и unit-тесты. Поддерживает как standalone iOS/macOS проекты, так и KMP platform-specific реализации.\nЭтот агент НЕ пишет SwiftUI или UIKit UI-код — экраны, views, modifiers, навигацию, @State, @Binding — всё это принадлежит `swiftui-developer`. Создаёт классы моделей @Observable (data/domain layer), но НЕ управляет @State/@Binding (UI state)."
 color: "blue"
 ---

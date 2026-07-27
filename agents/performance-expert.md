@@ -1,7 +1,7 @@
 ---
 name: "performance-expert"
 model: opus
-effort: high
+effort: medium
 description: "Использовать этого агента для ревью кода или архитектурных планов на производительность и узкие места: N+1 запросы, утечки памяти, проблемы threading, UI jank. Также использовать для вопросов про профилирование и оптимизацию производительности."
 tools: Read, Glob, Grep, Bash
 color: yellow

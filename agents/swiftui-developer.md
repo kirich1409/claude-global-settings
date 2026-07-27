@@ -1,7 +1,7 @@
 ---
 name: "swiftui-developer"
 model: sonnet
-effort: medium
+effort: low
 description: "Использовать этого агента, когда нужно писать SwiftUI UI-код — по визуальному дизайну (Figma-макет, скриншот, wireframe), спецификации фичи или migration brief при переносе с UIKit/AppKit. Экраны, views, previews, темы, навигация, анимации, accessibility. Поддерживает таргеты iOS, macOS и watchOS."
 color: "cyan"
 ---

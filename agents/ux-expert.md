@@ -1,7 +1,7 @@
 ---
 name: "ux-expert"
 model: opus
-effort: high
+effort: medium
 description: "Использовать этого агента, когда нужно оценить пользовательский опыт, решения по UI-дизайну, пользовательские флоу, accessibility или согласованность дизайна в проекте. Это включает ревью планов, экранов, структуры навигации, UI-состояний и соответствия platform-конвенциям."
 tools: Read, Glob, Grep, Bash
 color: cyan
