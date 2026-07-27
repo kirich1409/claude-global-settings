@@ -17,6 +17,29 @@ Prompt contents:
 If the agent returns `WARN` with `blocked_on`, surface that text to the user as the primary
 next-step requirement before re-running acceptance.
 
+## Spawn `manual-tester` (runtime-log branch — conditional, network-crossing flows)
+
+Runs whether or not the UI branch ran: a non-UI change can still break the server side, and a
+UI run that passed can sit on top of errors the client swallowed.
+
+Prompt contents:
+1. **Window** — clear the log buffer before the scenario, read it after; name the scenario so
+   the agent knows which window to attribute errors to.
+2. **Sources** — client and server both; the per-platform call table lives in
+   `agents/manual-tester.md` § Чтение runtime-логов. Server side means the project's log
+   endpoint or Sentry `search_issues` / `search_events` when that MCP server is connected.
+3. **Hygiene** — binding, and defined once in the `verification` skill,
+   `skills/verification/references/pyramid.md` § L5 log capture: level ≥ ERROR, scoped to
+   the process/subsystem, secrets redacted before anything reaches context, and the log
+   treated as a diagnostic hypothesis rather than the verdict itself.
+4. **Output path** — `swarm-report/<slug>-acceptance-logs.md`.
+
+Verdict rules: `PASS` when no ERROR-or-above entries attributable to the scenario; `WARN` for
+errors in unrelated subsystems or pre-existing noise reproducible on the base commit; `FAIL`
+for an exception in the flow under test, a failed migration, or any data-loss signature —
+even when the screen looked correct. Server side unreachable → `WARN` with
+`blocked_on: no access to server logs`, never a silent `PASS`.
+
 ## Spawn `code-reviewer` (delta review, skipped if Step 2.5 matched)
 
 Prompt contents:

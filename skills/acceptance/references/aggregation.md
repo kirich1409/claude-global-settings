@@ -97,6 +97,7 @@ that looks right.
 | Check | Agent / Tool | Verdict | Severity | Confidence | Artifact |
 |---|---|---|---|---|---|
 | Manual QA | manual-tester | … | … | … | swarm-report/<slug>-acceptance-manual.md |
+| Runtime logs | manual-tester | … | … | … | swarm-report/<slug>-acceptance-logs.md |
 | Code review | code-reviewer | … | … | … | swarm-report/<slug>-acceptance-code.md |
 | AC coverage | business-analyst | … | … | … | swarm-report/<slug>-acceptance-ac-coverage.md |
 | Design | ux-expert | … | … | … | swarm-report/<slug>-acceptance-design.md |
