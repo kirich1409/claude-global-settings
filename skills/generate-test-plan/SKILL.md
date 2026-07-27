@@ -2,12 +2,10 @@
 name: generate-test-plan
 description: >-
   Generate a structured test plan when the user asks to "create a test plan", "write test cases",
-  "generate QA scenarios", "prepare a testing checklist", "identify what to test", "find edge cases",
-  "plan testing coverage", "document test scenarios", "create a QA handoff document", "what should
-  I test?", "what are the edge cases?", or "how would you test this?". Also use when the user
-  describes requirements or acceptance criteria and asks how to verify them, or wants to plan testing
-  before actually running tests. Produces a structured, prioritized test plan document saved to
-  docs/testplans/ with risk analysis, coverage matrix, automation candidates, and proper TC format.
+  "generate QA scenarios", "find edge cases", "what should I test?", or "how would you test this?".
+  Also use when the user describes requirements or acceptance criteria and asks how to verify them,
+  or wants to plan testing before actually running tests. Produces a prioritized test plan document
+  saved to docs/testplans/.
   Do NOT trigger when: the user wants to execute tests on a running app (use acceptance or
   the manual-tester agent), the user wants automated unit/integration tests in code (out of scope),
   or the user wants to run an existing test plan (use acceptance). Never launches an app, device,

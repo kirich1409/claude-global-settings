@@ -5,12 +5,11 @@ description: >-
   tests, and typecheck — in a single command. Reusable utility called by any skill that
   modifies code: write-tests, finalize, or directly by the user.
 
-  Auto-detects project tooling (Gradle, npm/pnpm/yarn, cargo, Swift SPM, Xcode, Python,
-  Go, Makefile) and runs the appropriate commands. Does NOT modify code — it only verifies.
+  Auto-detects project tooling and runs the appropriate commands. Does NOT modify code —
+  it only verifies.
 
-  Use when: "check the project", "run tests", "verify build", "does it build?", "smoke check",
-  "make sure nothing is broken", "validate the branch", "after I edited X run checks",
-  "is everything clean?", "did I break anything?",
+  Use when: "check the project", "run tests", "verify build", "does it build?",
+  "make sure nothing is broken", "did I break anything?",
   or when a pipeline stage needs to confirm that code modifications
   did not break anything. Do NOT use for code review (that is finalize Phase A), functional
   acceptance testing (use acceptance), or exploratory QA (call manual-tester agent directly).
