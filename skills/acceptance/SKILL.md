@@ -6,7 +6,13 @@ description: >
   Triggers: "test this", "verify against spec",
   "QA the implementation", "run the test plan", "validate acceptance criteria",
   "verify the PR", "verify the fix", "confirm bug is gone", "acceptance",
-  "verify this", "test this".
+  "verify this".
+  Requires an existing verification contract (spec, test plan, or debug artifact) and a
+  runnable app — it executes that contract, it does not invent checks.
+  Do NOT use for: mechanical build/lint/test/typecheck runs with no contract (use check);
+  exploratory QA of a running app with no spec to verify against (call the manual-tester
+  agent directly); a code-quality pass over how the code is written (use finalize);
+  producing a test plan rather than executing one (use generate-test-plan).
 ---
 
 # Acceptance
