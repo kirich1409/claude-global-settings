@@ -92,6 +92,8 @@
       "mcp__plugin_context-mode_context-mode__ctx_fetch_and_index",
       "Bash(ast-index help:*)",
       "Bash(ast-index rebuild:*)",
+      "Bash($HOME/.claude/scripts/gate-diff-hash.sh)",
+      "Bash(~/.claude/scripts/gate-diff-hash.sh)",
       "Bash($HOME/.claude/scripts/gh/*)",
       "Bash(~/.claude/scripts/gh/*)",
       "Bash(./gradlew:*)",

@@ -75,6 +75,10 @@ digest by hand, or the hook's copy of the formula and this one drift apart silen
 at exit, after the last fix landed. A receipt written without this line does not satisfy the
 hook, so the reminder keeps firing even though the gate did run.
 
+If the script cannot be run, write `Gate diff hash: BLOCKED — <reason>` and say so in the
+chat summary. Never write a placeholder that looks like a value, and never substitute a
+hand-rolled digest: a wrong hash silences the hook while proving nothing.
+
 ## Chat summary on exit (≤20 lines)
 
 **PASS:** "Finalize: PASS after N round(s). Code is ready for acceptance." Bullets — N findings fixed by category (security X, quality Y, style Z); if 0, state so. Next step: `/acceptance`.
