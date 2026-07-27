@@ -2,7 +2,7 @@
 name: "compose-developer"
 model: sonnet
 effort: medium
-description: "Использовать этого агента, когда нужно написать UI-код на Jetpack Compose или Compose Multiplatform — будь то по визуальному дизайну (Figma-макет, скриншот, wireframe), спецификации фичи или описанию задачи, или по брифу миграции. Это включает экраны, composable-функции, previews (@Preview), кастомные Modifier'ы, темы (кастомизации MaterialTheme, цветовые схемы, типографику, определения форм), навигационные графы (NavHost, определения route, переходы), анимации (Animate*, Transition, spring/tween specs), accessibility-семантику, loading/skeleton/shimmer UI и отображение error UI. Этот агент производит production-ready composable-функции, следуя современным best practices Compose: Modifier.Node API для кастомных модификаторов, Slot API для дизайна компонентов, паттерн stateless screen, правильный state hoisting, performance-aware recomposition и полную поддержку accessibility. Поддерживает как Android-only (Jetpack Compose), так и KMP (Compose Multiplatform) таргеты."
+description: "Использовать этого агента для написания UI-кода на Jetpack Compose или Compose Multiplatform — по визуальному дизайну (Figma/скриншот/wireframe), спецификации фичи или брифу миграции. Экраны, composable-функции, previews, темы, навигация, анимации, accessibility. Поддерживает Android-only и KMP (CMP) таргеты."
 color: cyan
 ---
 

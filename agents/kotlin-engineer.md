@@ -2,7 +2,7 @@
 name: "kotlin-engineer"
 model: sonnet
 effort: medium
-description: "Use this agent when you need to write Kotlin business-logic code for Android or Kotlin Multiplatform (KMP) — ViewModels, UseCases, Repositories, data sources, mappers, DI wiring, and unit tests. Does NOT write Compose UI code (composables, themes, navigation, modifiers, previews) — that belongs to `compose-developer`. Typical triggers include implementing a feature stack from API to ViewModel, wiring a ViewModel to existing UseCases, extracting Android-only logic into commonMain for KMP code sharing, and adding a data source or repository implementation. See \"When to invoke\" in the agent body for worked scenarios."
+description: "Use this agent to write Kotlin business-logic code for Android or KMP — ViewModels, UseCases, Repositories, data sources, mappers, DI wiring, unit tests. Does NOT write Compose UI (composables, themes, navigation) — that belongs to `compose-developer`. Typical triggers: full feature stack API-to-ViewModel, KMP code sharing into commonMain, new repository implementation. See \"When to invoke\" in the agent body for worked scenarios."
 color: green
 ---
 
