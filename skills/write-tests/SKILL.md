@@ -182,11 +182,16 @@ Steps:
    # Swift — run single test
    swift test --filter Suite/testMethod
    ```
-4. **If RED** (test fails) → contract verified. Restore tracked files to pre-revert state
-   while keeping the untracked test file intact (it has not been committed yet):
+4. **If RED** (test fails) → contract verified. Undo **only the revert**, leaving every other
+   uncommitted change in the tree untouched. The files the revert touched are exactly the files
+   the fix commits touched, so ask git for that list rather than resetting the whole tree:
    ```bash
-   git reset --hard HEAD
+   REVERTED=$(git show --pretty= --name-only <hash-1> ... <hash-N> | sort -u)
+   git revert --quit                                             # clear REVERT_HEAD
+   git restore --source=HEAD --staged --worktree -- $REVERTED
    ```
+   Never `git reset --hard HEAD` here — it also discards the caller's unrelated uncommitted
+   tracked edits, which on the bug-fix path is the normal state of the tree.
    Record the verification in the write-tests receipt (`swarm-report/<slug>-write-tests.md`,
    append one line):
    `Regression contract: VERIFIED — test RED on revert of fix commits (<hash-1>…<hash-N>), GREEN with fix.`
@@ -195,9 +200,13 @@ Steps:
    Discard both the revert changes AND the test file — the test is structurally wrong and
    should not be salvaged; the next implementation pass needs a different approach:
    ```bash
-   git reset HEAD -- . && git checkout -- . && git clean -fd
+   REVERTED=$(git show --pretty= --name-only <hash-1> ... <hash-N> | sort -u)
+   git revert --quit
+   git restore --source=HEAD --staged --worktree -- $REVERTED
+   rm -f <path-to-the-regression-test-file>
    ```
-   (`git clean -fd` intentionally removes the untracked test file here.)
+   Delete the test by its own path. Never `git clean -fd` — it removes every untracked file in
+   the whole working tree, not the one file this skill created.
    Before returning to the caller, produce a Coverage Diagnosis (see Phase 6.5) that explains:
    - What the test asserts and why that assertion passes even without the fix
    - What aspect of the bug the test missed (wrong entry point, wrong layer, assertion
@@ -207,6 +216,10 @@ Steps:
    status `INEFFECTIVE`), attaching the Coverage Diagnosis so the next implementation pass
    has a concrete direction for addressing the test design, not just the fix.
    Do NOT continue to Phase 5.1.
+
+**Uncommitted changes in the fixed files:** `git revert` refuses to run (exit 128, "local changes
+would be overwritten") when the caller has uncommitted edits in a file a fix commit touched. Treat
+that as a blocker and report it — do not stash, commit, or discard the caller's work to get past it.
 
 **Conflict handling:** if `git revert` produces a merge conflict, accept the buggy side
 (`--theirs`) to ensure the working tree contains the original broken code:
