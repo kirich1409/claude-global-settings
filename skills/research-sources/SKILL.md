@@ -3,7 +3,7 @@ name: research-sources
 description: >-
   Route a question to the right external source and weigh what comes back. Covers the
   source routing table (project code, ksrc, android docs, Context7, Claude Code harness
-  docs, web, raw README),
+  docs, vendor plugin skills, web, raw README),
   the discover-then-use-every-channel discipline, T1-T4 trust tiers and conflict
   resolution, per-stack API-truth composition, reference implementations, and
   open-source code-search channels.
@@ -37,7 +37,8 @@ use, which may be legacy or an anti-pattern.
 | `android docs search`/`fetch` | API truth + guides for Android/Jetpack/Compose/AGP/SDK | Non-Android libraries |
 | `~/.android/cli/skills/**/SKILL.md` | Bundled Android CLI skills — structured workflows (migrations; Wear/XR/edge-to-edge/Compose styles/R8/Perfetto). Discovery: `android skills find <kw>` | API truth; non-Android tasks |
 | Context7 | Docs for published libraries/frameworks, current API and migration | Project code, debugging your own logic |
-| `code.claude.com/docs` + official `plugin-dev` skills | The harness itself: settings, hooks, permissions, skill/agent frontmatter, limits and context budgets | Library APIs; how this repo happens to be configured |
+| `code.claude.com/docs` | The harness itself: settings, hooks, permissions, skill/agent frontmatter, limits and context budgets | Library APIs; how this repo happens to be configured |
+| Vendor-authored plugin skills — installed under `~/.claude/plugins/cache/**/skills/*/SKILL.md`, uninstalled ones browsable per marketplace (`claude plugin marketplace list`, then that marketplace's checkout under `~/.claude/plugins/marketplaces/`) | Guidance straight from whoever builds the tool, in skill form: `plugin-dev` for the harness, a vendor's own plugin for its product. Grep them before searching the web — they are on disk and version-pinned | Community plugins as API truth — authorship is unverified, treat as T3 |
 | `WebSearch`/`WebFetch` | Default for anything not covered above | — |
 | Raw README via `raw.githubusercontent.com` | Last resort for a specific repo | — |
 | Reference implementations | "How do you actually wire X together" — DI, boilerplate, layering, from real code | API truth (signatures) — that is a usage slice, not a spec |
@@ -73,8 +74,8 @@ hallucination. Assign a tier before believing it.
 | Tier | What | Sources |
 |---|---|---|
 | **T1** ground truth | artifact without interpretation | `ksrc`, existing project code, official release artifact |
-| **T2** official docs | curated vendor docs, releases, changelogs | `android docs`, Context7 for official libraries, vendor changelog |
-| **T3** aggregated/AI | can hallucinate | Context7 for community libraries without vendor docs |
+| **T2** official docs | curated vendor docs, releases, changelogs | `android docs`, Context7 for official libraries, vendor changelog, a vendor's own plugin skills |
+| **T3** aggregated/AI | can hallucinate | Context7 for community libraries without vendor docs, community plugin skills |
 | **T4** random web | blogs, StackOverflow, Medium, tutorials | WebSearch, arbitrary WebFetch |
 
 **Memory is not a tier.** Auto memory and recalled facts capture what was true when written
