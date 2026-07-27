@@ -211,6 +211,14 @@ Triggers read either from spec frontmatter or directly from the diff.
 | diff touches a public API symbol, **or** changes span ≥ 3 top-level modules | `architecture-expert` | Module boundaries, dependency direction, public API contract |
 | diff touches any build file (`build.gradle*`, `settings.gradle*`, `pom.xml`, `package.json`, `Cargo.toml`, `go.mod`, `pyproject.toml`, `Makefile`) | `build-engineer` | Build config sanity — plugin versions, task wiring, dependency additions |
 | diff touches CI / release config (`.github/workflows/*`, `.gitlab-ci.yml`, `Dockerfile`, `docker-compose*`, `.circleci/config.yml`, `release.yml`) | `devops-expert` | Pipeline/release health, secret handling, rollout gates |
+| the verified flow crosses the network — spec `risk_areas` includes `backend`, or the diff touches a client call site or any server-side path | `manual-tester` runtime-log branch | Read server-side errors for the window the scenario ran in (project log endpoint, or Sentry `search_issues` / `search_events` when connected) |
+
+**Runtime logs are part of the verdict, not colour commentary.** A client that retries a
+failing call renders exactly like one that succeeded, so a green screen proves nothing about
+the server. The log verdict is aggregated in Step 4 alongside the UI verdict, and capture
+follows the hygiene rules the `verification` skill already defines
+(`skills/verification/references/pyramid.md` § L5 log capture). No access to the server side → say so explicitly
+in the receipt; do not let client-only coverage read as full coverage.
 
 **Diff-based trigger detection.** Two cached passes:
 
