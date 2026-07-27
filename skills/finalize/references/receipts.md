@@ -61,11 +61,19 @@ Also save on the same exit (PASS or ESCALATE). This is the terse receipt consume
 
 Status: PASS | FAIL
 Date: <date>
+Gate diff hash: <output of `scripts/gate-diff-hash.sh`, run at exit>
 Escalate: <true — only on ESCALATE; omit otherwise>
 Detail: swarm-report/<slug>-finalize.md
 ```
 
 Verdict mapping: `Exit: PASS` → `Status: PASS`; `Exit: ESCALATE` → `Status: FAIL` plus `Escalate: true`. `Date:` is mandatory — `acceptance` Step 2.5 infers freshness from `Date:` against the branch commit window; if it cannot confirm, it does NOT skip `code-reviewer`, so `Date:` alone is sufficient and no commit SHA is needed.
+
+`Gate diff hash:` is mandatory and serves a different consumer: the `gate-receipt-reminder`
+Stop hook reads it to tell "this gate covered the code as it stands now" from "this gate ran
+three commits ago". Take it from `~/.claude/scripts/gate-diff-hash.sh` — never compute the
+digest by hand, or the hook's copy of the formula and this one drift apart silently. Run it
+at exit, after the last fix landed. A receipt written without this line does not satisfy the
+hook, so the reminder keeps firing even though the gate did run.
 
 ## Chat summary on exit (≤20 lines)
 

@@ -60,6 +60,8 @@ Save to `swarm-report/<slug>-acceptance.md`. Legacy fields preserved; new sectio
 **test_plan_source:** receipt | mounted | on-the-fly | absent
 **Context artifacts:** [paths to upstream artifacts used as input — e.g. research.md, debug.md, write-tests.md, quality.md]
 
+**Gate diff hash:** <output of `~/.claude/scripts/gate-diff-hash.sh`, run at exit>
+
 ## Idempotency Hashes
 - `diff_hash`: <sha256 of `git diff <base>...HEAD`>
 - `spec_hash`: <sha256 of the spec file bytes, or `null` if no file spec>
@@ -67,6 +69,13 @@ Save to `swarm-report/<slug>-acceptance.md`. Legacy fields preserved; new sectio
 
 These three hashes drive the Re-verification Loop decision table; downstream orchestrators
 don't need to read them.
+
+`Gate diff hash` in the header block is separate from all three and is mandatory. It is read
+by the `gate-receipt-reminder` Stop hook to distinguish "acceptance covered the code as it
+stands now" from "acceptance ran three commits ago". Always take it from
+`~/.claude/scripts/gate-diff-hash.sh` rather than composing a digest here — the hook computes
+the same value with the same script, and a hand-rolled variant drifts silently. Without this
+line the reminder keeps firing even though the gate did run.
 
 ## Check Plan
 - list of checks that ran, one per line, with their trigger
