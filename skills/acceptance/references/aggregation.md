@@ -60,6 +60,8 @@ Save to `swarm-report/<slug>-acceptance.md`. Legacy fields preserved; new sectio
 **test_plan_source:** receipt | mounted | on-the-fly | absent
 **Context artifacts:** [paths to upstream artifacts used as input — e.g. research.md, debug.md, write-tests.md, quality.md]
 
+**Gate diff hash:** <output of `~/.claude/scripts/gate-diff-hash.sh`, run at exit>
+
 ## Idempotency Hashes
 - `diff_hash`: <sha256 of `git diff <base>...HEAD`>
 - `spec_hash`: <sha256 of the spec file bytes, or `null` if no file spec>
@@ -67,6 +69,23 @@ Save to `swarm-report/<slug>-acceptance.md`. Legacy fields preserved; new sectio
 
 These three hashes drive the Re-verification Loop decision table; downstream orchestrators
 don't need to read them.
+
+**`Gate diff hash` is not one of these three, and `diff_hash` does not substitute for it.**
+Both are digests of a diff, which is exactly why they get confused — a real run wrote its own
+`diff_hash` into the header and left the gate line out entirely, so the Stop hook kept
+reminding after a gate that had genuinely passed.
+
+They differ in what they cover and who reads them: `diff_hash` is `git diff <base>...HEAD`
+over everything, consumed by the Re-verification Loop; `Gate diff hash` covers source files
+only, includes uncommitted and untracked work, and is consumed by the
+`gate-receipt-reminder` Stop hook to tell "acceptance covered the code as it stands now" from
+"acceptance ran three commits ago".
+
+The only correct value is the stdout of `~/.claude/scripts/gate-diff-hash.sh`. Run it — do not
+derive it, copy it from `diff_hash`, or compute an equivalent-looking digest; the hook runs
+that same script, so anything else silently fails to match. If the script cannot be run, write
+`Gate diff hash: BLOCKED — <reason>` and surface it, rather than filling the line with a value
+that looks right.
 
 ## Check Plan
 - list of checks that ran, one per line, with their trigger
