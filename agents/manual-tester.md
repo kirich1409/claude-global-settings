@@ -21,9 +21,9 @@ disallowedTools: Edit, Write, NotebookEdit
 
 ### 0.1 Определить тип цели
 
-Сначала определить, является ли цель **mobile/desktop-приложением** или **веб-приложением**:
-- Mobile/desktop-приложение → использовать MCP-инструменты `mobile` (разделы помечены **[mobile]**)
-- Веб-приложение → использовать MCP-инструменты `playwright` (разделы помечены **[web]**)
+Сначала определить, является ли цель **mobile/desktop-приложением** или **веб-приложением**. Оба случая обслуживает один MCP-сервер, отличается набор модулей:
+- Mobile/desktop-приложение → модули `device`, `screen`, `ui`, `input`, `app`, `system`, `flow` — загружены по умолчанию (разделы помечены **[mobile]**)
+- Веб-приложение → модуль `browser`, загружается вызовом `device(action: "enable_module", module: "browser")` (разделы помечены **[web]**)
 
 При сомнении — спросить пользователя перед продолжением.
 
@@ -32,15 +32,15 @@ disallowedTools: Edit, Write, NotebookEdit
 Прочитать память, внедрённую в начале сессии, и найти записи со `status: active` для этого проекта. Это другие агенты, работающие сейчас.
 
 **Нет других активных сессий (single-agent run):**
-1. Вызвать `list_devices` и выбрать доступное устройство
-2. Вызвать `set_device` / `set_target`
+1. Вызвать `device(action: "list")` и выбрать доступное устройство
+2. Вызвать `device(action: "set")` / `device(action: "set_target")`
 3. Вывести **SESSION_ID** из имени устройства плюс случайный 4-символьный hex-суффикс — например, `pixel8-a3f2` или `iphone15-b7c1`
 4. Перейти к шагу 0.3
 
 **Обнаружены другие активные сессии (parallel run):**
 Каждый агент должен работать на своём изолированном клоне устройства, чтобы агенты никогда не мешали друг другу.
 
-- **iOS simulator** (только macOS) — клонировать исходное устройство через `shell`:
+- **iOS simulator** (только macOS) — клонировать исходное устройство через `system(action: "shell")`:
   ```
   xcrun simctl clone <source-udid> "QA-<SESSION_ID>"
   ```
@@ -48,7 +48,7 @@ disallowedTools: Edit, Write, NotebookEdit
   ```
   xcrun simctl boot <clone-udid>
   ```
-  Вызвать `set_device` с UDID клона. SESSION_ID выводится из `"QA-<clone-udid-prefix>"`.
+  Вызвать `device(action: "set")` с UDID клона. SESSION_ID выводится из `"QA-<clone-udid-prefix>"`.
 
 - **Android emulator** — перед созданием вывести список установленных системных образов, чтобы выбрать доступный:
   ```
@@ -71,7 +71,7 @@ disallowedTools: Edit, Write, NotebookEdit
   adb -s $(adb devices | grep emulator | tail -1 | cut -f1) \
     shell 'while [[ -z $(getprop sys.boot_completed) ]]; do sleep 2; done'
   ```
-  Затем вызвать `list_devices`, чтобы подтвердить появление нового эмулятора, и вызвать `set_device` с его serial.
+  Затем вызвать `device(action: "list")`, чтобы подтвердить появление нового эмулятора, и вызвать `device(action: "set")` с его serial.
 
 - **Реальное устройство** — реальные устройства нельзя клонировать; назначить каждому агенту отдельное физическое устройство. Если доступно только одно реальное устройство, параллельные запуски невозможны — сообщить пользователю и продолжить последовательно.
 
@@ -86,7 +86,7 @@ Session <SESSION_ID> — device: <device-id>, cloned: <yes/no>, status: active
 
 Всегда начинать с чистой установки, чтобы устранить оставшееся состояние, кэшированные credentials и feature flags от предыдущих запусков.
 
-**Пропустить этот шаг, если устройство было только что склонировано на шаге 0.2** — у нового клона или AVD нет установленного приложения, поэтому удаление не нужно. Перейти сразу к `install_app`.
+**Пропустить этот шаг, если устройство было только что склонировано на шаге 0.2** — у нового клона или AVD нет установленного приложения, поэтому удаление не нужно. Перейти сразу к `app(action: "install")`.
 
 Для выполнения чистой установки нужен идентификатор приложения — спросить пользователя, если его нет:
 - iOS: **Bundle ID** (например, `com.example.app`)
@@ -98,27 +98,27 @@ Session <SESSION_ID> — device: <device-id>, cloned: <yes/no>, status: active
   ```
   xcrun simctl uninstall <device-udid> <bundle-id>
   ```
-  Затем вызвать `install_app` с путём к билду.
+  Затем вызвать `app(action: "install")` с путём к билду.
 
 - **Android:**
   ```
   adb -s <device-serial> uninstall <package-name>
   ```
-  Затем вызвать `install_app` с путём к APK.
+  Затем вызвать `app(action: "install")` с путём к APK.
 
-Если пользователь явно хочет сохранить существующее состояние (например, перепроверить конкретный баг с существующей сессией аккаунта), пропустить удаление и просто вызвать `launch_app`.
+Если пользователь явно хочет сохранить существующее состояние (например, перепроверить конкретный баг с существующей сессией аккаунта), пропустить удаление и просто вызвать `app(action: "launch")`.
 
 ### 0.4 Подключиться и проверить (обе цели)
 
 **Mobile [mobile]:**
-1. Вызвать `launch_app` — подтвердить, что приложение запускается
-2. Вызвать `screenshot` — подтвердить, что экран виден
+1. Вызвать `app(action: "launch")` — подтвердить, что приложение запускается
+2. Вызвать `screen(action: "capture")` — подтвердить, что экран виден
 3. Зафиксировать **версию приложения / номер билда** (проверить Settings → About, или спросить пользователя, если не видно)
 
 **Web [web]:**
-1. Вызвать `browser_navigate` с целевым URL
-2. Вызвать `browser_take_screenshot` — подтвердить, что страница загрузилась
-3. Вызвать `browser_snapshot` — захватить accessibility tree
+1. Вызвать `browser(action: "navigate")` с целевым URL
+2. Вызвать `browser(action: "screenshot")` — подтвердить, что страница загрузилась
+3. Вызвать `browser(action: "snapshot")` — захватить accessibility tree
 4. Зафиксировать **заголовок страницы и URL** как ссылку на версию
 
 ### 0.5 Аутентификация (обе цели)
@@ -178,63 +178,70 @@ Spec Reference: [Кадр макета / раздел PRD / ID истории �
 
 Проходить тест-кейсы, используя MCP-инструменты ниже. **Каждый шаг — реальное действие, никаких гипотез.**
 
+Инструменты сгруппированы: один инструмент на область, конкретная операция задаётся полем `action`. Полный перечень `action` — в схеме самого инструмента; ниже только то, что нужно для прохождения тест-кейсов.
+
+**Порядок обращения к экрану — от дешёвого к дорогому.** `ui(action: "tree", format: "semantic")` на порядок дешевле скриншота; скриншот брать, когда проверяется именно визуал, а не наличие и состояние элементов. У действий ввода по умолчанию `hints: true` — они сами возвращают, что изменилось на экране, поэтому скриншот после каждого тапа не нужен.
+
 ### Взаимодействие с Mobile / Desktop [mobile]
 
-| Цель | Инструмент |
+| Цель | Вызов |
 |------|------|
-| Увидеть текущий экран | `screenshot` |
-| AI-описание содержимого экрана / обнаружение визуальных аномалий | `analyze_screen` |
-| Инспектировать сырое дерево UI-элементов | `get_ui` |
-| Утверждать, что элемент виден на экране | `assert_visible` |
-| Утверждать, что элемент отсутствует на экране | `assert_not_exists` |
-| Дождаться появления элемента (состояния загрузки) | `wait_for_element` |
-| Тап по координатам или элементу | `tap` / `find_and_tap` / `tap_by_text` |
-| Скролл или свайп | `swipe` |
-| Ввод текста | `input_text` |
-| Нажатие аппаратных клавиш (назад, enter, поворот) | `press_key` |
-| Долгое нажатие или двойной тап | `long_press` / `double_tap` |
-| Копирование / вставка через буфер обмена | `copy_text` / `paste_text` / `get_clipboard` / `set_clipboard` |
-| Эффективное выполнение последовательности действий | `batch_commands` |
+| Увидеть текущий экран | `screen(action: "capture")`, `preset: "low"` для быстрой проверки, `diff: true` — только изменения |
+| Скриншот с рамками элементов | `screen(action: "annotate")` |
+| Дерево UI-элементов | `ui(action: "tree", format: "semantic")`; `compact: true` — только интерактивные |
+| Найти элемент | `ui(action: "find", text: … / resourceId: … / label: …)` |
+| AI-разбор экрана | `ui(action: "analyze")` |
+| Утверждать наличие / отсутствие элемента | `ui(action: "assert_visible")` / `ui(action: "assert_gone")` |
+| Дождаться элемента (состояния загрузки) | `ui(action: "wait", text: …, timeout: …)` |
+| Тап | `input(action: "tap")` по координатам, `text`, `resourceId` или `index`; нечёткий тап по описанию — `ui(action: "find_tap", description: …)` |
+| Долгое нажатие / двойной тап | `input(action: "long_press")` / `input(action: "double_tap")` |
+| Скролл или свайп | `input(action: "swipe", direction: …)` либо по координатам |
+| Ввод текста | `input(action: "text", text: …)` |
+| Аппаратные клавиши | `input(action: "key", key: "BACK" \| "HOME" \| "ENTER" \| …)` |
+| Буфер обмена | `system(action: "clipboard_copy" \| "clipboard_paste" \| "clipboard_get" \| "clipboard_select")` |
+| Последовательность действий одним вызовом | `flow(action: "batch", commands: [...])`; сценарий с циклами и условиями — `flow(action: "run", steps: [...])` |
 
 ### Жизненный цикл mobile-приложения [mobile]
 
-| Цель | Инструмент |
+| Цель | Вызов |
 |------|------|
-| Запустить / остановить приложение | `launch_app` / `stop_app` |
-| Проверить активный экран (Android) | `get_current_activity` |
-| Прочитать логи крешей или ошибок | `get_logs` / `clear_logs` |
+| Запустить / остановить / переустановить | `app(action: "launch" \| "stop" \| "restart" \| "install")` |
+| Список приложений | `app(action: "list")` |
+| Активный экран (Android) | `system(action: "activity")` |
+| Логи ошибок и крешей | `system(action: "logs", level: "E", package: …)`, очистка — `system(action: "clear_logs")` |
 
 ### Система и разрешения mobile [mobile]
 
-| Цель | Инструмент |
+| Цель | Вызов |
 |------|------|
-| Выдать или отозвать разрешение | `grant_permission` / `revoke_permission` |
-| Проверить версию OS, размер экрана | `get_system_info` |
-| Получить метрики производительности | `get_performance_metrics` |
+| Выдать или отозвать разрешение | `system(action: "permission_grant" \| "permission_revoke" \| "permission_reset")` |
+| Версия OS, размер экрана | `system(action: "info")` |
+| Открыть deep link / URL | `system(action: "open_url", url: …)` |
+| Файлы на устройство и обратно | `system(action: "file_push" \| "file_pull")` |
+| Метрики производительности | модуль `performance`: `performance(action: "snapshot" \| "monitor" \| "framestats")`, креши и ANR — `performance(action: "crashes")` |
+| Аудит accessibility | модуль `accessibility`: `accessibility(action: "audit", standard: "AA")` |
+
+Модули `performance` и `accessibility` по умолчанию не загружены — включать по надобности через `device(action: "enable_module", module: [...])`, иначе их вызовы не видны.
 
 ### Взаимодействие с Web [web]
 
-| Цель | Инструмент |
+Браузер живёт в модуле `browser`, который по умолчанию не загружен: перед первым веб-тестом — `device(action: "enable_module", module: "browser")`, иначе вызовов просто нет.
+
+| Цель | Вызов |
 |------|------|
-| Перейти по URL | `browser_navigate` |
-| Вернуться назад | `browser_navigate_back` |
-| Сделать скриншот | `browser_take_screenshot` |
-| Инспектировать DOM / accessibility tree | `browser_snapshot` |
-| Кликнуть по элементу | `browser_click` |
-| Ввести текст в поле | `browser_type` |
-| Заполнить форму | `browser_fill_form` |
-| Выбрать опцию в dropdown | `browser_select_option` |
-| Навести курсор на элемент | `browser_hover` |
-| Drag and drop | `browser_drag` |
-| Загрузить файл | `browser_file_upload` |
-| Нажать клавишу (Enter, Tab, Escape…) | `browser_press_key` |
-| Обработать alert / confirm / prompt диалоги | `browser_handle_dialog` |
-| Изменить размер окна браузера (responsive breakpoints) | `browser_resize` |
-| Инспектировать сетевые запросы (пропущенные вызовы, ошибки) | `browser_network_requests` |
-| Прочитать ошибки / предупреждения консоли | `browser_console_messages` |
-| Выполнить произвольный JavaScript | `browser_evaluate` |
-| Работать с несколькими вкладками | `browser_tabs` |
-| Закрыть браузер | `browser_close` |
+| Открыть / закрыть сессию | `browser(action: "open", url: …)` / `browser(action: "close")` |
+| Перейти по URL, назад, вперёд, перезагрузить | `browser(action: "navigate", url: …)` или `nav: "back" \| "forward" \| "reload"` |
+| Скриншот | `browser(action: "screenshot", fullPage: …)` |
+| DOM / accessibility snapshot | `browser(action: "snapshot")` — даёт `ref` элементов для последующих действий |
+| Клик | `browser(action: "click", ref: … \| selector: … \| text: …)` |
+| Ввод в поле | `browser(action: "fill", selector: …, value: …, pressEnter: …)` |
+| Заполнить форму целиком | `browser(action: "fill_form", fields: [...], submit: …)` |
+| Клавиша (Enter, Tab, Escape…) | `browser(action: "press_key", key: …)` |
+| Дождаться элемента | `browser(action: "wait_for_selector", selector: …, state: "visible")` |
+| Произвольный JavaScript | `browser(action: "evaluate", expression: …)` |
+| Несколько параллельных сессий | параметр `session` у любого действия; список — `browser(action: "list_sessions")` |
+
+Отдельных вызовов для dropdown, hover, drag-and-drop, загрузки файла, диалогов, изменения размера окна, сетевых запросов и консоли в этой схеме нет. Что достижимо — делать через `browser(action: "evaluate")` и фиксировать в отчёте, каким способом проверено; чего достичь нельзя — помечать тест-кейс `BLOCKED` с причиной, а не подменять визуальной догадкой.
 
 ### Чтение runtime-логов
 
@@ -252,7 +259,7 @@ Spec Reference: [Кадр макета / раздел PRD / ID истории �
 | Backend | staging-API | `curl` к endpoint'у логов/health проекта |
 | Backend | Sentry | `search_issues` / `search_events` через Sentry MCP, когда он подключён |
 
-Имена вызовов в таблице выверены по актуальной схеме `claude-in-mobile` (единый инструмент `system` с полем `action`). Таблицы инструментов в разделах выше написаны в старой плоской схеме (`get_logs`, `launch_app`, `tap`) — при их использовании сверяться с фактической схемой инструмента, а не с текстом этого файла.
+Логи на iOS через MCP идут тем же `system(action: "logs")`; прямые команды `simctl` нужны, только когда MCP недоступен.
 
 Backend читать, когда сценарий ходит в сеть: клиент показывает «успех» ровно так же, как показал бы его при 500-й, обработанной retry-логикой. Вердикт по backend-логам входит в отчёт наравне с клиентским; нет доступа к серверной стороне — сказать это явно, а не молча покрыть только клиент.
 
@@ -330,7 +337,7 @@ Heuristic: [какая эвристика это выявила]
 
 ## Шаг 5: Базовые проверки Accessibility
 
-Выполнить выделенный, но лёгкий a11y-проход после функционального тестирования. Использовать `get_ui` (mobile) или `browser_snapshot` (web) для инспекции дерева элементов.
+Выполнить выделенный, но лёгкий a11y-проход после функционального тестирования. Использовать `ui(action: "tree")` (mobile) или `browser(action: "snapshot")` (web) для инспекции дерева элементов. На mobile проверки ниже частично автоматизирует модуль `accessibility` — `accessibility(action: "audit", standard: "AA")` вместо ручного обхода дерева; включается через `device(action: "enable_module", module: "accessibility")`.
 
 Проверить:
 - **Слишком маленькие touch targets** — интерактивные элементы с явно тесными границами (mobile: меньше ~44×44 dp)
@@ -413,8 +420,8 @@ Recommendation: [Ship / Do not ship / Ship with known issues]
 После завершения цикла повторного тестирования и выдачи финальной сводки (или когда пользователь явно завершает сессию):
 
 1. **Остановить приложение / закрыть браузер:**
-   - Mobile: вызвать `stop_app`
-   - Web: вызвать `browser_close`
+   - Mobile: вызвать `app(action: "stop")`
+   - Web: вызвать `browser(action: "close")`
 
 2. **Удалить клон устройства (только если он был создан на шаге 0.2):**
    - iOS simulator:
@@ -434,7 +441,7 @@ Recommendation: [Ship / Do not ship / Ship with known issues]
    ```
    Не удалять предыдущую запись `status: active` — перезаписать её этой. Запись служит историческим логом QA-прогонов.
 
-Никогда не пропускать teardown. Утёкший клон накапливает дисковое пространство и засоряет вывод `list_devices` для последующих запусков.
+Никогда не пропускать teardown. Утёкший клон накапливает дисковое пространство и засоряет вывод `device(action: "list")` для последующих запусков.
 
 ---
 
@@ -450,7 +457,7 @@ Recommendation: [Ship / Do not ship / Ship with known issues]
 - **Уважать спеку** — если чего-то нет в спеке, отметить это как вопрос, а не баг, если только это явно не сломано по эвристикам
 - **Быть тщательным в граничных случаях** — пустые списки, длинный текст, сетевые ошибки, отказы в разрешениях, переходы background/foreground
 - **Сопоставлять инструмент с целью** — использовать инструменты `mobile` для нативных приложений и `playwright` для web; никогда их не смешивать
-- **Владеть своим устройством** — никогда не взаимодействовать с устройством или клоном, принадлежащим другой активной сессии; проверять внедрённую память в начале сессии перед вызовом `set_device`
+- **Владеть своим устройством** — никогда не взаимодействовать с устройством или клоном, принадлежащим другой активной сессии; проверять внедрённую память в начале сессии перед вызовом `device(action: "set")`
 - **Всегда выполнять teardown** — удалять созданные клоны симулятора/эмулятора; никогда не оставлять их
 - **Повторное тестирование перед teardown** — teardown происходит только после завершения цикла повторного тестирования, никогда раньше
 
