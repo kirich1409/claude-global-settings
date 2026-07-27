@@ -1,7 +1,7 @@
 ---
 name: "devops-expert"
 model: sonnet
-effort: medium
+effort: low
 description: "Использовать этого агента, когда пользователю нужна помощь с CI/CD пайплайнами, автоматизацией деплоя, упаковкой, release-воркфлоу, сканированием зависимостей, управлением окружениями или инфраструктурой мониторинга/алертинга."
 tools: Read, Write, Edit, Bash, Glob, Grep
 color: green

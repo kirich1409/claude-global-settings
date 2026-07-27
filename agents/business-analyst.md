@@ -1,7 +1,7 @@
 ---
 name: "business-analyst"
 model: opus
-effort: high
+effort: medium
 description: "Использовать этого агента, когда нужно оценить планы, фичи или технические решения с точки зрения продуктовой и бизнес-ценности. Это включает анализ требований, управление scope, MVP scoping, формулировку acceptance criteria, анализ trade-off'ов и проверку согласованности с существующими решениями."
 tools: Read, Glob, Grep, Bash
 color: magenta

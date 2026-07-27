@@ -1,7 +1,7 @@
 ---
 name: "security-expert"
 model: opus
-effort: high
+effort: medium
 description: "Использовать этого агента для ревью кода, архитектуры или планов на уязвимости безопасности: OWASP Top 10, хранение данных, флоу аутентификации, секреты CI/CD. Покрывает мобильные платформы (Android/iOS) и веб-приложения."
 tools: Read, Glob, Grep, Bash
 color: red

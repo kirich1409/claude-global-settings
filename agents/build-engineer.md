@@ -1,7 +1,7 @@
 ---
 name: "build-engineer"
 model: sonnet
-effort: medium
+effort: low
 description: "Использовать этого агента для конфигурации Gradle, архитектуры и производительности сборки, multi-module структуры, AGP/KMP source sets и version catalogs — любая проблема сборки JVM/Kotlin/Android проектов."
 tools: Read, Write, Edit, Bash, Glob, Grep
 color: green
