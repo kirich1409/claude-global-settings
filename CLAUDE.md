@@ -27,7 +27,7 @@
 ## Правила
 
 Всегда активны — их содержимое ниже по контексту, пересказывать здесь нечего:
-**ast-index.md**, **communication.md**, **git-workflow.md**, **model-effort-routing.md**, **orchestration.md**, **task-execution.md**.
+**ast-index.md**, **codex-delegation.md**, **communication.md**, **git-workflow.md**, **model-effort-routing.md**, **orchestration.md**, **task-execution.md**.
 
 Загружаются по `paths:` при работе с соответствующими файлами — содержание смотреть в самом правиле:
 
