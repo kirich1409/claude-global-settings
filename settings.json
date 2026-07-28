@@ -80,11 +80,6 @@
       "WebFetch(domain:spring.io)",
       "WebFetch(domain:expressjs.com)",
       "WebFetch(domain:platform.claude.com)",
-      "mcp__google-dev-knowledge__search_documents",
-      "mcp__deepwiki__read_wiki_contents",
-      "mcp__deepwiki__read_wiki_structure",
-      "mcp__google-dev-knowledge__get_documents",
-      "mcp__google-dev-knowledge__answer_query",
       "mcp__plugin_context-mode_context-mode__ctx_execute",
       "mcp__plugin_context-mode_context-mode__ctx_execute_file",
       "mcp__plugin_context-mode_context-mode__ctx_batch_execute",
@@ -286,33 +281,6 @@
     ],
     "PreToolUse": [
       {
-        "matcher": "Edit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "$HOME/.claude/hooks/branch-guard.sh"
-          }
-        ]
-      },
-      {
-        "matcher": "Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "$HOME/.claude/hooks/branch-guard.sh"
-          }
-        ]
-      },
-      {
-        "matcher": "NotebookEdit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "$HOME/.claude/hooks/branch-guard.sh"
-          }
-        ]
-      },
-      {
         "matcher": "Bash",
         "hooks": [
           {
@@ -326,10 +294,6 @@
           {
             "type": "command",
             "command": "$HOME/.claude/hooks/stash-reminder.sh"
-          },
-          {
-            "type": "command",
-            "command": "$HOME/.claude/hooks/push-branch-guard.sh"
           }
         ]
       }
@@ -366,14 +330,10 @@
   "enabledPlugins": {
     "context7@claude-plugins-official": true,
     "ksrc@respawn-tools": true,
-    "maven-mcp@krozov-ai-tools": true,
+    "maven-mcp@krozov-ai-tools": false,
     "security-guidance@claude-plugins-official": true,
-    "remember@claude-plugins-official": true,
     "code-simplifier@claude-plugins-official": true,
-    "hookify@claude-plugins-official": false,
-    "code-review@claude-plugins-official": false,
     "ast-index@ast-index-marketplace": true,
-    "kotlin-lsp@claude-plugins-official": false,
     "context-mode@context-mode": true,
     "warp@claude-code-warp": true,
     "claude-code-wakatime@wakatime": true
@@ -444,69 +404,7 @@
     }
   },
   "language": "Russian",
-  "sandbox": {
-    "network": {
-      "allowedDomains": [
-        "anthropic.com",
-        "api.anthropic.com",
-        "claude.ai",
-        "platform.claude.com",
-        "github.com",
-        "api.github.com",
-        "raw.githubusercontent.com",
-        "objects.githubusercontent.com",
-        "codeload.github.com",
-        "gist.github.com",
-        "gitlab.com",
-        "registry.npmjs.org",
-        "npmjs.com",
-        "pypi.org",
-        "files.pythonhosted.org",
-        "crates.io",
-        "index.crates.io",
-        "static.crates.io",
-        "proxy.golang.org",
-        "sum.golang.org",
-        "go.dev",
-        "rubygems.org",
-        "repo1.maven.org",
-        "repo.maven.apache.org",
-        "central.sonatype.org",
-        "oss.sonatype.org",
-        "jitpack.io",
-        "dl.google.com",
-        "maven.google.com",
-        "registry-1.docker.io",
-        "auth.docker.io",
-        "hub.docker.com",
-        "formulae.brew.sh",
-        "developer.android.com",
-        "d.android.com",
-        "android.com",
-        "source.android.com",
-        "cs.android.com",
-        "developer.apple.com",
-        "swift.org",
-        "kotlinlang.org",
-        "jetbrains.com",
-        "gradle.org",
-        "services.gradle.org",
-        "plugins.gradle.org",
-        "docs.gradle.org",
-        "stackoverflow.com",
-        "docs.oracle.com",
-        "spring.io",
-        "react.dev",
-        "vuejs.org",
-        "flutter.dev",
-        "dart.dev",
-        "pub.dev",
-        "rust-lang.org",
-        "docs.rs"
-      ]
-    }
-  },
-  "advisorModel": "fable",
+  "advisorModel": "opus",
   "showClearContextOnPlanAccept": true,
   "tui": "fullscreen",
   "channelsEnabled": true,
