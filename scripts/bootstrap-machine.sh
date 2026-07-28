@@ -1,14 +1,14 @@
 #!/bin/bash
-# bootstrap-machine.sh — converge this machine onto the PR-only ~/.claude line.
+# bootstrap-machine.sh — converge this machine onto the canonical ~/.claude line.
 #
-# Brings a machine's ~/.claude checkout in sync with the canonical origin/main (new pull-only
-# csync/auto-pull + rules + helpers) and checks it can deliver changes via PR. Idempotent —
-# safe to re-run. See rules/git-workflow.md § Репозиторий ~/.claude — PR-only.
+# Brings a machine's ~/.claude checkout in sync with origin/main (sync hooks + rules + helpers)
+# and checks it can deliver changes. Idempotent — safe to re-run.
+# See rules/claude-repo-sync.md.
 #
 # Usage:
 #   bootstrap-machine.sh            Safe mode: fast-forward main; STOP loudly if the checkout
 #                                   has local commits or uncommitted tracked edits (so nothing
-#                                   is lost). Resolve those into a PR, then re-run.
+#                                   is lost). Publish them with csync, then re-run.
 #   bootstrap-machine.sh --force    Discard local tracked state and hard-reset to origin/main.
 #                                   Untracked files (memory, .remember, swarm-report, agent-memory)
 #                                   are preserved either way.
@@ -60,10 +60,10 @@ else
     die "checkout is on '$branch', not main. Switch to main (git checkout main) or use --force."
   fi
   if [ "$dirty" -eq 1 ]; then
-    die "uncommitted tracked edits on main — deliver them via a branch+PR (scripts/cgs-pr.sh), or re-run with --force to discard."
+    die "uncommitted tracked edits on main — publish them with csync, or re-run with --force to discard."
   fi
   if [ "$ahead" -gt 0 ]; then
-    die "$ahead local commit(s) ahead of origin/main — deliver them via PR, or re-run with --force to discard."
+    die "$ahead local commit(s) ahead of origin/main — publish them with csync, or re-run with --force to discard."
   fi
   behind=$(git rev-list --count HEAD..origin/main 2>/dev/null || echo 0)
   if [ "$behind" -gt 0 ]; then
@@ -102,4 +102,4 @@ add_alias cgspr '$HOME/.claude/scripts/cgs-pr.sh'
 ok "aliases ensured (run 'source ~/.zshrc' or open a new shell)"
 
 # The SessionStart auto-pull hook lives in settings.json (tracked) — already in place after sync.
-printf '\nDone. This machine is on the PR-only line. Edits go through scripts/cgs-pr.sh (branch -> PR -> auto-merge).\n'
+printf '\nDone. Edits are published with csync; scripts/cgs-pr.sh is there when a PR is wanted.\n'

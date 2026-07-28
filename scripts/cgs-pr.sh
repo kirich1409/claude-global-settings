@@ -1,9 +1,10 @@
 #!/bin/bash
-# cgs-pr — deliver a ~/.claude tracked-file change through the PR-only model.
+# cgs-pr — deliver a ~/.claude tracked-file change through a pull request.
 #
-# main stays a clean mirror of origin/main; edits never land on main directly. This helper
-# wraps the repetitive branch -> worktree -> commit -> push -> PR -> auto-merge -> ff -> cleanup
-# cycle (see rules/git-workflow.md § Репозиторий ~/.claude — PR-only).
+# The default route for this repo is a direct commit on main published by csync; this helper
+# is for the times a PR is explicitly wanted (a reviewable change, a risky edit). It wraps the
+# branch -> worktree -> commit -> push -> PR -> auto-merge -> ff -> cleanup cycle
+# (see rules/claude-repo-sync.md).
 #
 # Usage:
 #   cgs-pr new <slug>         Create worktree $HOME/.claude/.worktrees/<slug> on branch

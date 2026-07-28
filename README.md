@@ -41,11 +41,15 @@ The setup script creates a full backup before any changes, adds `csync` alias, a
 
 ## Sync
 
-PR-only: `main` always stays clean, and every change to a tracked file ships through a branch + pull request with auto-merge -- never a direct commit to `main`.
+Tracked files are edited on `main` in the main checkout and delivered straight to `origin/main`. A pull request is an opt-in tool, not the default route.
 
-**Pull** -- `csync` (alias for `hooks/sync-settings.sh`) and the `SessionStart` auto-pull hook (`hooks/auto-pull.sh`) only fetch and fast-forward `main` to `origin/main`. Neither ever commits, pushes, or opens a PR. A dirty or ahead-of-origin `main` is a loud error (statusline + OS notification), not something they auto-fix.
+**`csync`** (alias for `hooks/sync-settings.sh`) -- the two-way sync: `git add -A`, commit as `sync <host> <date>`, fetch, rebase onto `origin/main`, push. The `.gitignore` is a whitelist, so `add -A` only ever picks up config files. On a rebase conflict it aborts and saves the remote versions as `*.remote` for a manual merge.
 
-**Push** -- edit tracked files (`CLAUDE.md`, `rules/`, `settings*.json`, `hooks/`, `scripts/`, `skills/`, `agents/`) on a branch, preferably via a worktree, then open a PR: `scripts/cgs-pr.sh new <slug>` creates the worktree + branch, `scripts/cgs-pr.sh ship "<title>"` commits, pushes, opens the PR, and enables auto-merge.
+**`SessionStart` auto-pull** (`hooks/auto-pull.sh`) -- pull only, fast-forward `main` to `origin/main`. It never commits or pushes; uncommitted edits and unpushed commits are reported (statusline + stdout) as a reminder to run `csync`, not as errors.
+
+**Opt-in PR** -- `scripts/cgs-pr.sh new <slug>` creates a worktree + branch, `scripts/cgs-pr.sh ship "<title>"` commits, pushes, opens the PR, and enables auto-merge.
+
+Because a direct commit reaches a public repo unreviewed, install the local secret gate once: `pip install pre-commit && pre-commit install` (gitleaks, see `.pre-commit-config.yaml`).
 
 ## Context budget
 

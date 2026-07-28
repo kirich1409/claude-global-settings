@@ -4,11 +4,10 @@
 
 ## Нельзя нарушать
 
-- **Не коммитить и не пушить в main/master/develop.** Закрыто хуками `branch-guard` / `push-branch-guard`.
-- **Force push только `--force-with-lease` или `--force-if-includes`.** Обычный `--force` в deny.
-- **Не обходить git hooks** (`--no-verify`, `--no-gpg-sign` и т.п.) без явной просьбы. Hook упал — устранить причину. В отличие от двух пунктов выше, это правило суждения: `ask` спросит подтверждение на типовых формах, но обойти его флагами возможно.
+- **Force push только `--force-with-lease` или `--force-if-includes`.** Обычный `--force` в deny — перечислено здесь, чтобы не тратить ход на попытку, которую всё равно отклонят.
+- **Не обходить git hooks** (`--no-verify`, `--no-gpg-sign` и т.п.) без явной просьбы. Hook упал — устранить причину. В отличие от пункта выше, это правило суждения: `ask` спросит подтверждение на типовых формах, но обойти его флагами возможно.
 
-Первые два перечислены здесь, чтобы не тратить ход на попытку, которую всё равно отклонят.
+**Модель доставки задаёт репозиторий, а не харнес.** Нужен ли PR, закрыта ли `main` для прямых коммитов — решают branch protection репозитория и инструкции проекта; глобальных правил и хуков-блокировок на этот счёт здесь нет. Конвенции веток и коммитов — [[git-workflow]], это дефолты, а не запреты.
 
 ## Принципы
 
@@ -23,7 +22,7 @@
 
 ## Синхронизация ~/.claude
 
-Публичный репозиторий `kirich1409/claude-global-settings`, модель **PR-only**: `main` чистая, любая правка tracked-файла идёт через ветку и PR. `csync` и SessionStart auto-pull только тянут, никогда не коммитят. Полное правило — [[claude-repo-pr-workflow]].
+Публичный репозиторий `kirich1409/claude-global-settings`. Правки tracked-файлов идут прямо в `main`; доставляет их `csync` (commit → rebase → push). PR открывается только когда об этом попросили явно — `scripts/cgs-pr.sh`. Полное правило — [[claude-repo-sync]].
 
 ## Правила
 
@@ -37,7 +36,7 @@
 - `**/*.swift`: **swift-concurrency.md**, **swift-testing.md**, **swiftui-state.md**, **swiftui-patterns.md**, **swiftui-performance.md**, **swiftui-design-system.md**
 - Gradle-файлы: **gradle-style.md**
 - Android/KMP: **android-cli.md**
-- tracked-файлы `~/.claude`: **claude-repo-pr-workflow.md**
+- tracked-файлы `~/.claude`: **claude-repo-sync.md**
 
 ## Скиллы для рабочих процессов
 

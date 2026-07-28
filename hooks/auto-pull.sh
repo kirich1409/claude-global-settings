@@ -1,16 +1,14 @@
 #!/bin/bash
 # Auto-sync ~/.claude on session start: fast-forward local main from origin. PULL-ONLY.
 #
-# Model: local main is a pure mirror of origin/main and must stay clean. This hook ONLY
-# fast-forwards main; it never commits, never pushes, never opens PRs. Changes are the
-# changer's responsibility — made on a branch / worktree and merged via a pull request
-# (auto-merge), never on main.
+# This hook only pulls; committing and pushing is `csync`'s job (hooks/sync-settings.sh),
+# so a session start never publishes anything on its own. Uncommitted edits and unpushed
+# commits on main are normal working states here — they are reported, not treated as errors.
 #
 # Core invariant: NEVER fail silently. Every non-OK outcome is recorded loudly via three
 # channels — ~/.claude/.sync-status (rendered in the statusline on every prompt), an OS
 # notification on hard failures, and stdout (which Claude relays). The hook always exits 0
 # so it can never break a Claude Code session, but it never stays silent about a problem.
-# A dirty or diverged main is a loud alarm here, never an automatic commit.
 
 set -uo pipefail
 
@@ -56,31 +54,37 @@ if ! git fetch --quiet origin 2>/dev/null; then
   exit 0
 fi
 
-# Guard: tracked edits on main bypass the PR flow. Do NOT commit them — flag loudly.
-if ! git diff --quiet 2>/dev/null || ! git diff --cached --quiet 2>/dev/null; then
-  alarm "main has uncommitted tracked edits — move them to a branch + PR; main must stay clean"
-  exit 0
-fi
-
-# Guard: local commits ahead of origin bypass the PR flow.
 AHEAD=$(git rev-list --count origin/main..HEAD 2>/dev/null || echo 0)
-if [ "$AHEAD" -gt 0 ]; then
-  alarm "main is $AHEAD commit(s) ahead of origin (bypasses PR flow) — reset or move to a branch + PR"
+BEHIND=$(git rev-list --count HEAD..origin/main 2>/dev/null || echo 0)
+DIRTY=0
+if ! git diff --quiet 2>/dev/null || ! git diff --cached --quiet 2>/dev/null; then
+  DIRTY=1
+fi
+
+# Local work not yet published — normal state, this hook does not publish it.
+if [ "$DIRTY" -eq 1 ] || [ "$AHEAD" -gt 0 ]; then
+  clear_status
+  note "local changes not pushed (dirty=$DIRTY, ahead=$AHEAD) — run csync to publish"
+fi
+
+# Nothing to pull.
+if [ "$BEHIND" -eq 0 ]; then
+  [ "$DIRTY" -eq 0 ] && [ "$AHEAD" -eq 0 ] && clear_status
   exit 0
 fi
 
-# Fast-forward to origin/main when behind.
-BEHIND=$(git rev-list --count HEAD..origin/main 2>/dev/null || echo 0)
-if [ "$BEHIND" -gt 0 ]; then
-  if git merge --ff-only --quiet origin/main 2>/dev/null; then
-    clear_status
-    note "synced (pulled $BEHIND)"
-  else
-    alarm "fast-forward failed — local main diverged; reset to origin/main"
-    exit 0
-  fi
+# Diverged: local commits plus remote commits. A rebase is needed — csync does that.
+if [ "$AHEAD" -gt 0 ]; then
+  warn "main diverged ($AHEAD ahead, $BEHIND behind) — run csync to rebase and push"
+  exit 0
+fi
+
+# Fast-forward to origin/main.
+if git merge --ff-only --quiet origin/main 2>/dev/null; then
+  [ "$DIRTY" -eq 0 ] && clear_status
+  note "synced (pulled $BEHIND)"
 else
-  clear_status
+  warn "fast-forward failed ($BEHIND behind) — local edits in the way; run csync"
 fi
 
 exit 0
