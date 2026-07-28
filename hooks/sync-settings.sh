@@ -36,9 +36,12 @@ fi
 
 # Commit local changes. The .gitignore is a whitelist, so `add -A` only ever picks up
 # tracked config paths — never memory, sessions or scratch state.
+#
+# No hostname in the message: the repo is public, and machine names were deliberately
+# scrubbed out of its history during the public flip.
 git add -A
 if ! git diff --cached --quiet; then
-  git commit --quiet -m "sync $(hostname -s) $(date +%Y-%m-%d\ %H:%M)"
+  git commit --quiet -m "sync $(date +%Y-%m-%d\ %H:%M)"
   echo "Committed."
 else
   echo "No local changes."
