@@ -3,98 +3,87 @@ paths:
   - "**/*.swift"
 ---
 
-# SwiftUI Patterns — неочевидные правила
+# SwiftUI Patterns — неочевидное
 
-Этот файл перечисляет только те правила структурных паттернов, которые современная модель Claude опускает или ошибочно применяет без напоминания. Общие рекомендации — когда выделять sub-view, `@ViewBuilder` для составных контейнеров, «использовать enum-роуты», «превью используют реалистичные данные», базовая настройка `#Preview`, основы sheet/alert — здесь **не** документируются; доверяй модели и документации Apple по SwiftUI.
+Только то, что модель опускает или применяет ошибочно. Когда выделять sub-view, `@ViewBuilder` для
+контейнеров, enum-роуты, базовая настройка `#Preview` здесь не документируются.
 
----
+## `AnyView` ломает diffing
 
-## `AnyView` ломает diffing — использовать generics + `@ViewBuilder`
-
-Модель иногда тянется к `AnyView`, когда generics становятся неудобными (разнородные поддеревья, «any view», хранимое в свойстве). Это баг корректности, а не просто удар по производительности — `AnyView` стирает статический тип, который SwiftUI использует для identity и diffing.
+Модель тянется к `AnyView`, когда generics становятся неудобными. Это баг корректности, а не просто
+удар по производительности: `AnyView` стирает статический тип, который SwiftUI использует для
+identity и diffing.
 
 ```swift
 // НЕ ТАК — стирание типа ломает diffing
 var content: AnyView { AnyView(makeView()) }
 
-// ТАК — generics + @ViewBuilder; пусть компилятор отслеживает конкретные типы
+// ТАК — generics + @ViewBuilder, компилятор отслеживает конкретные типы
 struct Card<Content: View>: View {
     @ViewBuilder let content: () -> Content
     var body: some View { /* ... */ }
 }
 ```
 
-Если стирания типа избежать нельзя, предпочитать `Group { ... }` или рефакторинг, возвращающий `some View`.
+Стирания не избежать — предпочитать `Group { ... }` или рефакторинг, возвращающий `some View`.
 
-## Кастомный модификатор — предоставлять extension, а не `.modifier(X())`
+## Кастомный модификатор — extension, а не `.modifier(X())`
 
-Модификатор с state? Использовать `ViewModifier`. Stateless цепочка? Использовать обычный extension на `View`. **Всегда** оборачивать места вызова методом-extension (`.shimmer()`, `.cardStyle()`); никогда не выставлять `.modifier(SomeModifier())` в месте вызова — это раскрывает тип реализации и читается хуже.
+Модификатор со state — `ViewModifier`; stateless цепочка — обычный extension на `View`. Место
+вызова всегда оборачивать методом-extension (`.shimmer()`, `.cardStyle()`): `.modifier(SomeModifier())`
+раскрывает тип реализации и читается хуже.
 
-## Роутинг NavigationStack — `.navigationDestination` в корне
+## Роутинг — `.navigationDestination` в корне `NavigationStack`
 
-Type-safe enum-роуты — современный паттерн. Неочевидное правило: **`navigationDestination(for:)` должен находиться в корне `NavigationStack`**, а не на дочерних view — размещение у потомка молча ломает роутинг после первого push.
+Неочевидное: `navigationDestination(for:)` должен быть в корне стека. Размещение у потомка молча
+ломает роутинг после первого push.
 
 ```swift
 NavigationStack(path: $path) {
     HomeScreen()
-        .navigationDestination(for: Route.self) { route in
-            // разрешать каждый case Route здесь
-        }
+        .navigationDestination(for: Route.self) { route in /* все case здесь */ }
 }
 ```
 
-`NavigationLink(destination:)` (eager API) для нового кода deprecated — использовать `NavigationLink(value:)` в паре с `.navigationDestination`.
+`NavigationLink(destination:)` для нового кода deprecated — использовать `NavigationLink(value:)` в
+паре с `.navigationDestination`.
 
 ## Sheets — один модификатор, item-based, enum
 
-Две ловушки:
+Несколько модификаторов `.sheet` на одном view — срабатывает только последний. Консолидировать в
+один, управляемый `Identifiable`-enum: `@State private var activeSheet: SheetType?` и
+`.sheet(item: $activeSheet) { ... }`. Не управлять sheets набором булевых флагов. То же для alert и
+confirmation dialog.
 
-1. **Несколько модификаторов `.sheet` на одном view → срабатывает только последний.** Всегда консолидировать в один модификатор, управляемый `Identifiable`-enum:
+## Identity в `ForEach` — `id: \.self` ловушка на мутируемых данных
 
-```swift
-enum SheetType: Identifiable {
-    case editProfile
-    case addItem(category: String)
-    var id: String { /* уникален для каждого case */ }
-}
+`id: \.self` годится только для неизменяемых коллекций простых значений (`[String]`, `[Int]`,
+enums). Для модели с мутирующими полями identity меняется вместе с содержимым: анимации ломаются,
+`@State` сбрасывается, фокус прыгает.
 
-@State private var activeSheet: SheetType?
-// ...
-.sheet(item: $activeSheet) { sheet in
-    switch sheet { /* ... */ }
-}
-```
+Использовать `Identifiable` или явный keypath `\.id`. **Никогда не индекс массива**
+(`enumerated()` + `id: \.offset`) — вставки и удаления перенесут анимации и view-local state не на
+те строки.
 
-2. **Не управлять sheets несколькими булевыми флагами** — использовать enum. То же применимо к alert и confirmation dialog.
-
-## Identity в `ForEach` — `id: \.self` — ловушка на мутируемых данных
-
-`id: \.self` работает только для неизменяемых коллекций простых значений (`[String]`, `[Int]`, enums). Для любой модели с мутирующими полями identity меняется при изменении содержимого — анимации ломаются, `@State` сбрасывается, фокус прыгает.
-
-Использовать соответствие `Identifiable` или явный keypath `\.id`. **Никогда не использовать индекс массива** (`enumerated()` + `id: \.offset`) — вставки/удаления неправильно ассоциируют анимации и view-local state.
-
-## `.task` отменяется при disappear — `Task` в `onAppear` — нет
+## `.task` отменяется при disappear, `Task` в `onAppear` — нет
 
 ```swift
 // ТАК — отменяется автоматически, когда view исчезает
 .task { orders = await fetchOrders() }
-
 // ТАК — перезапускается при изменении зависимости
 .task(id: selectedCategory) { orders = await fetchOrders(in: selectedCategory) }
+
+// НЕ ТАК — Task продолжается после исчезновения view, утекает работа и пишет в мёртвый state
+.onAppear { Task { orders = await fetchOrders() } }
 ```
 
-```swift
-// НЕ ТАК — Task продолжается после исчезновения view, утекает работа и может писать в мёртвый state
-.onAppear {
-    Task { orders = await fetchOrders() }
-}
-```
+Модель всё ещё выдаёт `onAppear + Task {}` из старых training-данных.
 
-Модель всё ещё выдаёт `onAppear + Task { }` из старых training-данных. Заменять.
+## `if` уничтожает state, `.opacity` сохраняет
 
-## Identity view — `if` уничтожает state, `.opacity` сохраняет его
-
-`if cond { TextField(...) }` — это разный view в дереве в зависимости от `cond` — переключение уничтожает предыдущий экземпляр, включая фокус, scroll offset и любой `@State`. Чтобы переключать видимость, сохраняя state, переходить на `.opacity` (и обнулять `.frame`/`.allowsHitTesting`, если нужно настоящее скрытие-и-отключение):
+`if cond { TextField(...) }` — это разный view в дереве в зависимости от `cond`: переключение
+уничтожает предыдущий экземпляр вместе с фокусом, scroll offset и любым `@State`. Чтобы переключать
+видимость с сохранением state:
 
 ```swift
 TextField("Search", text: $query)
@@ -103,21 +92,14 @@ TextField("Search", text: $query)
     .allowsHitTesting(showSearch)
 ```
 
-Для действительно разных иерархий (залогинен vs не залогинен, список vs ошибка) — `if` корректен. Ловушка — использование `if` для переключения видимости.
+Для действительно разных иерархий (залогинен или нет, список или ошибка) `if` корректен. Ловушка —
+использовать `if` именно для переключения видимости.
 
 ## Условный модификатор `.if {}` — анти-паттерн
 
-```swift
-// Широко рекомендуемое, широко неправильное
-extension View {
-    @ViewBuilder
-    func `if`<Content: View>(_ cond: Bool, transform: (Self) -> Content) -> some View {
-        if cond { transform(self) } else { self }
-    }
-}
-```
-
-Тип возвращаемого значения меняется вместе с `cond`, что путает алгоритм diffing SwiftUI — та же проблема identity, что и с блоком `if` выше. Применять модификаторы условно инлайн через тернарный оператор на значении модификатора, а не на наличии модификатора:
+Широко рекомендуемый и широко неправильный: тип возвращаемого значения меняется вместе с условием,
+что путает diffing — та же проблема identity, что выше. Применять модификаторы условно инлайн,
+через тернарный оператор на значении модификатора, а не на его наличии:
 
 ```swift
 Text("Status")
@@ -127,4 +109,7 @@ Text("Status")
 
 ## Превью — статичные сэмплы на модели
 
-Добавлять extension `static let samples` (или `static func sample(...)`) на доменный тип, а не конструировать тестовые данные инлайн в каждом `#Preview`. Только захардкоженные данные — никакой живой сети, никакой реальной модели, выполняющей I/O. Следовать конвенции превью проекта (`#Preview("name", traits:)`, варианты dark/light, multi-device).
+Добавлять `static let samples` (или `static func sample(...)`) на доменный тип, а не конструировать
+тестовые данные инлайн в каждом `#Preview`. Только захардкоженные данные: ни живой сети, ни реальной
+модели с I/O. Следовать конвенции превью проекта (`#Preview("name", traits:)`, dark/light,
+multi-device).

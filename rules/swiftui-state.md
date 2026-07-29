@@ -3,18 +3,18 @@ paths:
   - "**/*.swift"
 ---
 
-# SwiftUI State — неочевидные правила
+# SwiftUI State — неочевидное
 
-Этот файл перечисляет только те правила управления state, которые современная модель Claude опускает или ошибочно применяет без напоминания. Общий выбор property wrapper'ов (`@State` для view-local UI state, `@Binding` для мутации родителя потомком, `@Observable` для shared моделей, `@Environment` для системных значений, `@AppStorage` для мелких настроек), `private` на `@State`, и «использовать `$`, а не `Binding(get:set:)`» — здесь **не** документируются; доверяй модели и документации Apple по SwiftUI.
-
----
+Только то, что модель опускает или применяет ошибочно. Общий выбор property wrapper'ов, `private`
+на `@State`, «использовать `$`, а не `Binding(get:set:)`» здесь не документируются.
 
 ## `@State`, инициализированный из параметра `init`, замораживается
 
-Самый дорогой баг property wrapper'ов в SwiftUI: хранение внешнего значения как `@State` делает обновления родителя невидимыми после первого рендера.
+Самый дорогой баг property wrapper'ов: хранение внешнего значения как `@State` делает обновления
+родителя невидимыми после первого рендера.
 
 ```swift
-// БАГ: обновления родителя игнорируются после init — @State принадлежит только владельцу
+// БАГ: обновления родителя игнорируются после init
 struct ItemRow: View {
     @State private var item: Item
     init(item: Item) { _item = State(initialValue: item) }
@@ -26,20 +26,26 @@ struct ItemRow: View {
 }
 ```
 
-Модель пишет багованную форму, когда view «нужно отслеживать локальный state, производный от переданного значения». Практически никогда это действительно не нужно.
+Модель пишет багованную форму, когда view «нужен локальный state, производный от переданного
+значения». Практически никогда это действительно не нужно.
 
 ## `@Observable` отслеживает чтения по каждому свойству в `body`
 
-`@Observable` — **не** то же самое, что старый `@Published` / грубый `objectWillChange` — каждое чтение свойства внутри `body` становится зависимостью. Два следствия, которые модель упускает:
+Это не старый `@Published` с грубым `objectWillChange`: каждое чтение свойства внутри `body`
+становится зависимостью. Два следствия:
 
-1. **Читать только то, что отображается.** Обращение к `model.totalCount` в debug-логе «просто чтобы посмотреть» заставляет view перерисовываться при каждом изменении `totalCount`.
-2. **Вычисляемые свойства модели, читающие N хранимых свойств, создают N зависимостей у любого вызывающего.** «Простое» вычисляемое `var summary: String { "\(name) — \(count) items" }` заставляет каждого вызывающего зависеть и от `name`, и от `count`.
+1. **Читать только то, что отображается.** Обращение к `model.totalCount` в debug-логе «просто
+   посмотреть» заставляет view перерисовываться при каждом его изменении.
+2. **Вычисляемое свойство модели, читающее N хранимых, создаёт N зависимостей у вызывающего.**
+   «Простое» `var summary: String { "\(name) — \(count) items" }` подписывает каждого вызывающего и
+   на `name`, и на `count`.
 
-Деструктуризация в начале `body` (`let (a, b) = (model.a, model.b)`) не обходит трекинг — оба чтения всё равно регистрируются.
+Деструктуризация в начале `body` от трекинга не спасает — оба чтения всё равно регистрируются.
 
-## Property wrapper'ы внутри `@Observable` нуждаются в `@ObservationIgnored`
+## Property wrapper внутри `@Observable` требует `@ObservationIgnored`
 
-Хранение `@AppStorage`, `@FocusState` или любого другого property wrapper внутри `@Observable`-класса без `@ObservationIgnored` ломает observation — форма хранения wrapper'а несовместима с трекингом макроса observation.
+`@AppStorage`, `@FocusState` и любой другой wrapper внутри `@Observable`-класса без
+`@ObservationIgnored` ломает observation: форма хранения wrapper'а несовместима с трекингом макроса.
 
 ```swift
 @Observable
@@ -49,24 +55,18 @@ class Settings {
 }
 ```
 
-То же применимо к lazy/кэшируемым свойствам, которые не должны отслеживаться (loggers, formatters, внутренние счётчики).
+То же для lazy и кэшируемых свойств, которые не должны отслеживаться: loggers, formatters, счётчики.
 
 ## `@Environment(Type.self)` без default падает
 
-`@Environment(SomeType.self)` (без ключа `defaultValue`) молча падает в runtime, если значение не внедрено — view крашится при первом чтении. Либо:
+Без `defaultValue` значение, которое не внедрили, роняет view в runtime при первом чтении. Либо
+предоставлять его в корне каждой Scene, хостящей view, либо использовать форму `EnvironmentKey` с
+`defaultValue` — обычно Unimplemented-заглушкой, громко падающей в тестах и превью.
 
-- Предоставлять его в корне каждого Scene, хостящего этот view, либо
-- Использовать форму `EnvironmentKey` с `defaultValue` (обычно stub-заглушка Unimplemented, громко падающая в тестах/превью)
+Модель часто выдаёт view, читающие `@Environment` без гарантии внедрения: работает в симуляторе,
+пока view не появится в окне `Settings` или новом `WindowGroup`.
 
-Модель часто выдаёт view, читающие `@Environment(...)` без гарантии внедрения — работает в симуляторе, пока view не появится в окне `Settings` или новом `WindowGroup`.
+## `@State private var model = ObservableModel()`, не `@StateObject`
 
-## `@State private var model = ObservableModel()` — не `@StateObject`
-
-Для владеемых view `@Observable`-моделей на iOS 17+ правильная обёртка времени жизни — `@State`. `@StateObject` — legacy-паттерн для `ObservableObject`. Модель всё ещё выдаёт `@StateObject` из старых training-данных — заменять его.
-
-```swift
-struct OrderListScreen: View {
-    @State private var model = OrderListModel()  // ✓ владеет временем жизни, переживает рекомпозиции
-    var body: some View { /* ... */ }
-}
-```
+Для владеемых view `@Observable`-моделей на iOS 17+ правильная обёртка времени жизни — `@State`.
+`@StateObject` — legacy для `ObservableObject`; модель всё ещё выдаёт его из старых training-данных.
