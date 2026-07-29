@@ -79,9 +79,9 @@ Pattern Summary
 
 ## Шаг 3: Реализовать
 
-**Прочитать `references/swiftui-state.md` и `references/swiftui-patterns.md` перед написанием первого view.** Они содержат ловушки, которые модель не закрывает по умолчанию — `@ObservationIgnored` для property wrapper внутри `@Observable`, `@Environment` без default, `.navigationDestination` в корне стека.
+**Прочитать `$HOME/.claude/rules/swiftui-state.md` и `$HOME/.claude/rules/swiftui-patterns.md` перед написанием первого view.** Они содержат ловушки, которые модель не закрывает по умолчанию — `@ObservationIgnored` для property wrapper внутри `@Observable`, `@Environment` без default, `.navigationDestination` в корне стека.
 
-Про дизайн-систему / accessibility / theming см. `references/swiftui-design-system.md`. Про экраны с тяжёлым пересчётом или тяжёлыми списками см. `references/swiftui-performance.md`.
+Про дизайн-систему / accessibility / theming см. `$HOME/.claude/rules/swiftui-design-system.md`. Про экраны с тяжёлым пересчётом или тяжёлыми списками см. `$HOME/.claude/rules/swiftui-performance.md`.
 
 ### 3.1 Паттерн экрана
 

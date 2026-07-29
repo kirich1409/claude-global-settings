@@ -75,7 +75,7 @@ Pattern Summary
 
 ## Шаг 3: Реализовать (изнутри наружу)
 
-**Прочитать `references/swift-concurrency.md` перед написанием кода.** Он содержит ловушки, которые модель не закрывает по умолчанию — очистка `AsyncStream.continuation`, мостик отмены `Task`, дисциплина Sendable.
+**Прочитать `$HOME/.claude/rules/swift-concurrency.md` перед написанием кода.** Он содержит ловушки, которые модель не закрывает по умолчанию — очистка `AsyncStream.continuation`, мостик отмены `Task`, дисциплина Sendable.
 
 Порядок слоёв: доменные модели → data DTO + mapper → repository (actor) → service / use case → модель `@Observable` (если владеет data-layer).
 
