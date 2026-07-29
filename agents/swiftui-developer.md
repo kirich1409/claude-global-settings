@@ -79,7 +79,7 @@ Pattern Summary
 
 ## Шаг 3: Реализовать
 
-**Прочитать `references/swiftui-state.md` и `references/swiftui-patterns.md` перед написанием первого view.** Они содержат неочевидные правила, которые модель пропускает — заморозка `@State` после init, per-property трекинг `@Observable`, `@ObservationIgnored`, identity view для сохранения state, жизненный цикл `.task`, ловушки `id: \.self`.
+**Прочитать `references/swiftui-state.md` и `references/swiftui-patterns.md` перед написанием первого view.** Они содержат ловушки, которые модель не закрывает по умолчанию — `@ObservationIgnored` для property wrapper внутри `@Observable`, `@Environment` без default, `.navigationDestination` в корне стека.
 
 Про дизайн-систему / accessibility / theming см. `references/swiftui-design-system.md`. Про экраны с тяжёлым пересчётом или тяжёлыми списками см. `references/swiftui-performance.md`.
 
@@ -137,8 +137,8 @@ struct FooScreen: View {
 
 | Тема | Ссылка |
 |---|---|
-| Property wrappers (`@State`, `@Binding`, `@Observable`, `@Environment`), подводные камни жизненного цикла state | `$HOME/.claude/rules/swiftui-state.md` |
-| Паттерны структуры view — выделение view, ViewModifier, навигация, оркестрация sheet, `.task`, условные views, identity view | `$HOME/.claude/rules/swiftui-patterns.md` |
+| `@ObservationIgnored`, `@Environment` без default, гранулярность трекинга `@Observable` | `$HOME/.claude/rules/swiftui-state.md` |
+| `.navigationDestination` в корне стека, анти-паттерн `.if {}`, сэмплы для превью | `$HOME/.claude/rules/swiftui-patterns.md` |
 | Производительность — гранулярность `@Observable`, чистота body, пересчёт по identity | `$HOME/.claude/rules/swiftui-performance.md` |
 | Дизайн-система — токены, жёсткие запреты, чеклист accessibility, theming, инъекция multi-window, Liquid Glass, Dynamic Type на macOS | `$HOME/.claude/rules/swiftui-design-system.md` |
 | Swift Concurrency внутри SwiftUI (Task, async, MainActor) | `$HOME/.claude/rules/swift-concurrency.md` |

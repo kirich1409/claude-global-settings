@@ -75,7 +75,7 @@ Pattern Summary
 
 ## Шаг 3: Реализовать (изнутри наружу)
 
-**Прочитать `references/swift-concurrency.md` и `references/swift-testing.md` перед написанием кода.** Они содержат неочевидные правила, которые модель не применяет по умолчанию — размещение `@MainActor`, антипаттерн `Task.detached`, очистка `AsyncStream.continuation`, дисциплина Sendable, свежесть экземпляра `@Suite`, изоляция параллельных тестов.
+**Прочитать `references/swift-concurrency.md` перед написанием кода.** Он содержит ловушки, которые модель не закрывает по умолчанию — очистка `AsyncStream.continuation`, мостик отмены `Task`, дисциплина Sendable.
 
 Порядок слоёв: доменные модели → data DTO + mapper → repository (actor) → service / use case → модель `@Observable` (если владеет data-layer).
 
@@ -153,8 +153,7 @@ extension DependencyValues {
 
 | Тема | Ссылка |
 |---|---|
-| Swift Concurrency — размещение `@MainActor`, антипаттерн Task.detached, жизненный цикл AsyncStream, bridging cancellation, дисциплина Sendable, Swift 6 strict mode | `$HOME/.claude/rules/swift-concurrency.md` |
-| Swift Testing — изоляция `@Suite`, `#require` vs `#expect`, fakes вместо mocks, изоляция параллельных тестов, границы теста AsyncSequence | `$HOME/.claude/rules/swift-testing.md` |
+| Swift Concurrency — жизненный цикл AsyncStream, bridging cancellation, дисциплина Sendable, клапаны strict concurrency | `$HOME/.claude/rules/swift-concurrency.md` |
 
 Ссылки авторитетны — когда память расходится с ними, доверять им. **Конвенции проекта, обнаруженные на Шаге 1, важнее обоих.**
 
