@@ -9,7 +9,6 @@ paths:
 
 | Запрещено | Вместо |
 |---|---|
-| `.foregroundColor(_:)` | `.foregroundStyle(_:)` |
 | модификатор `.accentColor(_:)` | `.tint(_:)` плюс asset `AccentColor` |
 | `RoundedRectangle(cornerRadius: 8)` | `.clipShape(.rect(cornerRadius: ..., style: .continuous))` |
 
