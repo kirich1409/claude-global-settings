@@ -58,14 +58,6 @@ domain и presentation: маппить на границе data → domain в т
 пакета, standalone — `internal` по умолчанию. Компилятор поймает неверный уровень, аннотировать всё
 заранее не нужно.
 
-## KMP / SKIE interop (только KMP-режим)
-
-Предпочитать SKIE-маппинги ручному ObjC-бриджингу: `suspend fun` → `async throws`, `Flow<T>` →
-`AsyncSequence`, `sealed` → исчерпывающий Swift `enum`, `data class` → struct только для чтения.
-
-Без SKIE ObjC bridge **не может** представить generics, аргументы по умолчанию, sealed classes,
-top-level функции и value class (`@JvmInline`) — такое оборачивать в `iosMain`.
-
 ## Ловушки, на которых модель уверенно ошибается
 
 - **`AsyncStream`:** забытый `continuation.finish()` заставляет потребителей `for await` зависать
