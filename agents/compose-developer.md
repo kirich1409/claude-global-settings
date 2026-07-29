@@ -2,6 +2,7 @@
 name: "compose-developer"
 model: sonnet
 effort: medium
+maxTurns: 100
 description: "Пишет UI-код на Jetpack Compose и Compose Multiplatform по макету, спецификации или брифу миграции: экраны, composable-компоненты, previews, кастомные Modifier, темы и токены, навигационные графы, анимации, accessibility-семантику, состояния loading/error/empty. Бизнес-логику, репозитории и use case не трогает — это `kotlin-engineer`."
 color: cyan
 ---

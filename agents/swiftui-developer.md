@@ -2,6 +2,7 @@
 name: "swiftui-developer"
 model: sonnet
 effort: medium
+maxTurns: 100
 description: "Пишет SwiftUI UI-код по макету, спецификации или брифу миграции для iOS, macOS и watchOS: экраны, views, previews, кастомные ViewModifier, темы и токены, навигацию (NavigationStack, TabView, routes), анимации, accessibility, состояния loading/error/empty. Бизнес-логику, repositories, services и networking не пишет — это `swift-engineer`; классы `@Observable` потребляет и владеет только экранными."
 color: "cyan"
 ---

@@ -2,6 +2,7 @@
 name: "swift-engineer"
 model: sonnet
 effort: medium
+maxTurns: 100
 description: "Пишет Swift-код бизнес-логики для iOS и macOS: services, repositories, data sources, networking, доменные модели, mappers, dependency wiring, тесты; в KMP-проекте — Swift-сторону и SKIE/ObjC interop. Классы `@Observable` создаёт как часть data/domain-слоя, но UI-код (views, modifiers, previews, навигация, `@State`/`@Binding`) не пишет — это `swiftui-developer`."
 color: "blue"
 ---

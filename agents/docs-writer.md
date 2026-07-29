@@ -1,6 +1,8 @@
 ---
 name: "docs-writer"
 model: sonnet
+effort: medium
+maxTurns: 40
 description: "Пишет и обновляет публичную пользовательскую документацию репозитория: README, руководства, install/setup-гайды, гайды по CLI и инструментам, tutorials, how-to, CONTRIBUTING, разделы changelog, docstrings. Каждую команду, флаг, путь и сигнатуру верифицирует по исходникам или реальным запуском, а не по памяти; пишет на языке и в стиле существующих доков проекта. Документирует построенное, а не проектирует: контракты фич — /write-spec, планы — /write-plan, process-доки ~/.claude — claude-config-engineer."
 tools: Read, Write, Edit, Glob, Grep, Bash
 color: green

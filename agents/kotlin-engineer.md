@@ -2,6 +2,7 @@
 name: "kotlin-engineer"
 model: sonnet
 effort: medium
+maxTurns: 100
 description: "Пишет Kotlin-код бизнес-логики для Android и KMP: ViewModels, UseCases, Repositories, data sources, доменные модели, mappers, DI-модули и тесты к ним. Compose UI (composables, темы, навигация, modifiers, previews) не пишет — это `compose-developer`."
 color: green
 ---

@@ -4,7 +4,6 @@ model: sonnet
 effort: medium
 description: "Независимый семантический ревьюер диффа: получает описание задачи, план и git diff — намеренно НЕ получает историю реализации. Проверяет соответствие задаче и AC, логические ошибки, поверхностную безопасность, поддерживаемость, согласованность с конвенциями проекта. Не путать с плагинным pr-review-toolkit:code-reviewer (guideline-ревью по CLAUDE.md)."
 tools: Read, Glob, Grep, Bash
-disallowedTools: Edit, Write, NotebookEdit
 color: purple
 maxTurns: 25
 ---

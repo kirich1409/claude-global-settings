@@ -4,7 +4,7 @@ model: opus
 effort: high
 description: "Оценивает планы, фичи и технические решения с продуктовой и бизнес-стороны: полнота и согласованность требований, границы scope и MVP по MoSCoW, проверяемые acceptance criteria, user stories, влияние на стоимость и time-to-market, риски и зависимости, структурированный анализ trade-off'ов, согласованность с ранее принятыми решениями. Код не пишет, в детали реализации не уходит."
 tools: Read, Glob, Grep, Bash
-color: magenta
+color: pink
 maxTurns: 20
 ---
 
