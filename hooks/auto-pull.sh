@@ -1,10 +1,9 @@
 #!/bin/bash
 # Auto-sync ~/.claude on session start: fast-forward local main from origin. PULL-ONLY.
 #
-# Model: local main is a pure mirror of origin/main and must stay clean. This hook ONLY
-# fast-forwards main; it never commits, never pushes, never opens PRs. Changes are the
-# changer's responsibility — made on a branch / worktree and merged via a pull request
-# (auto-merge), never on main.
+# Модель: правки идут прямо в main, доставляет их csync (commit → rebase → push). Этот хук
+# только подтягивает: он никогда не коммитит и не пушит. Грязный или ahead main — обычное
+# рабочее состояние, о нём сообщается информационно, а не как об аварии.
 #
 # Core invariant: NEVER fail silently. Every non-OK outcome is recorded loudly via three
 # channels — ~/.claude/.sync-status (rendered in the statusline on every prompt), an OS
@@ -56,16 +55,18 @@ if ! git fetch --quiet origin 2>/dev/null; then
   exit 0
 fi
 
-# Guard: tracked edits on main bypass the PR flow. Do NOT commit them — flag loudly.
+# Работа в процессе — нормальное состояние, не авария. Этот хук ничего не коммитит и не
+# пушит: доставка — дело csync или самой сессии. Просто не трогаем дерево и выходим.
 if ! git diff --quiet 2>/dev/null || ! git diff --cached --quiet 2>/dev/null; then
-  alarm "main has uncommitted tracked edits — move them to a branch + PR; main must stay clean"
+  clear_status
+  note "main has uncommitted changes — pull skipped, run csync to deliver"
   exit 0
 fi
 
-# Guard: local commits ahead of origin bypass the PR flow.
 AHEAD=$(git rev-list --count origin/main..HEAD 2>/dev/null || echo 0)
 if [ "$AHEAD" -gt 0 ]; then
-  alarm "main is $AHEAD commit(s) ahead of origin (bypasses PR flow) — reset or move to a branch + PR"
+  clear_status
+  note "main is $AHEAD commit(s) ahead of origin — run csync to push"
   exit 0
 fi
 

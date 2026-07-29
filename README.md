@@ -41,11 +41,13 @@ The setup script creates a full backup before any changes, adds `csync` alias, a
 
 ## Sync
 
-PR-only: `main` always stays clean, and every change to a tracked file ships through a branch + pull request with auto-merge -- never a direct commit to `main`.
+Changes to tracked files go straight to `main`. Whether a repository requires a pull request is decided by its own branch protection and project instructions, not by this global harness.
 
-**Pull** -- `csync` (alias for `hooks/sync-settings.sh`) and the `SessionStart` auto-pull hook (`hooks/auto-pull.sh`) only fetch and fast-forward `main` to `origin/main`. Neither ever commits, pushes, or opens a PR. A dirty or ahead-of-origin `main` is a loud error (statusline + OS notification), not something they auto-fix.
+**`csync`** (alias for `hooks/sync-settings.sh`) is the two-way sync: fetch, `add -A`, commit, rebase onto `origin/main`, push. A rebase conflict stops it loudly and changes nothing -- that is a real decision, not a sync detail.
 
-**Push** -- edit tracked files (`CLAUDE.md`, `rules/`, `settings*.json`, `hooks/`, `scripts/`, `skills/`, `agents/`) on a branch, preferably via a worktree, then open a PR: `scripts/cgs-pr.sh new <slug>` creates the worktree + branch, `scripts/cgs-pr.sh ship "<title>"` commits, pushes, opens the PR, and enables auto-merge.
+**The `SessionStart` auto-pull hook** (`hooks/auto-pull.sh`) only pulls. It never commits or pushes; a dirty or ahead-of-origin `main` is ordinary working state, reported as information rather than an alarm.
+
+**Pull requests are opt-in** for a change worth reviewing: `scripts/cgs-pr.sh new <slug>` creates the worktree + branch, `scripts/cgs-pr.sh ship "<title>"` commits, pushes, opens the PR, and enables auto-merge.
 
 ## Portability
 

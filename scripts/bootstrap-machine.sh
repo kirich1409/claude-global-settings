@@ -1,9 +1,9 @@
 #!/bin/bash
-# bootstrap-machine.sh — converge this machine onto the PR-only ~/.claude line.
+# bootstrap-machine.sh — converge this machine onto the canonical ~/.claude line.
 #
-# Brings a machine's ~/.claude checkout in sync with the canonical origin/main (new pull-only
-# csync/auto-pull + rules + helpers) and checks it can deliver changes via PR. Idempotent —
-# safe to re-run. See rules/git-workflow.md § Репозиторий ~/.claude — PR-only.
+# Brings a machine's ~/.claude checkout in sync with origin/main (csync/auto-pull + rules +
+# helpers) and checks it can deliver changes. Idempotent — safe to re-run.
+# See rules/claude-repo-sync.md.
 #
 # Usage:
 #   bootstrap-machine.sh            Safe mode: fast-forward main; STOP loudly if the checkout
@@ -102,4 +102,4 @@ add_alias cgspr '$HOME/.claude/scripts/cgs-pr.sh'
 ok "aliases ensured (run 'source ~/.zshrc' or open a new shell)"
 
 # The SessionStart auto-pull hook lives in settings.json (tracked) — already in place after sync.
-printf '\nDone. This machine is on the PR-only line. Edits go through scripts/cgs-pr.sh (branch -> PR -> auto-merge).\n'
+printf '\nDone. Edits go straight to main; csync delivers them. Use scripts/cgs-pr.sh when a change is worth a PR.\n'

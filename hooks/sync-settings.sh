@@ -1,12 +1,11 @@
 #!/bin/bash
-# csync — synchronize ~/.claude from origin/main. PULL-ONLY. Usage: csync
+# csync — двусторонняя синхронизация ~/.claude с origin/main. Usage: csync
 #
-# Model: local main is a pure mirror of origin/main and must stay clean. This script ONLY
-# fast-forwards local main to origin/main. It never commits, never pushes, never opens PRs.
+# Модель: правки идут прямо в main. csync коммитит локальные изменения, ребейзит на
+# origin/main и пушит. Грязный или ahead main — нормальное рабочее состояние, не авария.
 #
-# Making changes is the changer's responsibility, not the sync tool's: edit on a separate
-# branch / worktree and merge via a pull request (auto-merge). A dirty or diverged main is a
-# loud error here — never silently "fixed" by a commit.
+# Нужен ли PR — решает сам репозиторий (branch protection, инструкции проекта), а не
+# глобальный харнес. Для изменения, которое стоит отревьюить, есть scripts/cgs-pr.sh.
 
 set -euo pipefail
 
@@ -32,25 +31,27 @@ fi
 # Fetch — network failure is loud, not silent.
 git fetch --quiet origin || { echo "Fetch failed (network?)."; exit 1; }
 
-# Guard: tracked working-tree changes mean main was edited directly — move them to a branch+PR.
-if ! git diff --quiet || ! git diff --cached --quiet; then
-  echo "⚠ main has uncommitted tracked changes — main must stay clean."
-  echo "  Move them to a branch + PR (auto-merge). csync does not commit or push."
-  exit 1
+# Commit local work, if any.
+if ! git diff --quiet || ! git diff --cached --quiet || [ -n "$(git ls-files --others --exclude-standard)" ]; then
+  git add -A
+  git commit --quiet -m "sync $(date '+%Y-%m-%d %H:%M')" || true
 fi
 
-# Guard: local commits ahead of origin bypass the PR flow.
-AHEAD=$(git rev-list --count origin/main..HEAD 2>/dev/null || echo 0)
-if [ "$AHEAD" -gt 0 ]; then
-  echo "⚠ main is $AHEAD commit(s) ahead of origin — these bypass the PR flow."
-  echo "  Reset main (git reset --hard origin/main) or move the commits to a branch + PR."
-  exit 1
-fi
-
-# Fast-forward to origin/main.
+# Rebase onto origin/main. A conflict stops loudly — it is a real decision, not a sync detail.
 BEHIND=$(git rev-list --count HEAD..origin/main 2>/dev/null || echo 0)
 if [ "$BEHIND" -gt 0 ]; then
-  git merge --ff-only --quiet origin/main && echo "Pulled $BEHIND." || { echo "Fast-forward failed."; exit 1; }
+  if ! git rebase --quiet origin/main; then
+    git rebase --abort 2>/dev/null || true
+    echo "⚠ Rebase onto origin/main hit a conflict — resolve manually, csync changed nothing."
+    exit 1
+  fi
+  echo "Rebased onto origin/main (was $BEHIND behind)."
+fi
+
+# Push whatever is ahead.
+AHEAD=$(git rev-list --count origin/main..HEAD 2>/dev/null || echo 0)
+if [ "$AHEAD" -gt 0 ]; then
+  git push --quiet origin main && echo "Pushed $AHEAD commit(s)." || { echo "Push failed."; exit 1; }
 else
   echo "Up to date."
 fi

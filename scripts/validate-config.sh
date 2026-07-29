@@ -41,17 +41,23 @@ else
   ok "no hardcoded ${PAT} paths"
 fi
 
-# --- 2. CLAUDE.md rules index <-> rules/*.md ------------------------------------------
-# Every rules file must be listed in the CLAUDE.md index, and every index entry must
-# have a file — both directions, so the index never silently drifts.
+# --- 2. Бюджет безусловных инструкций -------------------------------------------------
+# CLAUDE.md + rules/*.md без frontmatter `paths:` грузятся в каждую сессию и наследуются
+# каждым субагентом. Гейт ловит обратное разрастание; при срыве печатает разбивку по файлам.
+UNCOND_BUDGET=${UNCOND_BUDGET:-100000}
 if [ -f CLAUDE.md ] && [ -d rules ]; then
-  indexed=$(grep -oE '\*\*[a-z0-9-]+\.md\*\*' CLAUDE.md | tr -d '*' | sort -u)
-  actual=$(cd rules && ls -1 *.md 2>/dev/null | sort -u)
-  missing_from_index=$(comm -13 <(printf '%s\n' "$indexed") <(printf '%s\n' "$actual"))
-  missing_files=$(comm -23 <(printf '%s\n' "$indexed") <(printf '%s\n' "$actual"))
-  [ -n "$missing_from_index" ] && fail "rules files absent from CLAUDE.md index: $(echo $missing_from_index)"
-  [ -n "$missing_files" ] && fail "CLAUDE.md index entries without a rules file: $(echo $missing_files)"
-  [ -z "$missing_from_index" ] && [ -z "$missing_files" ] && ok "CLAUDE.md index matches rules/"
+  total=0; breakdown=""
+  for f in CLAUDE.md rules/*.md; do
+    head -12 "$f" | grep -q '^paths:' && continue
+    sz=$(wc -c < "$f")
+    total=$((total + sz))
+    breakdown="${breakdown}\n  $(printf '%7d' "$sz")  $f"
+  done
+  if [ "$total" -gt "$UNCOND_BUDGET" ]; then
+    fail "unconditional instructions ${total}b exceed budget ${UNCOND_BUDGET}b:$(printf "$breakdown")"
+  else
+    ok "unconditional instructions ${total}b within budget ${UNCOND_BUDGET}b"
+  fi
 fi
 
 # --- 3. [[wiki-links]] in CLAUDE.md + rules resolve to rules files ---------------------

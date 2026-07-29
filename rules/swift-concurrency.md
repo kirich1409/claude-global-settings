@@ -103,6 +103,4 @@ final class MutableThing: @unchecked Sendable {
 
 ## Тесты — управляемые часы
 
-Async-тесты не должны полагаться на wall-clock время. Использовать `Task.sleep` только когда задержка действительно нужна; лучше — управляемые часы (протокол `Clock`, `ContinuousClock` или внедрённые в проект фейковые часы), чтобы тест мог детерминированно продвигать время.
-
-Никогда `Thread.sleep` / `usleep` в async-тестах.
+Правило целиком в `swift-testing.md` § «Никакого `Thread.sleep` / `usleep`».

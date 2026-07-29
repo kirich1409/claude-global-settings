@@ -284,33 +284,6 @@
     ],
     "PreToolUse": [
       {
-        "matcher": "Edit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "$HOME/.claude/hooks/branch-guard.sh"
-          }
-        ]
-      },
-      {
-        "matcher": "Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "$HOME/.claude/hooks/branch-guard.sh"
-          }
-        ]
-      },
-      {
-        "matcher": "NotebookEdit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "$HOME/.claude/hooks/branch-guard.sh"
-          }
-        ]
-      },
-      {
         "matcher": "Bash",
         "hooks": [
           {
@@ -324,10 +297,6 @@
           {
             "type": "command",
             "command": "$HOME/.claude/hooks/stash-reminder.sh"
-          },
-          {
-            "type": "command",
-            "command": "$HOME/.claude/hooks/push-branch-guard.sh"
           }
         ]
       }
