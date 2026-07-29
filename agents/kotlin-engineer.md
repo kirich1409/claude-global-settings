@@ -109,7 +109,7 @@ Pattern Summary
 
 Для обёрток `@JvmInline value class` вокруг примитивов — добавлять `init { require(...) }`, когда обёртка обеспечивает ограничение (non-blank, формат, диапазон).
 
-См. `$HOME/.claude/rules/kotlin-style.md` для правил и поведения при переопределении проектом.
+Видимость привязана к структуре модулей: feature и implementation модули (`internal/` пакеты, всё не в `api/`) — `internal` по умолчанию, `private` когда символ не покидает файл; public API модули (`api/`, контракты в `:protocol/`, shared infra) — `public` только для предназначенного другим модулям. Сомневаешься между `internal` и `public` — брать `internal`. Ключевое слово `public` явно не писать. В `.kts` то же: top-level хелперы convention plugins — `private`. **Устоявшееся соглашение проекта важнее этого.**
 
 ```kotlin
 data class Order(
@@ -273,7 +273,7 @@ internal class OrderListViewModel(
 - **Обязательно** — UseCases с логикой, реализации Repository, ViewModels с нетривиальными переходами state
 - **Опционально** — тонкие pass-through UseCases (`operator fun invoke() = repository.getOrders()`), чистые data classes, mappers без условий
 
-Для паттернов тестирования `runTest`, `TestDispatcher`, `Turbine` и cancellation — см. `$HOME/.claude/rules/coroutines.md`. Его пример с Turbine покрывает кейс тестирования ViewModel.
+Все `TestDispatcher` в одном тесте используют **один** `TestCoroutineScheduler` — иначе `advanceUntilIdle()` не распространяется. Перед тестированием всего, что использует `viewModelScope`, заменять Main: `Dispatchers.setMain(testDispatcher)` в `@Before`, `resetMain()` в `@After`. Для assertions по Flow — Turbine.
 
 ---
 
@@ -292,12 +292,15 @@ internal class OrderListViewModel(
 
 **Прочитать это ПЕРЕД написанием кода на Шаге 3** — здесь содержатся неочевидные правила, которые модель не применяет по умолчанию:
 
-| Тема | Ссылка |
-|---|---|
-| Дисциплина видимости (`internal` по умолчанию), валидация value class, ограничения KMP `commonMain`, конвенции Clean Architecture | `$HOME/.claude/rules/kotlin-style.md` |
-| Coroutines, Flow, StateFlow/SharedFlow, dispatchers, cancellation, тестирование | `$HOME/.claude/rules/coroutines.md` |
+**Архитектура.** UseCase — одна ответственность, один public `operator fun invoke()`. Domain-модели без зависимостей от фреймворка (исключение: `kotlinx.coroutines`, `kotlinx.datetime`, аннотации `kotlinx.serialization`). `viewModelScope` и `lifecycleScope` принадлежат только Android presentation слою.
 
-Ссылки авторитетны — когда память расходится с ними, доверять им. **Конвенции проекта, обнаруженные на Шаге 1, важнее обоих.**
+**Порядок операторов Flow.** `flowOn(dispatcher)` влияет только на upstream: вызов дважды или после терминального оператора тихо ничего не делает — применять один раз, на стороне producer. `retry {}` ставится **до** `catch {}`: иначе `catch` поглотит ошибку и `retry` её не увидит.
+
+**Бесконечная приостановка.** `first()`, `single()` и `Channel.receive()` висят до прихода данных. Опасно для `SharedFlow(replay = 0)`, `Channel` и cold `flow {}`, чей producer может не эмитировать — там нужен `withTimeout` либо `tryReceive()`. `StateFlow` безопасен. `firstOrNull()` — когда отсутствие данных допустимый исход.
+
+**`withContext(NonCancellable)` — только в `finally`**, в cleanup, который обязан завершиться после отмены. В любом другом месте это баг: отключает кооперативную отмену вверх по цепочке.
+
+**Конвенции проекта, обнаруженные на Шаге 1, важнее всего перечисленного.**
 
 ---
 

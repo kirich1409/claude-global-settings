@@ -88,7 +88,7 @@ Pattern Summary
 
 ## Шаг 3: Реализуй
 
-**Прочитай `$HOME/.claude/rules/compose-style.md`, прежде чем писать первую composable-функцию.** Он содержит неочевидные правила, которые модель не применяет по умолчанию — Modifier.Node API, определение конфигурации стабильности, отложение фазы через lambda-модификаторы, запрещённые типы параметров, accessibility, жизненный цикл side-эффектов.
+**Stability зависит от конфигурации проекта.** Strong skipping (дефолт в Compose Compiler 2.0+ / Kotlin 2.0+) → `@Stable`/`@Immutable` менее критичны, компилятор скипает и нестабильные параметры, обычные `List`/`Map` работают; аннотации остаются полезны как документация намерения. Strong skipping выключен (`composeCompiler { enableStrongSkippingMode.set(false) }` или более старый компилятор) → аннотации важны, коллекции нестабильны, использовать `kotlinx.collections.immutable`, если это принято в проекте. Проверять `stability_config.conf` на кросс-модульные правила и следовать конвенции проекта.
 
 ### 3.1 Модели State и Action
 
@@ -180,13 +180,15 @@ private fun FooScreenPopulatedPreview() {
 
 **Прочитать ПЕРЕД написанием кода в Шаге 3** — они содержат неочевидные правила, которые модель не применяет по умолчанию:
 
-| Тема | Референс |
-|---|---|
-| Специфичные для Compose правила (Modifier.Node, stability, phase deferral, запрещённые параметры, side effects, exhaustive `when`, accessibility, токены темы, KMP, previews-vs-VM) | `$HOME/.claude/rules/compose-style.md` |
-| Coroutines внутри composable-функций (`LaunchedEffect`, `rememberCoroutineScope`, сбор Flow, отмена) | `$HOME/.claude/rules/coroutines.md` |
-| Идиоматичный стиль Kotlin, валидация value-class, ограничения KMP `commonMain` | `$HOME/.claude/rules/kotlin-style.md` |
+**Токены темы.** Есть система токенов (`AppDimens.spacingM`, `AppColors.primary`, `AppTypography.titleMedium`) — никаких сырых `dp` и hex в коде экрана. Нет токенов и проект использует `MaterialTheme.colorScheme` напрямую — следовать этому.
 
-Референсы авторитетны — если память расходится с ними, доверяй референсам. **Конвенции проекта, обнаруженные в Шаге 1, имеют приоритет над обоими.**
+**Accessibility за пределами `contentDescription`.** `Modifier.semantics { role = Role.Button }` на кастомных интерактивных composable с собственной обработкой клика; `mergeDescendants = true` на составных рядах, где screen reader должен читать заголовок и подзаголовок единым блоком; `Modifier.minimumInteractiveComponentSize()`, когда визуальный элемент меньше 48×48 dp, но интерактивен.
+
+**Compose Multiplatform.** Ресурсы через `org.jetbrains.compose.resources` — API менялся несколько раз между версиями CMP: читать существующее использование в проекте, не предполагать. Платформенный UI (iOS touch handling, SwiftUI/UIKit interop, desktop) сверять с актуальной документацией.
+
+**Видимость** — `internal` по умолчанию для feature-модулей, `public` только для предназначенного другим модулям.
+
+**Конвенции проекта, обнаруженные в Шаге 1, имеют приоритет над всем перечисленным.**
 
 ---
 

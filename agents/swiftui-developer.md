@@ -79,9 +79,26 @@ Pattern Summary
 
 ## Шаг 3: Реализовать
 
-**Прочитать `$HOME/.claude/rules/swiftui-state.md` и `$HOME/.claude/rules/swiftui-patterns.md` перед написанием первого view.** Они содержат ловушки, которые модель не закрывает по умолчанию — `@ObservationIgnored` для property wrapper внутри `@Observable`, `@Environment` без default, `.navigationDestination` в корне стека.
+**Ловушки, которые модель не закрывает по умолчанию:**
 
-Про дизайн-систему / accessibility / theming см. `$HOME/.claude/rules/swiftui-design-system.md`. Про экраны с тяжёлым пересчётом или тяжёлыми списками см. `$HOME/.claude/rules/swiftui-performance.md`.
+- **Property wrapper внутри `@Observable` требует `@ObservationIgnored`.** `@AppStorage`, `@FocusState` и любой другой wrapper без него ломает observation: форма хранения wrapper'а несовместима с трекингом макроса. То же для lazy и кэшируемых свойств, которые не должны отслеживаться.
+- **`@Environment(Type.self)` без `defaultValue` роняет view в runtime** при первом чтении, если значение не внедрили. Либо предоставлять в корне каждой Scene, хостящей view, либо использовать `EnvironmentKey` с `defaultValue` — обычно Unimplemented-заглушкой, громко падающей в тестах и превью. Работает в симуляторе, пока view не появится в окне `Settings` или новом `WindowGroup`.
+- **`.navigationDestination(for:)` должен быть в корне `NavigationStack`.** Размещение у потомка молча ломает роутинг после первого push.
+- **Условный модификатор `.if {}` — анти-паттерн:** тип возвращаемого значения меняется вместе с условием, что ломает identity и diffing. Применять модификаторы условно инлайн, через тернарный оператор на значении (`.foregroundStyle(isActive ? .green : .secondary)`).
+- **Гранулярность `@Observable`:** каждое чтение свойства внутри `body` становится зависимостью, деструктуризация в начале `body` не спасает. Вычисляемое свойство модели, читающее N хранимых, создаёт N зависимостей у каждого вызывающего.
+- **`.animation(.default)` без `value:` deprecated** и анимирует каждое изменение state в поддереве, включая несвязанные.
+- **`.frame()` не выполняет downsampling** — изображение декодируется и хранится в памяти в полном разрешении. `AsyncImage(url:).frame(80, 80)` задачу не решает; нужен `preparingThumbnail(of:)` или downsampling на уровне данных.
+
+**Дизайн-система и платформа:**
+
+- **`@Environment` не пересекает `Scene`** — каждый `WindowGroup`, `Window`, `Settings`, `MenuBarExtra` внедряет тему и зависимости в корне своей scene, иначе второе окно падает или показывает дефолты.
+- **Не токенизировать:** тень (на macOS `Material`, на iOS 2–3 уровня elevation), прозрачность (`.foregroundStyle(.secondary)` / `.tertiary` / `.quaternary`), насыщенность шрифта (`.fontWeight(.semibold)` прямо к стилю). Теминг: статичный enum для примитивов, семантические системные цвета для адаптивных, environment — только когда палитра выбирается в runtime.
+- **macOS 26+ / Liquid Glass:** пересборка с Xcode 26 применяет его к toolbar, sheet, popover, sidebar `NavigationSplitView` и scene `Settings` автоматически, opt-in не нужен. **Никогда на monospaced canvas** (терминал, редактор кода) — текст деградирует под рефракцией; для фона окна `.containerBackground(.thinMaterial, for: .window)`. `.glassEffect(_:in:isEnabled:)` и `GlassEffectContainer` — только для плавающего UI.
+- **Dynamic Type на macOS** в основном игнорируется: `@ScaledMetric` и `.dynamicTypeSize` применяются слабо. Для content-canvas, где масштабирование важно, реализовать предпочтение масштаба на уровне приложения (`⌘+` / `⌘−`) и передавать коэффициент явно.
+- Устаревшее из training-данных: модификатор `.accentColor(_:)` → `.tint(_:)` плюс asset `AccentColor`; `RoundedRectangle(cornerRadius:)` → `.clipShape(.rect(cornerRadius: ..., style: .continuous))`.
+- **Сигнал только цветом не работает** — сочетать с SF Symbol и реагировать на `@Environment(\.accessibilityDifferentiateWithoutColor)`. Шорткаты на основных действиях sheet и формы: `⌘Return` подтвердить, `⌘.` отменить.
+- **i18n с первого дня**, даже для англоязычного приложения: `Localizable.xcstrings`, `LocalizedStringResource`, RTL через `.leading`/`.trailing`, никогда `.left`/`.right`. Ретрофит примерно в 10 раз дороже.
+- **Аллокации из `body` выносить** — `DateFormatter` внутри `body` создаётся заново при каждом рендере; то же для sort/filter/map больших коллекций.
 
 ### 3.1 Паттерн экрана
 
@@ -131,19 +148,15 @@ struct FooScreen: View {
 
 ---
 
-## Ссылки
+## Превью
 
-**Прочитать тематическую ссылку ПЕРЕД написанием кода на Шаге 3** — здесь содержатся неочевидные правила, которые модель не применяет по умолчанию:
+Статичные сэмплы держать на доменном типе (`static let samples`), а не конструировать тестовые
+данные инлайн в каждом `#Preview`. Следовать конвенции превью проекта, обнаруженной на Шаге 1.
 
-| Тема | Ссылка |
-|---|---|
-| `@ObservationIgnored`, `@Environment` без default, гранулярность трекинга `@Observable` | `$HOME/.claude/rules/swiftui-state.md` |
-| `.navigationDestination` в корне стека, анти-паттерн `.if {}`, сэмплы для превью | `$HOME/.claude/rules/swiftui-patterns.md` |
-| Производительность — гранулярность `@Observable`, чистота body, пересчёт по identity | `$HOME/.claude/rules/swiftui-performance.md` |
-| Дизайн-система — токены, жёсткие запреты, чеклист accessibility, theming, инъекция multi-window, Liquid Glass, Dynamic Type на macOS | `$HOME/.claude/rules/swiftui-design-system.md` |
-| Swift Concurrency внутри SwiftUI (Task, async, MainActor) | `$HOME/.claude/rules/swift-concurrency.md` |
+Матрица покрытия переиспользуемого компонента: светлая и тёмная тема, Increase Contrast (и Dark
+HCR), Reduce Transparency, Dynamic Type на `.xSmall` и `.accessibility2`, disabled-состояние.
 
-Ссылки авторитетны — когда память расходится с ними, доверять им. **Конвенции проекта, обнаруженные на Шаге 1, важнее обоих.**
+**Конвенции проекта, обнаруженные на Шаге 1, важнее всего перечисленного в этом определении.**
 
 ---
 

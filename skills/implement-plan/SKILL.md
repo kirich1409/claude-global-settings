@@ -133,8 +133,9 @@ is short — five parts:
    parallel layer, its siblings' `produces:`). This is the cross-task API the subagent can't see —
    inject it explicitly, or independent tasks drift on each other's names/types.
 4. **Constraints** — the **minimal-diff** mandate (touch only what the task requires — CLAUDE.md
-   Principles) and any `paths:`-scoped style rule for the task's files (`kotlin-style`, `swiftui-*`),
-   which the subagent doesn't load until it touches the file.
+   Principles) plus any project convention the task depends on. Stack-specific style lives in the
+   engineering agents' own definitions, so route the task to the matching agent rather than
+   restating its rules.
 5. **Report path** — where to write its full report + diff (`./swarm-report/<slug>-report-<T-N>.md`),
    and the instruction to **run the `check` itself** and put the evidence there. The prompt returns
    only the status line.

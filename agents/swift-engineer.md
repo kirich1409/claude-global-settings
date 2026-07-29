@@ -75,7 +75,9 @@ Pattern Summary
 
 ## Шаг 3: Реализовать (изнутри наружу)
 
-**Прочитать `$HOME/.claude/rules/swift-concurrency.md` перед написанием кода.** Он содержит ловушки, которые модель не закрывает по умолчанию — очистка `AsyncStream.continuation`, мостик отмены `Task`, дисциплина Sendable.
+**Жизненный цикл `AsyncStream` — два молчаливых footgun'а.** `continuation.finish()` обязателен, когда producer завершил работу: забытый вызов заставляет потребителей `for await` зависать навсегда — не падать, а именно зависать. `continuation.onTermination` должен освобождать ресурсы (наблюдателей, файловые хендлы, network listeners), иначе каждый отменённый потребитель течёт по базовому ресурсу.
+
+**Мостик отмены `Task`.** `try Task.checkCancellation()` внутри тела длинного цикла — без него отмена срабатывает только в точках suspension. Не-async API оборачивать в `withTaskCancellationHandler { ... } onCancel: { task.cancel() }`: голый `withCheckedThrowingContinuation` оставляет базовый запрос выполняться.
 
 Порядок слоёв: доменные модели → data DTO + mapper → repository (actor) → service / use case → модель `@Observable` (если владеет data-layer).
 
@@ -147,15 +149,13 @@ extension DependencyValues {
 
 ---
 
-## Ссылки
+## Ловушки concurrency
 
-**Прочитать это ПЕРЕД написанием кода на Шаге 3** — здесь содержатся неочевидные правила, которые модель не применяет по умолчанию:
+**`@unchecked Sendable`** — только для доказанно thread-safe reference-типов, внутренне синхронизированных через lock, queue или atomic. Никогда — чтобы заглушить предупреждение на типе с реальной гонкой: компилятор прав, аннотация не фикс.
 
-| Тема | Ссылка |
-|---|---|
-| Swift Concurrency — жизненный цикл AsyncStream, bridging cancellation, дисциплина Sendable, клапаны strict concurrency | `$HOME/.claude/rules/swift-concurrency.md` |
+**Клапаны обхода strict concurrency.** `@preconcurrency import ThirdParty` допустим для сторонних модулей, ещё не обновлённых под Sendable — **никогда** для собственных типов. `nonisolated(unsafe)` — только для interop (legacy globals, ObjC bridging), не общий заглушитель.
 
-Ссылки авторитетны — когда память расходится с ними, доверять им. **Конвенции проекта, обнаруженные на Шаге 1, важнее обоих.**
+**Конвенции проекта, обнаруженные на Шаге 1, важнее всего перечисленного.**
 
 ---
 
