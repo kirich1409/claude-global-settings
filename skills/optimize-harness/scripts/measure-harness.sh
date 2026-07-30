@@ -37,9 +37,26 @@ import re, glob, os, sys, json
 verbose = "-v" in sys.argv
 as_json = "--json" in sys.argv
 
-def descriptions(pattern):
+def disabled_skills():
+    """Скиллы, выключенные через skillOverrides: их описания в листинг сессии не попадают,
+    значит и в бюджет не входят. Локальные настройки перекрывают общие."""
+    off = set()
+    for cfg in ("settings.json", "settings.local.json"):
+        try:
+            ov = json.load(open(cfg, encoding="utf-8")).get("skillOverrides", {})
+        except Exception:
+            continue
+        for name, state in ov.items():
+            (off.discard if state != "off" else off.add)(name)
+    return off
+
+OFF = disabled_skills()
+
+def descriptions(pattern, skip_disabled=False):
     total, rows = 0, []
     for p in sorted(glob.glob(pattern)):
+        if skip_disabled and p.split("/")[1] in OFF:
+            continue
         m = re.match(r"^---\n(.*?)\n---\n", open(p, encoding="utf-8").read(), re.S)
         if not m:
             continue
@@ -48,6 +65,13 @@ def descriptions(pattern):
         total += n
         rows.append((n, p))
     return total, rows
+
+def memory_index(root):
+    """Авто-память проекта тоже инжектируется целиком. Каталог проекта именуется путём,
+    в котором `/` и `.` заменены на `-`, поэтому для аудируемого корня он выводится, а не ищется."""
+    slug = re.sub(r"[/.]", "-", os.path.abspath(root))
+    p = os.path.join("projects", slug, "memory", "MEMORY.md")
+    return (os.path.getsize(p), p) if os.path.exists(p) else (0, None)
 
 def always_on_rules():
     total, rows = 0, []
@@ -62,9 +86,10 @@ def always_on_rules():
 
 claude_md = os.path.getsize("CLAUDE.md") if os.path.exists("CLAUDE.md") else 0
 rules_total, rules_rows = always_on_rules()
-skills_total, skills_rows = descriptions("skills/*/SKILL.md")
+skills_total, skills_rows = descriptions("skills/*/SKILL.md", skip_disabled=True)
 agents_total, agents_rows = descriptions("agents/*.md")
-grand = claude_md + rules_total + skills_total + agents_total
+memory_total, memory_path = memory_index(os.getcwd())
+grand = claude_md + rules_total + skills_total + agents_total + memory_total
 
 # Кириллица в токенизаторе Claude дороже латиницы: ~2,4 байта на токен против ~4.
 # Наивное b/4 занижает русскоязычный харнес вдвое, поэтому делитель считается
@@ -84,6 +109,8 @@ if as_json:
         "rules": {"bytes": rules_total, "files": len(rules_rows)},
         "skills_desc": {"bytes": skills_total, "files": len(skills_rows)},
         "agents_desc": {"bytes": agents_total, "files": len(agents_rows)},
+        "memory_index": {"bytes": memory_total, "path": memory_path},
+        "skills_disabled": sorted(OFF),
         "instructions_bytes": claude_md + rules_total,
         "total_bytes": grand,
         "est_tokens": int(grand / bpt),
@@ -101,8 +128,10 @@ if verbose:
 
 print(f"CLAUDE.md            {claude_md:7d} b   {1 if claude_md else 0} файл")
 print(f"rules (always-on)    {rules_total:7d} b   {len(rules_rows)} файлов")
-print(f"skills description   {skills_total:7d} b   {len(skills_rows)} файлов")
+print(f"skills description   {skills_total:7d} b   {len(skills_rows)} файлов"
+      + (f"   (выключено: {', '.join(sorted(OFF))})" if OFF else ""))
 print(f"agents description   {agents_total:7d} b   {len(agents_rows)} файлов")
+print(f"MEMORY.md            {memory_total:7d} b   {memory_path or 'нет для этого корня'}")
 print(f"инструкции           {claude_md + rules_total:7d} b   (CLAUDE.md + rules)")
 print(f"ИТОГО always-on      {grand:7d} b")
 print(f"оценка токенов       ~{int(grand / bpt / 1000)}k   ({bpt:.1f} b/token, не-ASCII {frac:.0%})")
