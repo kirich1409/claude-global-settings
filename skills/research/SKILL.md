@@ -1,7 +1,13 @@
 ---
 name: research
 argument-hint: "<тема> [--tracks codebase,web,docs,deps,oss,architecture]"
-description: "Research Consortium — параллельное экспертное исследование темы, идеи, проблемы или технологии до реализации. Запускает до пяти доменных агентов одновременно, синтезирует находки и проверяет результат. Use when: \"research\", \"investigate options\", \"investigate approaches\", \"explore this idea\", \"technical spike\", \"feasibility\", \"can we do X?\", \"what are the options for\", \"compare approaches\", \"evaluate alternatives\", \"pros and cons of\", \"before we start — let's understand\", «разберись с», «какие есть варианты», «реализуемо ли». НЕ использовать для: ревью кода (агент code-reviewer), ревью плана или спеки (multiexpert-review), узкого поиска по своей кодовой базе (агент Explore), lookup версии или changelog одной библиотеки (инструмент реестра), отладки существующих багов."
+description: >
+  Параллельное экспертное исследование темы, идеи, проблемы или технологии до реализации: до пяти
+  доменных агентов одновременно, синтез находок и проверка результата. Triggers: "research",
+  "investigate options", "explore this idea", "technical spike", "feasibility", "compare
+  approaches", "pros and cons of", «разберись с», «какие есть варианты», «реализуемо ли». НЕ для:
+  ревью кода (code-reviewer), ревью плана (multiexpert-review), поиска по своей кодовой базе
+  (Explore), lookup версии одной библиотеки, отладки багов.
 ---
 
 # Research

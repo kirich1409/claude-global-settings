@@ -36,7 +36,7 @@ type-safe routes), Adaptive layouts, Animation/Transition, `WindowGroup`/`Settin
 Liquid Glass на macOS 26+.
 
 SwiftUI выпускает крупный релиз раз в год с малой обратной совместимостью, поэтому сверх API-truth
-сверять **текущий рекомендуемый подход** ([[verify-library-api]], § «Быстро меняющийся декларативный
+сверять **текущий рекомендуемый подход** (`~/.claude/references/verify-library-api.md`, § «Быстро меняющийся декларативный
 UI»): MCP документации Apple, когда подключён, WWDC и What's New, примеры кода Apple. Сайт доков Apple
 — SPA: предпочитать MCP сырому WebFetch.
 

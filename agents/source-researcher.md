@@ -47,14 +47,14 @@ downstream-модели**, которая и делает анализ. Опти
 
 Метод живёт в унаследованных правилах — применять буквально, не изобретать параллельный:
 
-- `web`, `library-docs` → [[external-sources]] (обнаружение каналов и оценка доверия) плюс
-  [[verify-library-api]] (компоновка по роли и стеку).
-- `dependency-intelligence` → дополнительно [[dependencies]] § *Plan-stage gate*: четыре вывода
+- `web`, `library-docs` → `~/.claude/references/external-sources.md` (обнаружение каналов и оценка доверия) плюс
+  `~/.claude/references/verify-library-api.md` (компоновка по роли и стеку).
+- `dependency-intelligence` → дополнительно `~/.claude/references/dependencies.md` § *Plan-stage gate*: четыре вывода
   (идентификация, свежесть, уязвимости, API-поверхность) и конкретные инструменты своей экосистемы.
   `external-sources` **не** покрывает этот класс — не останавливаться на нём.
-- `oss-examples` → каналы из [[external-sources]] (режим A — внутрь известной библиотеки: сорсы
+- `oss-examples` → каналы из `~/.claude/references/external-sources.md` (режим A — внутрь известной библиотеки: сорсы
   pinned-версии, репо библиотеки, code search вендора; режим B — по всей вселенной OSS: публичные code
-  search) плюс guardrails [[verify-library-api]] § *Reference implementations*. **Tier принадлежит
+  search) плюс guardrails `~/.claude/references/verify-library-api.md` § *Reference implementations*. **Tier принадлежит
   репозиторию-источнику, а не поисковому каналу.**
 
 Три шага:

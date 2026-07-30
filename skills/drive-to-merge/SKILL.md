@@ -3,11 +3,9 @@ name: drive-to-merge
 argument-hint: "[--auto] [--dry-run]"
 description: >
   Доводит существующий PR/MR до merge: следит за CI, разбирает комментарии ревью, чинит падения,
-  перезапрашивает ревью и крутит цикл, пока PR не смержен.
-  Triggers: "drive this PR to merge", "get this PR merged", "monitor CI and reviews",
-  "ship this PR", "land this PR", "take this PR all the way", "merge this PR for me",
-  «доведи PR до merge», «проследи за CI и ревью».
-  НЕ использовать для создания новых PR (create-pr) и для исполнения плана с нуля (implement-plan).
+  перезапрашивает ревью и крутит цикл, пока не смержен. Triggers: "get this PR merged", "monitor
+  CI and reviews", "ship this PR", "land this PR", «доведи PR до merge», «проследи за CI». НЕ для
+  создания PR (create-pr) и исполнения плана с нуля (implement-plan).
 ---
 
 # Drive to Merge

@@ -1,13 +1,11 @@
 ---
 name: multiexpert-review
 argument-hint: "[profile: <имя>] <артефакт или путь>"
-description: >-
+description: >
   Ревью плана, спецификации или тест-плана панелью независимых экспертных агентов по протоколу
-  PoLL (Panel of LLM Evaluators) до того, как решение зафиксировано.
-  Triggers: "review the plan", "review the spec", "review the test-plan",
-  "multi-expert review", "panel review", "validate the approach", "sanity check this",
-  "what did I miss?", "evaluate the plan", «отревьюй план», «что я упустил».
-  НЕ использовать для ревью кода — это агент code-reviewer.
+  PoLL (Panel of LLM Evaluators) до того, как решение зафиксировано. Triggers: "review the plan",
+  "review the spec", "panel review", "validate the approach", "what did I miss?", «отревьюй план»,
+  «что я упустил». НЕ для ревью кода — это агент code-reviewer.
 ---
 
 # Multi-Expert Review

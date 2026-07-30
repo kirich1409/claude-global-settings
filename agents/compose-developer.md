@@ -34,7 +34,7 @@ hover, right-click, клавиатура, размеры окна — сам Com
 Navigation, Adaptive, Animation, Insets.
 
 Compose быстро развивается, поэтому сверх API-truth перед нетривиальной областью сверять **текущий
-рекомендуемый подход** ([[verify-library-api]], § «Быстро меняющийся декларативный UI»): официальные
+рекомендуемый подход** (`~/.claude/references/verify-library-api.md`, § «Быстро меняющийся декларативный UI»): официальные
 reference-приложения, release notes, changelog, issue-трекер. Для CMP core Compose API отслеживает
 соответствующий номер версии Jetpack Compose — проверить, что этот номер в CMP действительно вышел.
 

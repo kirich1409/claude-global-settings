@@ -2,14 +2,11 @@
 name: acceptance
 argument-hint: "[slug] [--fix] [--levels L0,L1a,L2,L3,L4,L5] [--skip-levels …] [--reviewers …] [--base ref] [--max-rounds N]"
 description: >
-  Единственный гейт после реализации. Проверяет реализацию против её контракта верификации
-  (спецификация, тест-план или воспроизведение бага), прогоняя пирамиду L0–L5 тремя блоками:
-  механический, слои суждения, device-проверки, — и сводит всё в одну расписку. По умолчанию
-  ничего не меняет: правки включаются флагом `--fix`.
-  Triggers: "acceptance", "verify this", "test this", "verify against spec", "QA the
-  implementation", "run the test plan", "validate acceptance criteria", "verify the fix",
-  "confirm bug is gone", "code quality pass", "polish the code", "prepare for review",
-  «проверь это», «прогони приёмку», «баг ушёл?».
+  Единственный гейт после реализации: проверяет код против его контракта верификации
+  (спецификация, тест-план или воспроизведение бага), прогоняя пирамиду L0–L5 тремя блоками —
+  механический, слои суждения, device. По умолчанию ничего не меняет, правки включает `--fix`.
+  Triggers: "verify this", "test this", "QA the implementation", "run the test plan", "verify the
+  fix", "prepare for review", «проверь это», «прогони приёмку», «баг ушёл?».
 ---
 
 # Acceptance

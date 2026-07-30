@@ -2,14 +2,11 @@
 name: create-pr
 argument-hint: "[--draft | --refresh | --promote] [--release-notes \"…\"] [--skip-release-notes]"
 description: >
-  Ведёт pull request (GitHub) или merge request (GitLab) текущей ветки через его жизненный цикл.
-  Четыре режима: `--draft` создаёт или обновляет черновой PR в начале конвейера, `--refresh`
-  обновляет тело существующего PR не трогая статус, `--promote` обновляет тело и переводит
-  черновик в ready for review, без флага — создаёт новый PR со спросом draft или ready. Тело
-  собирает из доступных артефактов конвейера (research, план, тест-план, приёмка), а при их
-  отсутствии — из git log и диффа. Invoke when: "create PR", "open draft PR", "refresh PR
-  description", "promote to ready", "mark PR ready for review", "update the PR",
-  "switch the PR to ready", «открой PR», «обнови описание PR», «переведи PR в ready».
+  Ведёт PR (GitHub) или MR (GitLab) текущей ветки через жизненный цикл: `--draft` создаёт
+  черновик, `--refresh` обновляет тело не трогая статус, `--promote` переводит в ready, без флага
+  — спрашивает. Тело собирает из артефактов конвейера (research, план, тест-план, приёмка) либо из
+  git log и диффа. Triggers: "create PR", "open draft PR", "refresh PR description", "promote to
+  ready", «открой PR», «обнови описание PR».
 ---
 
 # Create PR
