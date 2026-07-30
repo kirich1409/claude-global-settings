@@ -6,12 +6,28 @@ Shared [Claude Code](https://claude.ai/claude-code) configuration synced across 
 
 - `settings.json` -- hooks, permissions, enabled plugins, marketplace sources
 - `CLAUDE.md` -- global instructions loaded every session
-- `rules/` -- modular rule files (orchestration, QA, external sources, style, git workflow, ...)
+- `rules/` -- rule files loaded into every session; keep them to the imperative core
+- `references/` -- detail loaded on demand only, never injected automatically (see below)
 - `hooks/` -- shell hooks for session automation and safety guards (private `rtk`/`mempal` hooks excluded)
 - `agents/` -- custom agent definitions
 - `skills/` -- custom skills (directories only, not symlinks)
 - `scripts/` -- helper scripts (`gh` toolkit, ...)
 - `setup.sh`, `statusline-command.sh`, `.pre-commit-config.yaml`, `.github/` -- bootstrap, status line, secret-scanning CI
+
+## Two-tier instructions
+
+`CLAUDE.md` and every `rules/*.md` without a `paths:` frontmatter are injected into the context of
+every session and every subagent, before the first message. `rules/` is walked recursively, so a
+subdirectory does not opt out. That budget is measured by `scripts/measure-context.sh`.
+
+`references/` is not loaded by anything. A rule keeps the imperative core -- what must happen, and
+when -- and points at `~/.claude/references/<name>.md` for the detail needed only at one specific
+moment (composing a verification level, adding a dependency, picking a model for a subagent). Read
+it with `Read` when the pointer fires; pass the path explicitly when delegating, since a subagent
+does not get it either.
+
+Inside a skill, a bare `references/foo.md` means that skill's own directory -- always write the
+global ones as `~/.claude/references/foo.md`.
 
 ## What stays local
 
