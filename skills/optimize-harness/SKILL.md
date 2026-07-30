@@ -9,7 +9,9 @@ description: >
   контексте или медленном старте — даже если слово «аудит» не прозвучало. Triggers: "optimize my
   harness", "audit my Claude config", "context is bloated", "too many rules", "trim CLAUDE.md",
   "too many permission prompts", «оптимизируй харнес», «разросся конфиг», «почисти ~/.claude»,
-  «настрой харнес под Opus 5». НЕ для: точечной правки settings.json (update-config), пополнения
+  «настрой харнес под Opus 5». Срабатывать и тогда, когда названа одна часть конфига — CLAUDE.md,
+  набор правил, агенты, — но просят разобрать, что из неё реально нужно, а что модель знает и так.
+  НЕ для: точечной правки settings.json (update-config), пополнения
   permission-правил (fewer-permission-prompts), одного нового правила или агента
   (claude-config-engineer).
 argument-hint: "[путь к харнесу] [--audit-only] [--axes бюджет,дубли,permissions,...]"
