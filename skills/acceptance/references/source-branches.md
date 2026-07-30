@@ -43,7 +43,7 @@ selected branch as `test_plan_source` in the receipt.
 **Condition:** `swarm-report/<slug>-test-plan.md` exists.
 
 Read the receipt's YAML frontmatter and load `permanent_path`. Interpret `review_verdict`
-per the canonical definition in `generate-test-plan/SKILL.md` §Receipt: treat
+per the canonical definition in `write-plan/references/test-plan-receipt.md`: treat
 `PASS` / `WARN` / `skipped` as proceed; `FAIL` and `pending` as blockers that escalate
 back to the caller, recommending revision via `multiexpert-review` before acceptance runs
 again. Pass the **permanent file** to `manual-tester` as the primary test-plan source.
@@ -57,7 +57,7 @@ on disk without a matching receipt.
 
 Acceptance owns the mount-receipt when invoked without an upstream receipt. Emit a
 mount-receipt at `swarm-report/<slug>-test-plan.md` following the canonical format in
-`generate-test-plan/SKILL.md` §Receipt. Apply the mount overrides: `status: Mounted`,
+`write-plan/references/test-plan-receipt.md`. Apply the mount overrides: `status: Mounted`,
 `review_verdict: skipped`, `source_spec: existing (pre-orchestration)`. Derive
 `phase_coverage` from the permanent file's phase headings; omit the field if coverage
 cannot be determined reliably. Pass the permanent file to `manual-tester`.

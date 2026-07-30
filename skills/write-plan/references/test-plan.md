@@ -1,24 +1,15 @@
----
-name: generate-test-plan
-description: >-
-  Generate a structured test plan when the user asks to "create a test plan", "write test cases",
-  "generate QA scenarios", "prepare a testing checklist", "identify what to test", "find edge cases",
-  "plan testing coverage", "document test scenarios", "create a QA handoff document", "what should
-  I test?", "what are the edge cases?", or "how would you test this?". Also use when the user
-  describes requirements or acceptance criteria and asks how to verify them, or wants to plan testing
-  before actually running tests. Produces a structured, prioritized test plan document saved to
-  docs/testplans/ with risk analysis, coverage matrix, automation candidates, and proper TC format.
-  Do NOT trigger when: the user wants to execute tests on a running app (use acceptance or
-  the manual-tester agent), the user wants automated unit/integration tests in code (out of scope),
-  or the user wants to run an existing test plan (use acceptance). Never launches an app, device,
-  or browser — only produces a document.
----
+Referenced from: `~/.claude/skills/write-plan/SKILL.md` (§Phase 2.5 — Optional test plan).
 
-# Generate Test Plan
+# Test plan — method and format
 
-Analyze a feature from its specification, design, or implementation and produce a structured,
-prioritized test plan as a markdown document. No tests are executed — the output is a plan ready
-for a human QA engineer or the `manual-tester` agent to pick up later.
+Analyze the feature from its specification, design, or implementation and produce a structured,
+prioritized test plan as a markdown document. Nothing is executed here — the output is a document
+for the `/acceptance` device block, the `manual-tester` agent, or a human QA engineer to pick up
+later.
+
+This ran as a standalone `generate-test-plan` skill until 2026-07-30. It is now a phase of
+`write-plan`: the test plan is decided together with the implementation plan that it verifies,
+not in a separate ceremony.
 
 ## Output
 
@@ -28,36 +19,19 @@ Save every test plan to the repository:
 docs/testplans/<slug>-test-plan.md
 ```
 
-Create the `docs/testplans/` directory if it doesn't exist. The slug is the canonical
-filename anchor — `acceptance` mounts by exact slug match, so the filename must be
-slug-based regardless of invocation mode.
+Create the `docs/testplans/` directory if it doesn't exist. **The slug is the plan's slug**, the
+same one that resolves `docs/plans/<slug>/` — never derive a second one. `/acceptance` mounts the
+test plan by exact slug match, so a divergent slug silently breaks the hand-off.
 
-Slug resolution rules (apply in order):
+### Receipt
 
-1. **Caller-provided** — when a `slug` argument is passed explicitly, use it as-is.
-2. **Standalone invocation, slug provided inline** — the user may supply a slug
-   directly (e.g. `"slug: login-flow"`). Use it as-is.
-3. **Standalone invocation, no slug** — derive one from the feature name with the
-   stable kebab-case convention used elsewhere: lowercase the name, replace runs
-   of spaces or punctuation with `-`, trim leading/trailing `-`.
+Also emit a receipt at `swarm-report/<slug>-test-plan.md` so `multiexpert-review` and
+`/acceptance` can mount the artifact via receipt-based gating. The permanent file under
+`docs/testplans/` stays the source of truth; the receipt is metadata plus a pointer.
 
-Examples of derivation (rule 3): `"User authentication"` → `user-authentication`,
-`"Cart & checkout"` → `cart-checkout`, `"Token refresh (auth)"` → `token-refresh-auth`.
-The resulting filename is then `docs/testplans/<slug>-test-plan.md` (for example,
-`docs/testplans/user-authentication-test-plan.md`).
-
-### Receipt (when invoked with a slug)
-
-When invoked with a `slug` argument, also emit a receipt at
-`swarm-report/<slug>-test-plan.md` so `multiexpert-review` and `acceptance` can mount
-the artifact via receipt-based gating. The permanent file remains the source of truth;
-the receipt is metadata + pointer. Standalone invocations (no slug passed) skip the
-receipt entirely and write only the canonical `docs/testplans/<slug>-test-plan.md` file.
-
-See [`references/receipt-format.md`](references/receipt-format.md) for the full YAML schema, field conventions
-(`status`, `review_verdict`, `review_warnings` / `review_blockers`, `phase_coverage`,
-`platform`, `created` / `updated`), and the standalone-without-slug backward-compatibility
-rules.
+See [`test-plan-receipt.md`](test-plan-receipt.md) for the full YAML schema, the field conventions
+(`status`, `review_verdict`, `review_warnings` / `review_blockers`, `phase_coverage`, `platform`,
+`created` / `updated`), and how pre-existing files are mounted.
 
 ## Input Discovery
 
@@ -94,14 +68,14 @@ be grouped by phase, split the `## Test Cases` section into `### Phase N (T-i..T
 subsections (still one permanent file per feature). The receipt's `phase_coverage` then lists
 the phase labels present.
 
-See [`references/format-templates.md`](references/format-templates.md) for the full standard and lightweight templates (verbatim
+See [`test-plan-templates.md`](test-plan-templates.md) for the full standard and lightweight templates (verbatim
 markdown), the phase-segmentation worked example, and the rules for when each variant applies.
 
 ## Field Definitions
 
 ### Type
 
-Every test case declares an explicit `Type` plus a one-line `Type rationale` (see `references/format-templates.md`). Downstream consumers (the `/acceptance` coverage audit, `multiexpert-review` test-plan profile, engineer agents writing the actual tests) read this field — it is not optional.
+Every test case declares an explicit `Type` plus a one-line `Type rationale` (see `test-plan-templates.md`). Downstream consumers (the `/acceptance` coverage audit, `multiexpert-review` test-plan profile, engineer agents writing the actual tests) read this field — it is not optional.
 
 | Type | Scope | Pick when |
 |------|-------|-----------|
@@ -154,7 +128,7 @@ Every plan ends with a `## Non-functional / Instrumentation` section that declar
 
 `N/A: <reason>` (one line) is allowed for internal / developer-only tooling and for pure refactors with no change to observable behavior. Never delete the heading.
 
-The section covers five subsections — Log events / Metrics / Traces / Alerts / Dashboards (full template in [`references/format-templates.md`](references/format-templates.md#non-functional--instrumentation)). The skill reads naming and stack conventions (OpenTelemetry, Prometheus, StatsD, vendor-specific) from the project's `CLAUDE.md` and reuses them; it does not prescribe a stack. If the project has no convention, the skill asks one question and records the answer.
+The section covers five subsections — Log events / Metrics / Traces / Alerts / Dashboards (full template in [`test-plan-templates.md`](test-plan-templates.md#non-functional--instrumentation)). The skill reads naming and stack conventions (OpenTelemetry, Prometheus, StatsD, vendor-specific) from the project's `CLAUDE.md` and reuses them; it does not prescribe a stack. If the project has no convention, the skill asks one question and records the answer.
 
 Downstream stages consume this section:
 

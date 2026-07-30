@@ -1,6 +1,7 @@
 ---
 name: write-plan
-description: "Produce a committed implementation plan document — the autonomous replacement for built-in plan mode. Investigates the codebase read-only, writes a persistent, reviewable plan (docs/plans/<slug>/plan.md + tasks.md) instead of an ephemeral approval prompt, then runs a MANDATORY multiexpert-review loop over the plan and revises until it passes. No human approval pause by default, so an agent can plan and execute end-to-end; opt into a checkpoint with --interactive. Use when: \"plan this\", \"make a plan\", \"how do I build this\", \"plan the implementation\", \"break this into tasks\", \"plan before coding\" for an ALREADY-DECIDED change. Prefer this over built-in plan mode whenever the plan should be saved, reviewed by experts, or executed autonomously. Do NOT use for: deciding WHAT to build or comparing options (use research), writing the feature contract / acceptance criteria (use write-spec), or trivial single-line edits (just do them)."
+argument-hint: "[--test-plan | --no-test-plan] [--interactive] [--quick] [--from-spec path]"
+description: "Produce a committed implementation plan document — the autonomous replacement for built-in plan mode. Investigates the codebase read-only, writes a persistent, reviewable plan (docs/plans/<slug>/plan.md + tasks.md) instead of an ephemeral approval prompt, optionally adds a structured test plan under docs/testplans/, then runs a MANDATORY multiexpert-review loop and revises until it passes. No human approval pause by default, so an agent can plan and execute end-to-end; opt into a checkpoint with --interactive. Use when: \"plan this\", \"make a plan\", \"how do I build this\", \"plan the implementation\", \"break this into tasks\", \"plan before coding\" for an ALREADY-DECIDED change — and for test-plan requests, which are now a phase of this skill: \"write a test plan\", \"write test cases\", \"what should I test\", \"what are the edge cases\", \"plan testing coverage\". Prefer this over built-in plan mode whenever the plan should be saved, reviewed by experts, or executed autonomously. Do NOT use for: deciding WHAT to build or comparing options (use research), writing the feature contract / acceptance criteria (use write-spec), running tests against a live app (use /acceptance), or trivial single-line edits (just do them)."
 ---
 
 # Plan
@@ -47,6 +48,7 @@ single rule governs every later phase — phases below reference it rather than 
 | `--interactive` | Add ONE human confirmation checkpoint after the review passes (Phase 4.2). The explicit, opt-in replacement for the `ExitPlanMode` gate. |
 | `--quick` | Trivial, well-bounded change: lighter investigation, single-reviewer review (`allow_single_reviewer`). Review is never skipped entirely — a plan without review is the failure mode this skill exists to prevent. |
 | `--from-spec <path>` | Anchor the plan to a specific spec instead of auto-discovering one. |
+| `--test-plan` / `--no-test-plan` | Force or suppress Phase 2.5. Neither given → the agent decides by the criteria in that phase and states which way it went. |
 
 ---
 
@@ -76,7 +78,8 @@ acceptance all resolve the same `docs/plans/<slug>/` path.
 
 ### 0.2 Artifacts
 
-Three committed files under `docs/plans/<slug>/` (`plan.md`, `tasks.md`, `progress.md`) plus the
+Three committed files under `docs/plans/<slug>/` (`plan.md`, `tasks.md`, `progress.md`), plus
+`docs/testplans/<slug>-test-plan.md` and its receipt when Phase 2.5 runs, plus the
 gitignored operational `./swarm-report/plan-<slug>-state.md` (deleted after). `docs/plans/` is
 deliberately alongside `docs/specs/` (spec = *what*, plan = *how*); plans live in git because their
 value is being reviewable in the PR and resumable later. See
@@ -137,6 +140,39 @@ fill every placeholder. Shape:
 
 The plan must reference, not restate, the spec's acceptance criteria (cite `AC-N` ids); `tasks.md`
 acceptance is the *implementation-level* check that each AC is met.
+
+---
+
+## Phase 2.5: Optional test plan
+
+A test plan is a separate artifact from the implementation plan: `plan.md` says how the change is
+built, the test plan enumerates the executable cases that prove it behaves. It belongs here
+because the two are decided together — a test plan written apart from the plan it verifies drifts
+from it immediately.
+
+**Whether to write one.** `--test-plan` and `--no-test-plan` decide it outright. Otherwise judge
+it, and say which way you went and why in the hand-off:
+
+- **Write it** when the change has a UI surface; when the spec carries `acceptance_criteria_ids`
+  that need case-level mapping; when the device block (L3–L5) will run and `manual-tester` needs a
+  scenario to execute; when the feature has phases or enough branches that per-task acceptance
+  cannot enumerate them.
+- **Skip it** when `tasks.md` acceptance already is the executable case list — a narrow non-UI
+  change, a refactor with behavior held 1:1, a single-module fix. Duplicating those rows into a
+  second document only creates two places to update.
+- **Bug fix** — skip. The reproduction in `swarm-report/<slug>-debug.md` is the case, and the
+  regression test is written before the fix ([[task-types]]).
+
+**How to write one:** method, slug rule, format variants, field definitions, and the receipt
+schema live in [`references/test-plan.md`](references/test-plan.md) with its two companions
+([`test-plan-templates.md`](references/test-plan-templates.md),
+[`test-plan-receipt.md`](references/test-plan-receipt.md)). Output is
+`docs/testplans/<slug>-test-plan.md` plus the receipt at `swarm-report/<slug>-test-plan.md`,
+under **the plan's slug** — a divergent slug silently breaks the `/acceptance` mount.
+
+The plan's **Verification & Sources** section then names the test plan as a source of truth, and
+Phase 3 reviews both artifacts: the `test-plan` profile of `multiexpert-review` applies to the
+test plan, the `implementation-plan` profile to the plan.
 
 ---
 

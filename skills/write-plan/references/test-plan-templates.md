@@ -1,4 +1,4 @@
-Referenced from: `~/.claude/skills/generate-test-plan/SKILL.md` (§Test Plan Format).
+Referenced from: `~/.claude/skills/write-plan/references/test-plan.md` (§Test Plan Format).
 
 # Test Plan Format Templates
 

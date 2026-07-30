@@ -219,7 +219,7 @@ Profiles may override or mark actions as `N/A` for sources they don't support.
 
 ### Receipt integration
 
-If `profile.receipt` is present, resolve `receipt.path_template` by substituting `<slug>`, then write each `receipt.fields_to_update` field with the derived value (e.g., `review_verdict: WARN`, `review_warnings: [...]`, `review_blockers: [...]`). For `swarm-report/...` paths — create if missing (respects generate-test-plan's receipt contract). If `profile.receipt` is absent, skip receipt writing.
+If `profile.receipt` is present, resolve `receipt.path_template` by substituting `<slug>`, then write each `receipt.fields_to_update` field with the derived value (e.g., `review_verdict: WARN`, `review_warnings: [...]`, `review_blockers: [...]`). For `swarm-report/...` paths — create if missing (respects the test-plan receipt contract in `write-plan/references/test-plan-receipt.md`). If `profile.receipt` is absent, skip receipt writing.
 
 ### Verdict handling
 

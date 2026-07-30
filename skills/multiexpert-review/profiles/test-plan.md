@@ -51,7 +51,7 @@ Every reviewer must evaluate the test-plan against these seven items and report 
 - **(c) Edge cases present** — at least one TC is explicitly tagged as an edge case (boundary value, empty/null, maximum size, timezone/locale boundaries, concurrency, resource exhaustion, etc.). If the plan has no edge-case TC at all, this item is violated.
 - **(d) Non-functional scenarios where applicable** — if the linked spec mentions any of {SLA, latency budget, throughput, a11y, auth, encryption, PII, resource limits, rate limits}, there must be ≥1 non-functional TC covering that concern (performance, accessibility, security). Applicability is driven by spec content — if the spec mentions none of these triggers, this item is trivially satisfied.
 - **(e) Priority-risk alignment** — priorities (P0–P3) are consistent with risk assessment: any high-risk flow (data loss, auth, payment, destructive actions) is at P0–P1; any user-facing critical path is at P0–P1; trivial/informational cases are at P2–P3. Mismatch between stated risk and assigned priority violates this item.
-- **(f) Type field present and valid** — every Test Case declares an explicit `Type` field with a value from {`unit`, `integration`, `ui-instrumentation`, `ui-scenario`, `screenshot`, `e2e`} and a non-empty one-line `Type rationale`. A missing `Type`, an unknown value, or an empty rationale violates this item. The selection heuristic in `generate-test-plan/SKILL.md#type` is the reference; reviewers do not re-classify TCs, only check that the field exists and the rationale is plausible.
+- **(f) Type field present and valid** — every Test Case declares an explicit `Type` field with a value from {`unit`, `integration`, `ui-instrumentation`, `ui-scenario`, `screenshot`, `e2e`} and a non-empty one-line `Type rationale`. A missing `Type`, an unknown value, or an empty rationale violates this item. The selection heuristic in `write-plan/references/test-plan.md` §Type is the reference; reviewers do not re-classify TCs, only check that the field exists and the rationale is plausible.
 - **(g) Instrumentation declared** — when the spec / task is `user-facing` or `prod-bound`, or the feature touches an observability hot-path (network calls, payments, background jobs, auth, data migrations), the test plan ends with a `## Non-functional / Instrumentation` section that lists Log events / Metrics / Traces / Alerts / Dashboards (or sub-headings filled with concrete declarations). For internal / dev-only / pure-refactor work, an explicit `N/A: <reason>` (one line) is acceptable. A missing section, or one labelled simply `TBD` / `?` / blank, violates this item.
 
 ## Verdict policy
@@ -90,7 +90,7 @@ After Step 4 synthesis, the engine updates `swarm-report/<slug>-test-plan.md` (t
 - On WARN: `review_warnings:` list enumerating violated items from `(d)`, `(e)`, `(g)` with one-line rationale each
 - On FAIL: `review_blockers:` list enumerating violated items from `(a)`, `(b)`, `(c)`, `(f)` with the blocking finding and suggested fix
 
-The receipt format is owned by the `generate-test-plan` skill — this profile only writes the three fields listed in `receipt.fields_to_update`.
+The receipt format is owned by `write-plan/references/test-plan-receipt.md` — this profile only writes the three fields listed in `receipt.fields_to_update`.
 
 ## Revise-loop (FAIL only)
 

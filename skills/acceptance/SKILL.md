@@ -104,7 +104,6 @@ Canonical values; `create-pr` and every downstream consumer read them from the r
   once in `~/.claude/agents/code-reviewer.md` and inherited everywhere. **BLOCK** =
   critical/major ≥ 75. **WARN** = minor ≥ 50, reported only. Below threshold → dropped.
 - **Aggregated Status** — `VERIFIED | FAILED | PARTIAL`.
-
 - **Pyramid levels** — `L0` build, `L1a` static analysis, `L1b` expert agent review, `L2`
   isolated tests, `L3` integration, `L4` E2E, `L5` manual verification. Defined once in
   `~/.claude/rules/qa-and-testing.md`; `--levels` and `--skip-levels` address them by these names.
@@ -156,10 +155,10 @@ Fires only on `test_plan_source: absent`.
 
 | Situation | Proposal |
 |---|---|
-| No spec, no test plan (feature) | `/write-spec` (requirements) or `/generate-test-plan` (tests only), then re-run |
-| Spec without AC, no test plan, UI project | `/generate-test-plan` for executable TCs, or add AC to the spec |
+| No spec, no test plan (feature) | `/write-spec` for the requirements, then re-run |
+| Spec without AC, no test plan, UI project | Add AC to the spec, or `/write-plan --test-plan` for executable TCs |
 | Bugfix without reproduction notes | Capture root cause + reproduction in `swarm-report/<slug>-debug.md`, then re-run |
-| Only `design.figma`, no test plan, UI project | Design-only review via `ux-expert`; for functional acceptance also `/generate-test-plan` |
+| Only `design.figma`, no test plan, UI project | Design-only review via `ux-expert`; functional acceptance needs AC in the spec first |
 
 Options: create the missing source via the named upstream skill and re-run, or abort without a
 receipt. Exploratory QA without a scenario is `manual-tester` called directly — never offered

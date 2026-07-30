@@ -9,7 +9,7 @@ slug: {slug}
 date: {YYYY-MM-DD}
 status: draft
 # Optional fields — leave blank when not applicable. Consumed by `acceptance`
-# (choreography) and by `generate-test-plan` (platform-aware coverage).
+# (choreography) and by the `write-plan` test-plan phase (platform-aware coverage).
 platform: []                     # Canonical values: [android], [ios], [web], [desktop], [backend-jvm], [backend-node], [cli], [library], [generic]. May be multi-value for cross-platform features.
 surfaces: []                     # e.g. [ui], [api], [cli], [background-job]. Drives which acceptance checks run.
 risk_areas: []                   # e.g. [auth], [payment], [pii], [data-migration], [perf-critical]. Each entry triggers a conditional expert in acceptance.

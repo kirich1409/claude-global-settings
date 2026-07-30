@@ -1,4 +1,4 @@
-Referenced from: `~/.claude/skills/generate-test-plan/SKILL.md` (§Receipt).
+Referenced from: `~/.claude/skills/write-plan/references/test-plan.md` (§Receipt).
 
 # Test Plan Receipt Format
 
@@ -59,21 +59,12 @@ updated: YYYY-MM-DD
 - Relative path in the markdown link assumes the conventional `swarm-report/` ↔ `docs/`
   sibling layout at the repo root.
 
-## Standalone invocation without slug
+## Pre-existing files
 
-When a user invokes this skill directly (e.g. "create a test plan for X") without an
-explicit `slug`, the receipt is **not** produced. The permanent file is still saved
-under the canonical slug-based filename:
+Test plans authored before this convention, and those written when `generate-test-plan` still
+ran standalone, are **not** auto-migrated: they stay readable, but mount logic matches only the
+exact `docs/testplans/<slug>-test-plan.md` path. A plan whose filename does not carry the slug
+is mounted by `/acceptance` only after it is renamed.
 
-- Permanent file generated at `docs/testplans/<slug>-test-plan.md`, where `<slug>` is
-  either provided inline or derived from the feature name per the Slug resolution rules
-  in SKILL.md. If the plan may later be consumed by `acceptance` (Branch 2 mount), pick
-  the eventual slug at creation time so the file is deterministically mountable without
-  renaming.
-- No `swarm-report/<slug>-test-plan.md` receipt is written.
-- No `phase_coverage` or receipt metadata tracked elsewhere.
-
-Standalone callers continue to work: the slug-based filename is the single canonical
-artifact. Pre-existing `docs/testplans/*-test-plan.md` files authored before this
-convention are not auto-migrated — they remain readable by humans, but mount logic
-matches only on the exact `<slug>-test-plan.md` path.
+A permanent file without a receipt is the `test_plan_source: mounted` branch, not an error —
+`/acceptance` writes the mount-receipt itself.

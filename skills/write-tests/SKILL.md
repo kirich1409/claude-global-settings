@@ -1,6 +1,6 @@
 ---
 name: write-tests
-description: "Write retroactive tests for existing code — classes, modules, or directories lacking coverage — and write a focused regression test for a specific bug fix. Discovers test infrastructure, plans test cases, delegates generation to platform engineer agents (kotlin-engineer, compose-developer, swift-engineer, swiftui-developer), verifies tests pass. Use when: \"write tests for\", \"add tests to\", \"test this class\", \"increase coverage\", \"add unit tests\", \"this code has no tests\", \"cover with tests\", \"retroactive tests\", \"add regression test for this fix\", \"write a test that catches this bug\", \"regression test after fixing\", \"test to verify the fix\". Do NOT use when: user wants a test plan document (use generate-test-plan), run tests on live app (use acceptance), exploratory QA (call manual-tester agent directly), or tests are part of a new feature (engineer agent handles inline)."
+description: "Write retroactive tests for existing code — classes, modules, or directories lacking coverage — and write a focused regression test for a specific bug fix. Discovers test infrastructure, plans test cases, delegates generation to platform engineer agents (kotlin-engineer, compose-developer, swift-engineer, swiftui-developer), verifies tests pass. Use when: \"write tests for\", \"add tests to\", \"test this class\", \"increase coverage\", \"add unit tests\", \"this code has no tests\", \"cover with tests\", \"retroactive tests\", \"add regression test for this fix\", \"write a test that catches this bug\", \"regression test after fixing\", \"test to verify the fix\". Do NOT use when: user wants a test plan document (use /write-plan --test-plan), run tests on live app (use acceptance), exploratory QA (call manual-tester agent directly), or tests are part of a new feature (engineer agent handles inline)."
 ---
 
 # Write Tests
@@ -335,7 +335,7 @@ Reference this file in the PR body.
 
 ## Constraints
 
-- **Test plans are optional input** — this skill consumes test plans from
-  `generate-test-plan` when they exist, but works independently without one.
+- **Test plans are optional input** — this skill consumes the test plans `write-plan` writes
+  under `docs/testplans/` when they exist, but works independently without one.
 - **No swarm-report artifact for tests** — the test files themselves are the artifact.
   Only create `swarm-report/<slug>-test-findings.md` if production bugs are found.

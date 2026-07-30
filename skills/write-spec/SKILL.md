@@ -149,7 +149,7 @@ Write the spec as if the reader is an implementing agent with zero additional co
 Nothing can be left to inference. Every requirement is verifiable. Every decision is
 explicit with its rationale.
 
-Follow the canonical Markdown spec template — YAML frontmatter with `type`/`slug`/`date`/`status` plus optional `platform`/`surfaces`/`risk_areas`/`non_functional`/`acceptance_criteria_ids`/`design` fields that drive downstream `acceptance` and `generate-test-plan`, followed by body sections: Context and Motivation, Acceptance Criteria (stable `AC-N` ids), Prerequisites, Affected Modules and Files, Technical Approach, Technical Constraints, Decisions Made, Out of Scope, Open Questions, and Future Phases.
+Follow the canonical Markdown spec template — YAML frontmatter with `type`/`slug`/`date`/`status` plus optional `platform`/`surfaces`/`risk_areas`/`non_functional`/`acceptance_criteria_ids`/`design` fields that drive downstream `acceptance` and the `write-plan` test-plan phase, followed by body sections: Context and Motivation, Acceptance Criteria (stable `AC-N` ids), Prerequisites, Affected Modules and Files, Technical Approach, Technical Constraints, Decisions Made, Out of Scope, Open Questions, and Future Phases.
 
 See [`references/spec-template.md`](references/spec-template.md) for the full template (frontmatter fields, section headers, table shapes, and inline instructions) — copy it verbatim into the draft and fill in each placeholder.
 
@@ -290,7 +290,7 @@ Once the user is satisfied and no issues remain, update spec status from `draft`
 
 Save the approved spec to `docs/specs/YYYY-MM-DD-<slug>.md`, flip frontmatter `status`
 from `draft` to `approved`, retire the state file, confirm in one sentence with a
-suggested next step (`/generate-test-plan`, plan-mode implementation, or
+suggested next step (`/write-plan`, which also decides whether the change needs a test plan, or
 `/multiexpert-review`). Do not auto-invoke downstream skills — the user decides.
 
 See [`references/output-layout.md`](references/output-layout.md) for path conventions,

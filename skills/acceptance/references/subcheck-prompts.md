@@ -62,8 +62,8 @@ Prompt contents:
 1. **Spec** — the spec file path.
 2. **Diff / implement receipt** — evidence for each AC.
 3. **Test plan** (if any) — TC list mapped to AC via each test case's `Source:` field
-   (e.g. `Source: AC-1` or `Source: AC-2, AC-3`). This is the canonical mapping used by
-   `generate-test-plan`; do not invent a new `AC-ref:` field.
+   (e.g. `Source: AC-1` or `Source: AC-2, AC-3`). This is the canonical mapping defined in
+   `write-plan/references/test-plan.md`; do not invent a new `AC-ref:` field.
 4. **manual-tester output** (if running) — pointer to
    `swarm-report/<slug>-acceptance-manual.md`.
 5. **Output path** — `swarm-report/<slug>-acceptance-ac-coverage.md`.
