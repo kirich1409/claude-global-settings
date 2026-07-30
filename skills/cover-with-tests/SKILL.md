@@ -1,212 +1,211 @@
 ---
 name: cover-with-tests
-argument-hint: "<area> [--kinds unit,integration,ui-instrumentation,ui-scenario,screenshot,e2e] [--level L2] [--source path] [--regression] [--characterize]"
-description: "Cover an area of a project with automated checks. Takes an area — a path, module, directory, symbol, layer, feature, or the current diff — investigates what it does and what already proves it, decides which kinds of checks at which pyramid level are needed, derives the framework from the project, delegates the writing to the engineer agent that owns the surface, and verifies the result. Stack-agnostic: the area, the kinds and the level are the vocabulary; what realizes them comes from the project. Also runs a red-green regression mode for a specific bug fix, and a characterization mode that pins current behavior when no specification exists. This is the skill that fills the `test-authoring-role` other skills hand work to — the migrate-code coverage-gap report and the /acceptance coverage audit. Use when: \"write tests for\", \"cover this with tests\", \"add tests to\", \"this module has no tests\", \"increase coverage\", \"characterize this legacy class\", \"add a regression test for this bug\", \"make this code verifiable\". Do NOT use for: a test plan document (use /write-plan --test-plan), running checks against a live app (use /acceptance), exploratory QA (call manual-tester directly), or tests that are part of a feature being built (the engineer agent writes those inline)."
+argument-hint: "<область> [--kinds unit,integration,ui-instrumentation,ui-scenario,screenshot,e2e] [--level L2] [--source path] [--regression] [--characterize]"
+description: "Покрывает область проекта автоматическими проверками. Принимает область — путь, модуль, каталог, символ, слой, фичу или текущий дифф, — разбирается, что она делает и что её уже доказывает, решает, какие виды проверок и на каком уровне пирамиды нужны, выводит фреймворк из проекта, поручает написание инженерному агенту, владеющему поверхностью, и проверяет результат. Не привязан к стеку: область, виды и уровень — это словарь, а чем они реализованы, берётся из проекта. Плюс режим red-green для регрессии на конкретный баг и режим характеризации, фиксирующий текущее поведение, когда спецификации нет. Это исполнитель роли `test-authoring-role`, которой передают работу другие скиллы — отчёт о пробеле покрытия из migrate-code и coverage-аудит из /acceptance. Use when: \"write tests for\", \"cover this with tests\", \"add tests to\", \"this module has no tests\", \"increase coverage\", \"characterize this legacy class\", \"add a regression test for this bug\", «покрой тестами», «здесь нет тестов», «сделай этот код проверяемым». НЕ использовать для: документа тест-плана (/write-plan --test-plan), прогона проверок на живом приложении (/acceptance), исследовательского QA (напрямую manual-tester), тестов внутри строящейся фичи (их пишет инженерный агент по ходу)."
 ---
 
 # Cover With Tests
 
-Given an **area** of a project, produce the automated checks that make that area verifiable.
+Получает **область** проекта и делает её проверяемой автоматическими проверками.
 
-Stack-agnostic by construction. The area, the **kinds** of check, and the **pyramid level** are the
-vocabulary; what realizes them — framework, assertion library, doubles, runner — comes from the
-project, discovered, never assumed. A stack this skill has never seen is a discovery problem, not an
-out-of-scope one.
+Не привязан к стеку по построению. Область, **виды** проверок и **уровень пирамиды** — это словарь; а
+чем они реализованы — фреймворк, библиотека утверждений, тестовые двойники, раннер — берётся из
+проекта, обнаруживается и никогда не предполагается. Незнакомый стек здесь задача обнаружения, а не
+повод объявить его вне области.
 
-This skill **orchestrates**: it investigates, decides, delegates the writing, and verifies. It fills
-the `test-authoring-role` that other skills hand work to — the coverage-gap report from
-`migrate-code` and the coverage audit inside `/acceptance` both land here, so the
-delegate-write-verify cycle has exactly one owner.
+Скилл **оркестрирует**: разбирается, решает, поручает написание и проверяет. Он исполняет роль
+`test-authoring-role`, которой передают работу другие: отчёт о пробеле покрытия из `migrate-code` и
+coverage-аудит внутри `/acceptance` приходят сюда, поэтому у цикла «разобраться → решить → поручить →
+проверить» ровно один владелец.
 
-| File | Covers |
+| Файл | Содержит |
 |---|---|
-| [`references/test-infrastructure-discovery.md`](references/test-infrastructure-discovery.md) | Phase 4 detection tables per ecosystem and the Test Infrastructure Summary template |
-| [`references/agent-prompts.md`](references/agent-prompts.md) | Phase 5 delegation prompt templates |
+| [`references/test-infrastructure-discovery.md`](references/test-infrastructure-discovery.md) | Таблицы обнаружения по экосистемам для фазы 4 и шаблон Test Infrastructure Summary |
+| [`references/agent-prompts.md`](references/agent-prompts.md) | Шаблоны промптов делегирования для фазы 5 |
 
-Adjacent ownership, not restated here: the kind-selection heuristic and the `Type` vocabulary live
-in `write-plan/references/test-plan.md` §Type; pyramid levels in `~/.claude/rules/qa-and-testing.md`;
-the seam trap and the golden-master semantics in `migrate-code/references/safety-net.md`.
+Соседнее владение, здесь не повторяется: эвристика выбора вида и словарь `Type` живут в
+`write-plan/references/test-plan.md` §Type; уровни пирамиды — в `~/.claude/rules/qa-and-testing.md`;
+seam-ловушка и семантика golden master — в `migrate-code/references/safety-net.md`.
 
-**Author fixes broken tests** — `~/.claude/rules/qa-and-testing.md`. Skipping or ignoring a test
-without a tracked follow-up in the annotation itself is not allowed.
+**Автор чинит сломанные тесты** — `~/.claude/rules/qa-and-testing.md`. Отключить тест без ссылки на
+отслеживаемую задачу в самой аннотации отключения нельзя.
 
 ---
 
-## Inputs
+## Входные данные
 
-| Argument | Effect |
+| Аргумент | Действие |
 |---|---|
-| `<area>` | What to cover: a file path, directory, module, glob, symbol, layer, feature name, or `--diff` for the current change. A vague reference ("the auth module") is resolved via the code index, then `Grep`/`Glob`; still ambiguous → one question. |
-| `--kinds <list>` | Restrict to these kinds: `unit`, `integration`, `ui-instrumentation`, `ui-scenario`, `screenshot`, `e2e`. Default: chosen per behavior in Phase 3. A stack may add its own kind (a DI-graph verification, a schema check) — name it explicitly in the report. |
-| `--level L<n>` | Minimum pyramid level the result must reach. Maps to `judge_level` in a coverage-gap report. |
-| `--source <path>` | The source of truth: a spec, a test plan, `swarm-report/<slug>-debug.md`, or a baseline. |
-| `--from-report <path>` | A coverage-gap handoff report (`target`, `baseline`, `risk_rank`, `coupling`, `judge_level`, `test_type` — schema in `migrate-code/references/safety-net.md`). An accelerator, never a precondition: "characterize this class" with no report is a valid request. |
-| `--regression` | Red-green mode for one specific bug: the result is a single check that fails on the unfixed code and passes with the fix. |
-| `--characterize` | No specification exists — pin current behavior as a golden master. |
+| `<область>` | Что покрывать: путь к файлу, каталог, модуль, glob, символ, слой, имя фичи либо `--diff` для текущего изменения. Расплывчатую ссылку («модуль авторизации») разрешать через индекс кода, затем `Grep`/`Glob`; осталась неоднозначность — один вопрос. |
+| `--kinds <список>` | Ограничить видами: `unit`, `integration`, `ui-instrumentation`, `ui-scenario`, `screenshot`, `e2e`. По умолчанию вид выбирается на фазе 3 по поведению. Стек может добавить свой вид (проверка DI-графа, валидация схемы) — назвать его явно в отчёте. |
+| `--level L<n>` | Минимальный уровень пирамиды, которого обязан достичь результат. Соответствует полю `judge_level` в отчёте о пробеле покрытия. |
+| `--source <path>` | Источник истины: спецификация, тест-план, `swarm-report/<slug>-debug.md` либо baseline. |
+| `--from-report <path>` | Отчёт о пробеле покрытия (`target`, `baseline`, `risk_rank`, `coupling`, `judge_level`, `test_type` — схема в `migrate-code/references/safety-net.md`). Ускоритель, а не предусловие: «охарактеризуй этот класс» без всякого отчёта — валидный запрос. |
+| `--regression` | Режим red-green на один конкретный баг: результат — одна проверка, которая падает на неисправленном коде и проходит с фиксом. |
+| `--characterize` | Спецификации не существует — зафиксировать текущее поведение как golden master. |
 
 ---
 
-## Phase 1: Understand the area
+## Фаза 1: разобраться в области
 
-Investigate before writing anything. Produce a **coverage assessment** with five outputs:
+Исследовать до того, как что-то писать. Выдать **оценку покрытия** из пяти выводов:
 
-1. **What the area does** — entry points, public surface, observable effects (returned values,
-   persisted state, emitted events, rendered output, network calls). Behavior that is not observable
-   from outside cannot be asserted; name it now rather than discovering it in Phase 6.
-2. **Boundaries** — what belongs to the area and what it collaborates with. Collaborators decide
-   which kinds are even possible.
-3. **What already proves it** — existing checks that reach this area, and how much of it they watch.
-4. **Coupling of that coverage** — `agnostic` or `coupled`: whether the existing checks are welded
-   to an implementation detail the area might change. Coupled coverage counts for less than its line
-   count suggests, and this is the number that decides whether existing tests survive a rewrite.
-5. **Seams and risk** — where a check can attach today, where it cannot, and a risk rank per
-   behavior so Phase 3 can spend effort where failure costs most.
+1. **Что область делает** — точки входа, публичная поверхность, наблюдаемые эффекты (возвращаемые
+   значения, сохранённое состояние, испущенные события, отрисованный результат, сетевые вызовы).
+   Поведение, ненаблюдаемое снаружи, утверждать нечем — назвать это сейчас, а не обнаружить на фазе 6.
+2. **Границы** — что принадлежит области, а с чем она взаимодействует. Соседи определяют, какие виды
+   вообще возможны.
+3. **Что её уже доказывает** — существующие проверки, достающие до этой области, и какую её долю они
+   реально видят.
+4. **Связанность этого покрытия** — `agnostic` или `coupled`: приварены ли существующие проверки к
+   детали реализации, которую область может сменить. Связанное покрытие стоит меньше, чем обещает его
+   объём в строках, и именно это число решает, переживут ли существующие тесты переписывание.
+5. **Seam'ы и риск** — где проверку можно прицепить сегодня, где нельзя, и ранг риска по каждому
+   поведению, чтобы фаза 3 тратила усилия там, где отказ дороже.
 
-**Going outside the area is expected, not a scope violation.** Making an area verifiable routinely
-requires a test harness, fixtures, fakes, a seam, or a sample application that hosts the surface
-where it can be driven. Name what must be built outside the area as part of the assessment; building
-it silently hides the real cost, and refusing to build it produces a plan that cannot run.
+**Выход за пределы области ожидаем и нарушением scope не является.** Сделать область проверяемой
+регулярно требует тестового harness, фикстур, фейков, seam'а или sample-приложения, где поверхность
+можно подёргать. То, что придётся построить за пределами области, назвать частью оценки: построить
+молча — спрятать реальную стоимость, отказаться строить — выдать план, который не исполняется.
 
-`--regression` narrows this phase to the one reported behavior: no coverage sweep, no ranking.
+`--regression` сужает эту фазу до одного заявленного поведения: без обхода покрытия и без ранжирования.
 
 ---
 
-## Phase 2: Establish the source of truth
+## Фаза 2: установить источник истины
 
-A check encodes a claim about correct behavior. Where that claim comes from decides what the check
-is worth, so it is settled explicitly, never assumed.
+Проверка кодирует утверждение о правильном поведении. Откуда взято это утверждение — решает, чего
+проверка стоит, поэтому вопрос закрывается явно, а не по умолчанию.
 
-| Situation | What to do |
+| Ситуация | Что делать |
 |---|---|
-| Passed in (`--source`, `--from-report`) | Use it. A report's `baseline` field carries the observable effects to pin — that is the one thing no other field supplies. |
-| Discoverable | Gather it: a spec with AC, a test plan under `docs/testplans/`, `swarm-report/<slug>-debug.md`, an issue, a documented contract. |
-| None exists | **Characterization.** Pin what the code does today. |
+| Передан (`--source`, `--from-report`) | Использовать. Поле `baseline` отчёта несёт наблюдаемые эффекты, которые надо зафиксировать, — единственное, чего не даёт ни одно другое поле. |
+| Обнаружим | Собрать: спецификацию с AC, тест-план в `docs/testplans/`, `swarm-report/<slug>-debug.md`, issue, задокументированный контракт. |
+| Не существует | **Характеризация.** Зафиксировать то, что код делает сегодня. |
 
-**Characterization is a recording, not a specification.** It has no authority over whether current
-behavior is correct — it only fails when behavior changes. Say so in the report and in a header
-comment on each generated file. A golden master silently read as "the tests say this is correct"
-invites a genuine bug fix to be reverted later as a regression, which is a worse outcome than having
-no check at all.
+**Характеризация — это запись, а не спецификация.** Она не имеет власти над вопросом, правильно ли
+текущее поведение: она падает только тогда, когда поведение изменилось. Сказать это в отчёте и в
+заголовочном комментарии каждого сгенерированного файла. Golden master, молча прочитанный как «тесты
+говорят, что так правильно», приводит к откату настоящего фикса как регрессии — исход хуже, чем
+отсутствие проверки вообще.
 
 ---
 
-## Phase 3: Decide what to write
+## Фаза 3: решить, что писать
 
-Per behavior worth proving, choose the **smallest kind that catches a real failure of it**, and
-climb only when the smaller kind cannot. The kind table and its selection heuristic are defined once
-in `write-plan/references/test-plan.md` §Type — apply it, do not restate a second vocabulary here.
-`--kinds` and `--level` constrain the choice; when a constraint makes a behavior unprovable, say so
-rather than writing a check that asserts something else.
+По каждому поведению, которое стоит доказать, выбрать **наименьший вид, ловящий его реальный отказ**,
+и подниматься выше, только когда меньший не справляется. Таблица видов и эвристика выбора определены
+один раз в `write-plan/references/test-plan.md` §Type — применять её, а не заводить второй словарь.
+`--kinds` и `--level` ограничивают выбор; если ограничение делает поведение недоказуемым, сказать об
+этом, а не писать проверку, утверждающую что-то другое.
 
-**Seam discipline.** Getting code under test often needs a seam — an injection point, an extracted
-interface, a parameter where a static call used to be. Creating that seam is a refactoring of code
-that currently has no check on it, so it is a mini-migration and it recurses if allowed: the seam
-needs a test, the test needs another seam, and the preparation eats the task. Three rules, from
+**Дисциплина seam'ов.** Чтобы взять код под проверку, часто нужен seam — точка внедрения,
+извлечённый интерфейс, параметр там, где был статический вызов. Создание seam'а это рефакторинг кода,
+на котором сейчас нет ни одной проверки, то есть мини-миграция, и она рекурсирует, если позволить:
+seam'у нужен тест, тесту нужен следующий seam, и подготовка съедает задачу. Три правила из
 `migrate-code/references/safety-net.md` §The seam trap:
 
-- **Do not recurse.** A seam is justified when the compiler is a valid referee — extract an
-  interface, add a parameter, lift an instantiation. A seam that itself needs a behavior judge is
-  not a seam, it is a second job.
-- **Budget it up front** and treat overrun as a signal, not an overspend to absorb.
-- **When the budget is gone**, the honest outcomes are a coarser check one level up — assert where
-  the system is already observable rather than where you wish it were — or stopping and reporting.
-  Not a silent skip.
+- **Не рекурсировать.** Seam оправдан, когда судьёй может выступить компилятор: извлечь интерфейс,
+  добавить параметр, поднять создание объекта уровнем выше. Seam, которому самому нужен поведенческий
+  судья, — это не seam, а вторая работа.
+- **Забюджетировать заранее** и считать перерасход сигналом, а не тратой, которую надо впитать.
+- **Когда бюджет исчерпан**, честные исходы — судья грубее уровнем выше (утверждать там, где система
+  уже наблюдаема, а не там, где хотелось бы) либо остановиться и сообщить. Не молчаливый пропуск.
 
-**Large area** — more than a handful of units to cover: present the ranked list with one line each
-(risk, complexity, what is unobservable) and ask which subset to do now. Recommend the
-highest-risk-first subset. Small area: proceed.
+**Большая область** — единиц покрытия больше горстки: показать ранжированный список с одной строкой
+на каждую (риск, сложность, что ненаблюдаемо) и спросить, какое подмножество делать сейчас;
+рекомендовать начать с самого рискованного. Маленькая — работать без вопросов.
 
 ---
 
-## Phase 4: Derive the stack
+## Фаза 4: вывести стек
 
-Read the project, in this order, stopping at the first step that answers definitely:
+Прочитать проект в таком порядке, останавливаясь на первом определённом ответе:
 
-1. Existing checks in the module under change.
-2. Test-related dependencies declared in the build configuration.
-3. The framework the majority of the project's checks already use.
-4. The ecosystem's conventional default — per-ecosystem tables in
+1. Существующие проверки в изменяемом модуле.
+2. Тестовые зависимости, объявленные в конфигурации сборки.
+3. Фреймворк, которым пользуется большинство проверок проекта.
+4. Общепринятый дефолт экосистемы — таблицы по экосистемам в
    [`references/test-infrastructure-discovery.md`](references/test-infrastructure-discovery.md).
 
-Then inspect three to five existing check files plus the build configuration and compile a **Test
-Infrastructure Summary** — framework, assertion style, doubles, async helpers, UI stack, naming and
-file placement — which Phase 5 passes to the writer verbatim. The goal is blunt: the result must
-look hand-written by this project's authors.
+Затем осмотреть три-пять существующих файлов проверок плюс конфигурацию сборки и собрать **Test
+Infrastructure Summary** — фреймворк, стиль утверждений, двойники, помощники для асинхронности,
+UI-стек, именование и размещение файлов, — который фаза 5 передаёт исполнителю дословно. Цель
+прямая: результат должен выглядеть написанным авторами этого проекта от руки.
 
-**Never introduce a new framework or a new dependency to make a check possible.** Stop and ask.
-Escalations: two frameworks in existing checks → follow the majority in the affected module, and on
-an even split ask one question; the detected framework unavailable in the toolchain → fall back one
-step and record the fallback in the Summary and in a header comment; a required dependency missing
-entirely → stop and ask.
-
----
-
-## Phase 5: Write
-
-Delegate to the engineer agent that owns the surface — routed by the language and the layer, so a
-UI surface and a logic surface in one area go to two agents. The prompt carries the area paths, the
-Phase 2 source of truth, the Phase 3 decisions, the Phase 4 Summary, and a style-reference file;
-templates in [`references/agent-prompts.md`](references/agent-prompts.md).
-
-**No engineer agent covers this stack** — the main session writes the checks itself, using the
-Phase 4 Summary as its own brief. This is a degraded but supported mode, not a stop: automated
-authoring exists on some stacks and not others, and the role is filled either way.
+**Никогда не вводить новый фреймворк или новую зависимость ради того, чтобы проверка стала
+возможной.** Остановиться и спросить. Эскалации: два фреймворка в существующих проверках — идти за
+большинством в затронутом модуле, при равном расколе задать один вопрос; определённый фреймворк
+недоступен в toolchain — откатиться на шаг назад и записать откат в Summary и в заголовочный
+комментарий; требуемая зависимость отсутствует вовсе — остановиться и спросить.
 
 ---
 
-## Phase 6: Verify
+## Фаза 5: написать
 
-**`--regression` first: prove the check would have failed.** A regression check written after the
-fix is green by construction and may assert something that was already true before the fix.
+Поручить инженерному агенту, владеющему поверхностью: маршрут по языку и слою, поэтому UI-поверхность
+и логика в одной области уходят двум разным агентам. Промпт несёт пути области, источник истины из
+фазы 2, решения фазы 3, Summary фазы 4 и файл-образец стиля; шаблоны — в
+[`references/agent-prompts.md`](references/agent-prompts.md).
 
-1. Identify the fix commits: `git log <base>..HEAD --pretty=format:"%H" -- <fixed-files>` is
-   authoritative; a caller-supplied hint (a `Commit` field in `debug.md`, hashes given in chat)
-   narrows the set.
-2. Revert them without committing — `git revert <hash> --no-commit`, `-m 1` for a merge commit,
-   newest first for several. A conflict is resolved **toward the buggy side**
-   (`git checkout --theirs <file>`); resolving toward the fix produces a false green.
-3. Run only the new check, with the narrowest filter the project's runner offers.
-4. **RED** → contract verified. `git reset --hard HEAD` restores tracked files while leaving the
-   new, still-uncommitted check in place. Record one line in the receipt:
-   `Regression contract: VERIFIED — RED on revert of <hashes>, GREEN with fix.` Continue.
-5. **GREEN on the unfixed code** → the check does not capture the regression. It is structurally
-   wrong and is not salvaged: discard the revert **and** the check
-   (`git reset HEAD -- . && git checkout -- . && git clean -fd`), then produce the Coverage
-   Diagnosis below and return `INEFFECTIVE`. Do not run the suite.
+**Инженерного агента под этот стек нет** — проверки пишет сама главная сессия, используя Summary фазы
+4 как собственный бриф. Это ухудшенный, но поддерживаемый режим, а не остановка: автоматическое
+авторство есть на одних стеках и отсутствует на других, а роль закрывается в обоих случаях.
 
-Then run the checks with the project's own runner. Classify every failure:
+---
 
-| Failure | Action |
+## Фаза 6: проверить
+
+**Сначала `--regression`: доказать, что проверка бы упала.** Регрессионная проверка, написанная после
+фикса, зелена по построению и может утверждать то, что было верно и до него.
+
+1. Определить коммиты фикса: `git log <base>..HEAD --pretty=format:"%H" -- <изменённые файлы>` —
+   авторитетный источник; подсказка вызывающего (поле `Commit` в `debug.md`, хеши в чате) сужает набор.
+2. Откатить их без коммита — `git revert <hash> --no-commit`, для merge-коммита с `-m 1`, для
+   нескольких в обратном порядке. Конфликт разрешать **в сторону багованного кода**
+   (`git checkout --theirs <file>`); разрешение в сторону фикса даёт ложный зелёный.
+3. Прогнать только новую проверку, самым узким фильтром, который даёт раннер проекта.
+4. **RED** → контракт подтверждён. `git reset --hard HEAD` возвращает отслеживаемые файлы, оставляя
+   новую, ещё не закоммиченную проверку на месте. Записать в расписку одну строку:
+   `Regression contract: VERIFIED — RED on revert of <hashes>, GREEN with fix.` Продолжать.
+5. **GREEN на неисправленном коде** → проверка регрессию не ловит. Она структурно неверна и не
+   спасается: выбросить и откат, и саму проверку
+   (`git reset HEAD -- . && git checkout -- . && git clean -fd`), затем выдать Coverage Diagnosis
+   ниже и вернуть `INEFFECTIVE`. Сьют не запускать.
+
+Затем прогнать проверки раннером самого проекта. Каждый отказ классифицировать:
+
+| Отказ | Действие |
 |---|---|
-| **Check bug** — wrong assertion, wrong setup, missing double | Fix via the same writer, at most 3 attempts |
-| **Production bug** — the check correctly exposes a real defect | Do **not** fix. Record as a finding. |
+| **Ошибка проверки** — неверное утверждение, неверная подготовка, отсутствующий двойник | Чинит тот же исполнитель, максимум 3 попытки |
+| **Продуктовый баг** — проверка корректно вскрыла настоящий дефект | **Не** чинить. Записать как находку. |
 
-Distinguish by reading the assertion against the code: expectation contradicts behavior that looks
-intentional → check bug; expectation matches the documented contract that the code violates →
-production bug. Unclear → report it as a finding rather than silently changing the assertion to
-match the code, which converts a real defect into a passing check.
+Различать чтением утверждения против кода: ожидание противоречит поведению, которое выглядит
+намеренным, — ошибка проверки; ожидание совпадает с задокументированным контрактом, который код
+нарушает, — продуктовый баг. Неясно — сообщить как находку, а не менять молча утверждение под код:
+так настоящий дефект превращается в проходящую проверку.
 
-Still failing after 3 attempts → Coverage Diagnosis, stop, report.
+Не сошлось после 3 попыток → Coverage Diagnosis, остановка, отчёт.
 
-In `--regression` mode only, commit and push the check once green, so it lands on the branch as part
-of the bug-fix work: `git commit -m "Add regression test: <scenario>"`. The message names the
-scenario — it is the permanent explanation of why the check exists. Other modes leave file
-management to the caller.
+Только в режиме `--regression` закоммитить и запушить проверку, когда она зелёная, чтобы она легла на
+ветку как часть работы над багом: `git commit -m "Add regression test: <сценарий>"`. Сообщение
+называет сценарий — это постоянное объяснение, зачем проверка существует. В остальных режимах
+управление файлами остаётся за вызывающим.
 
 ---
 
-## Phase 7: Report
+## Фаза 7: отчёт
 
-Files created with per-file counts · what is now provable that was not before, and what was left
-uncovered with the reason · results · findings.
+Созданные файлы с числом проверок в каждом · что стало доказуемым из того, что не было, и что
+осталось непокрытым с причиной · результаты · находки.
 
-**Production bugs** → `swarm-report/<slug>-test-findings.md`, one entry each with location,
-what the code does, the expected behavior, the check that exposed it, and severity. Written only
-when real defects were found — otherwise the checks themselves are the artifact.
+**Продуктовые баги** → `swarm-report/<slug>-test-findings.md`, по записи на каждый: место, что делает
+код, ожидаемое поведение, проверка, вскрывшая это, и severity. Пишется только когда найдены настоящие
+дефекты — иначе артефакт это сами проверки.
 
-**Coverage Diagnosis** → `swarm-report/<slug>-coverage-diagnosis.md`, when the work could not be
-completed: an ineffective regression check, failure after 3 attempts, or a behavior that could not
-be covered at all.
+**Coverage Diagnosis** → `swarm-report/<slug>-coverage-diagnosis.md`, когда работу закончить не
+удалось: неэффективная регрессионная проверка, отказ после 3 попыток либо поведение, которое не
+удалось покрыть вовсе.
 
 ```markdown
 # Coverage Diagnosis: <slug>
@@ -214,27 +213,27 @@ be covered at all.
 Date: <YYYY-MM-DD>
 Status: INEFFECTIVE | FAILED | NOT_ATTEMPTED
 
-## What was tried
-<the approach and the assertion, or why nothing was written>
+## Что пробовали
+<подход и утверждение, либо почему не написано ничего>
 
-## Technical obstacle
-<the specific reason — "the assertion targets the return value but the bug is a side effect on a
-non-injectable static", "the reproduction needs two threads interleaving and the test dispatcher
-serialises them", "the path is behind a native call with no double". Never "the test failed".>
+## Технический барьер
+<конкретная причина: «утверждение целится в возвращаемое значение, а баг — побочный эффект на
+невнедряемом статическом поле»; «воспроизведение требует чередования двух потоков, а тестовый
+диспетчер сериализует их»; «путь за нативным вызовом, двойника нет». Никогда не «тест упал».>
 
-## To make it testable
-<what would have to change in the code or the setup>
+## Что сделало бы это проверяемым
+<что должно измениться в коде или в подготовке>
 ```
 
-A diagnosis is a result, not a failure to report: it converts "we have no coverage here" from a
-silence into a tracked, actionable item. Reference it in the PR body.
+Диагноз — это результат, а не признание неудачи: он превращает «здесь у нас нет покрытия» из молчания
+в отслеживаемый и исполнимый пункт. Сослаться на него в теле PR.
 
 ---
 
-## Disambiguation
+## Разрешение неоднозначностей
 
-- **Intentional behavior change** — a new check asserts a different outcome than an existing one:
-  update the older check in the same run with a one-line comment naming the new contract.
-- **Unintentional break** — a previously green check fails after this work and should not have been
-  affected: the change is wrong, revise it.
-- **Already red on the base branch** — out of scope; report it and continue.
+- **Намеренное изменение поведения** — новая проверка утверждает не то, что существующая: обновить
+  старую в том же прогоне, с однострочным комментарием о новом контракте.
+- **Ненамеренная поломка** — ранее зелёная проверка падает после этой работы, хотя не должна была
+  быть затронута: изменение неверно, переделать его.
+- **Уже красная на базовой ветке** — вне области; сообщить и продолжить.
