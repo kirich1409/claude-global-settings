@@ -1,9 +1,12 @@
-# Plan templates
+# Шаблоны плана
 
-Copy each block verbatim into the matching file under `docs/plans/<slug>/` and fill every
-placeholder. Three files, split by lifetime: `plan.md` and `tasks.md` are the stable design;
-`progress.md` is the volatile execution ledger (Cline-style split — execution churn must never
-rewrite the design).
+Скопировать каждый блок дословно в соответствующий файл под `docs/plans/<slug>/` и заполнить каждый
+плейсхолдер. Три файла, разделённые по времени жизни: `plan.md` и `tasks.md` — стабильный дизайн,
+`progress.md` — изменчивый журнал исполнения. Разделение нужно, чтобы суета исполнения никогда не
+переписывала дизайн.
+
+Ключи frontmatter и заголовки разделов остаются английскими: их читают `create-pr`, `/acceptance` и
+профили `multiexpert-review`.
 
 ---
 
@@ -14,125 +17,127 @@ rewrite the design).
 type: plan
 slug: <kebab-case>
 date: <YYYY-MM-DD>
-status: draft           # draft → approved (set by Phase 4 on PASS/CONDITIONAL); stays draft on escalate (review_verdict carries escalate, not this field)
-spec: docs/specs/<YYYY-MM-DD>-<slug>.md    # real path if a spec exists (date is the spec's own date, format matches write-spec output); if no spec exists, write: none — do NOT invent a path
-risk_areas: []          # subset of [auth, payment, pii, data-migration, perf-critical] — advisory only; reviewer selection is driven by the plan's prose (Technical Approach / Risks), so risks must also be described there for the matching expert (e.g. security-expert) to be triggered
-review_verdict: pending # pending → pass | conditional | escalate (set by Phase 3)
-review_blockers: []     # filled by the review loop when blockers remain
+status: draft           # draft → approved (ставит фаза 4 на PASS/CONDITIONAL); при эскалации остаётся draft — эскалацию несёт review_verdict, а не это поле
+spec: docs/specs/<YYYY-MM-DD>-<slug>.md    # реальный путь, если спека есть (дата — собственная дата спеки, формат как у write-spec); спеки нет — написать none, путь НЕ выдумывать
+risk_areas: []          # подмножество [auth, payment, pii, data-migration, perf-critical] — только подсказка; выбор рецензентов идёт по прозе плана (Technical Approach, Risks), поэтому риски обязаны быть описаны и там, иначе профильный эксперт не сработает
+review_verdict: pending # pending → pass | conditional | escalate (ставит фаза 3)
+review_blockers: []     # заполняется циклом ревью, когда блокеры остались
 ---
 
-# Plan: <title>
+# Plan: <название>
 
 ## Context & Decision
-<2–4 sentences: what is being built and why it is already decided. Link the spec / research /
-request that decided it. This plan is the HOW, not the WHAT — do not re-argue scope here.>
+<2–4 предложения: что строим и почему это уже решено. Сослаться на спеку, исследование или запрос,
+которые это решили. Этот план про КАК, а не про ЧТО — объём здесь заново не обсуждается.>
 
 ## Technical Approach
-<The concrete design. Architecture, data flow, key types/interfaces, the integration points in the
-existing codebase (cite file:line from investigation). Enough that an implementing agent does not
-need to re-research.>
+<Конкретный дизайн. Архитектура, поток данных, ключевые типы и интерфейсы, точки интеграции в
+существующей кодовой базе — с `file:line` из исследования. Достаточно, чтобы агенту-реализатору не
+пришлось исследовать заново.>
 
 ## Affected Modules & Files
 | Path | Change | Note |
 |---|---|---|
-| `<path>` | New / Modified / Renamed / Deleted | <what changes and why> |
+| `<путь>` | New / Modified / Renamed / Deleted | <что меняется и почему> |
 
 ## Decisions Made
 | Decision | Rationale | Alternatives rejected |
 |---|---|---|
-| <what we chose> | <because…> | <X because…> |
+| <что выбрали> | <потому что…> | <X, потому что…> |
 
 ## Risks & Mitigations
 | Risk | Severity | Mitigation |
 |---|---|---|
-| <risk> | critical / major / minor | <how the plan handles it> |
+| <риск> | critical / major / minor | <как план с ним справляется> |
 
 ## Verification & Sources
-<How the FINISHED implementation is verified — the contract `/acceptance` checks against. Distinct
-from the per-task `check` in tasks.md: that proves each task; this proves the whole change is done
-and correct. Mandatory output — a plan without it cannot be approved (qa-and-testing §6, §0).>
+<Чем проверяется ГОТОВАЯ реализация — контракт, против которого сверяется `/acceptance`. Отличается
+от позадачного `check` в tasks.md: тот доказывает каждую задачу, этот доказывает, что изменение
+целиком сделано и верно. Обязательный выход: план без него утверждению не подлежит.>
 
 | Source of truth | Type | Status | Sufficient for verification? |
 |---|---|---|---|
-| <path / link / "baseline captured at swarm-report/<slug>-baseline.md"> | spec / test-plan / requirements / before-state baseline / Figma-or-screenshots / debug-repro | present / to-capture-before-impl / absent | yes — <why it lets someone who's never seen the system confirm "done"> / no — <gap + how it's closed before implementation> |
+| <путь / ссылка / «baseline снят в swarm-report/<slug>-baseline.md»> | spec / test-plan / requirements / before-state baseline / Figma-or-screenshots / debug-repro | present / to-capture-before-impl / absent | yes — <почему этого хватит, чтобы человек, никогда не видевший систему, подтвердил «готово»> / no — <пробел и как он закрывается до реализации> |
 
-**Testing strategy (pyramid levels):** L0 build always + <levels that apply, e.g. L1 static, L2 unit,
-L3 UI, L5 manual> — <one line: why these levels for this change>. L5 is mandatory for library bumps,
-migrations, and infra-layer (network/storage/auth/DI) changes. If a level the routing matrix marks
-mandatory is skipped, name it and the tracked exception (qa-and-testing §1/§4) — never a silent skip.
+**Стратегия тестирования (уровни пирамиды):** L0 сборка всегда плюс <применимые уровни: L1 статический
+анализ, L2 изолированные, L3 UI, L5 ручная> — <одна строка: почему именно эти уровни для этого
+изменения>. L5 обязателен для бампов версий библиотек, миграций и изменений infra-слоя (network,
+storage, auth, DI). Если уровень, помеченный матрицей маршрутизации как обязательный, пропущен —
+назвать его и оформить отслеживаемым исключением, никогда не пропускать молча.
 
-> The frontmatter `spec:` field carries only the spec link for tooling; this section is the full,
-> human-readable verification contract — list every source, not just the spec. For a bug fix the
-> source is `swarm-report/<slug>-debug.md`; for a migration / "shouldn't change behavior" task it is
-> the before-state baseline, captured **before** any edit (task-types § Before-state baseline).
+> Поле `spec:` во frontmatter несёт только ссылку на спеку для инструментов; этот раздел — полный,
+> читаемый человеком контракт верификации: перечислять все источники, а не только спеку. Для багфикса
+> источник это `swarm-report/<slug>-debug.md`; для миграции и задачи «поведение не должно измениться»
+> — baseline состояния до, снятый **до** любой правки.
 
 ## Out of Scope
-- <explicitly NOT done by this plan, with owner / deferral target if relevant>
+- <что этот план явно НЕ делает, с владельцем или целью отложения, если уместно>
 
 ## Open Questions
-- [blocking] <question that must be answered before / during implementation>
-- [non-blocking] <question that can be resolved while implementing>
+- [blocking] <вопрос, на который надо ответить до или во время реализации>
+- [non-blocking] <вопрос, который можно закрыть по ходу реализации>
 ```
 
 ---
 
 ## `docs/plans/<slug>/tasks.md`
 
-Ordered, dependency-aware checklist. Each task is small enough to implement AND verify in one
-focused pass, and carries an acceptance condition that is checkable without human judgement — this
-is what makes autonomous execution safe.
+Упорядоченный чеклист с учётом зависимостей. Каждая задача достаточно мала, чтобы реализовать И
+проверить её за один сфокусированный проход, и несёт условие приёмки, проверяемое без человеческого
+суждения, — именно это делает автономное исполнение безопасным.
 
 ```markdown
-# Tasks: <title>
+# Tasks: <название>
 
-> Plan: ./plan.md · Spec AC referenced inline as AC-N
+> Plan: ./plan.md · AC спеки цитируются по месту как AC-N
 
-## T-1 — <short title>
+## T-1 — <короткий заголовок>
 - after: none
-- files: `<path>`, `<path>`
-- interface: consumes <none> · produces <public symbols / signatures / files this task exposes for later tasks, e.g. `fun cache.get(key): Entry?`, `OfflineStore`>
-- acceptance: GIVEN <precondition> WHEN <action> THEN <observable result>   (or: THE SYSTEM SHALL <…>)
-- check: <test name / grep / build target that proves acceptance>   (satisfies AC-1)
+- files: `<путь>`, `<путь>`
+- interface: consumes <none> · produces <публичные символы, сигнатуры и файлы, которые эта задача отдаёт последующим, например `fun cache.get(key): Entry?`, `OfflineStore`>
+- acceptance: GIVEN <предусловие> WHEN <действие> THEN <наблюдаемый результат>   (либо: THE SYSTEM SHALL <…>)
+- check: <имя теста / grep / цель сборки, доказывающие acceptance>   (закрывает AC-1)
 
-## T-2 — <short title>
+## T-2 — <короткий заголовок>
 - after: T-1
-- files: `<path>`
-- interface: consumes <symbols this task depends on from prior tasks, e.g. T-1's `OfflineStore`> · produces <what T-2 exposes>
-- acceptance: <Given/When/Then or SHALL statement>
-- check: <how it is verified>   (satisfies AC-2, AC-3)
+- files: `<путь>`
+- interface: consumes <символы, которые задача берёт у предыдущих, например `OfflineStore` из T-1> · produces <что отдаёт T-2>
+- acceptance: <Given/When/Then либо утверждение SHALL>
+- check: <чем проверяется>   (закрывает AC-2, AC-3)
 ```
 
-Acceptance phrasing: prefer Given/When/Then for behaviour, "THE SYSTEM SHALL …" (EARS) for
-invariants/constraints. Always pair acceptance with a concrete `check` — a test name, a grep, a
-build/lint target — never "looks right".
+Формулировка acceptance: для поведения предпочитать Given/When/Then, для инвариантов и ограничений —
+«THE SYSTEM SHALL …» (EARS). Всегда сопровождать acceptance конкретным `check` — именем теста, grep,
+целью сборки или линта, — но никогда «выглядит правильно».
 
-The `interface:` line is the contract between tasks. A subagent implementing a task sees **only that
-task**, not its neighbours — so it needs the exact names/signatures it `consumes` from earlier tasks
-and must publish what it `produces` for later ones. This is what lets `implement-plan` execute
-independent tasks **in parallel** without the two subagents drifting on each other's unwritten API;
-`consumes: none · produces: none` is fine for a self-contained task. Keep signatures concrete
-(names + types), not prose.
+Строка `interface:` — контракт между задачами. Субагент, реализующий задачу, видит **только её**, а не
+соседей, поэтому ему нужны точные имена и сигнатуры того, что он `consumes` у предыдущих, и он обязан
+опубликовать то, что `produces` для последующих. Именно это позволяет `implement-plan` исполнять
+независимые задачи **параллельно** так, чтобы два субагента не разъехались на ненаписанном API друг
+друга; `consumes: none · produces: none` — нормально для самодостаточной задачи. Сигнатуры держать
+конкретными (имена и типы), а не прозой.
 
 ---
 
 ## `docs/plans/<slug>/progress.md`
 
-Initialize with one unchecked box per task and an empty learnings log. The implementer (`/implement-plan`)
-updates this as work proceeds; it carries state across sessions and fresh-context runs (so a
-stop/resume or an autonomous loop never loses its place). This is the durable committed ledger; the
-live in-session status during execution is a `TodoWrite` list the executor seeds from `tasks.md` —
-kept in sync so a task is done only when its TodoWrite item is `completed` and its box here is checked.
+Инициализировать одним неотмеченным чекбоксом на задачу и пустым журналом выученного. Обновляет его
+исполнитель (`/implement-plan`) по ходу работы; файл несёт состояние между сессиями и прогонами со
+свежим контекстом, чтобы остановка с возобновлением или автономный цикл никогда не теряли место. Это
+долговременный закоммиченный журнал; живой статус во время исполнения — список задач харнеса, который
+исполнитель поднимает из `tasks.md`. Их держат согласованными: задача готова, только когда её пункт в
+живом списке завершён и её чекбокс здесь отмечен.
 
 ```markdown
-# Progress: <title>
+# Progress: <название>
 
 > Plan: ./plan.md · Tasks: ./tasks.md
 
 ## Status
-- [ ] T-1 — <short title>
-- [ ] T-2 — <short title>
+- [ ] T-1 — <короткий заголовок>
+- [ ] T-2 — <короткий заголовок>
 
 ## Learnings
-<!-- Append one line per completed task: surprises, gotchas, decisions taken during implementation.
-     This is the memory that survives context resets. -->
+<!-- Дописывать по строке на завершённую задачу: неожиданности, подводные камни, решения,
+     принятые по ходу реализации. Это память, переживающая сброс контекста. -->
 ```

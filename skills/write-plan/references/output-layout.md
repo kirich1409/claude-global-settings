@@ -1,49 +1,51 @@
-# Output layout & hand-off
+# Раскладка выхода и передача дальше
 
-## Paths
+## Пути
 
-| File | Lifetime | Committed? | Purpose |
+| Файл | Время жизни | В git? | Назначение |
 |---|---|---|---|
-| `docs/plans/<slug>/plan.md` | Permanent | Yes — reviewed in the PR | Technical approach, affected files, decisions, risks. |
-| `docs/plans/<slug>/tasks.md` | Permanent | Yes | Ordered task checklist with dependencies + per-task acceptance. |
-| `docs/plans/<slug>/progress.md` | Permanent (volatile content) | Yes — the execution ledger / audit trail | Volatile status + learnings log. Split from the stable plan so execution churn never rewrites the design. |
-| `./swarm-report/plan-<slug>-state.md` | Operational | No (gitignored) — delete after | Investigation findings, review-cycle log. Deleted after. |
+| `docs/plans/<slug>/plan.md` | постоянно | да, ревьюится в PR | Технический подход, затронутые файлы, решения, риски. |
+| `docs/plans/<slug>/tasks.md` | постоянно | да | Упорядоченный чеклист задач с зависимостями и позадачным acceptance. |
+| `docs/plans/<slug>/progress.md` | постоянно, содержимое изменчиво | да — это журнал исполнения и audit trail | Изменчивый статус плюс журнал выученного. Отделён от стабильного плана, чтобы суета исполнения никогда не переписывала дизайн. |
+| `./swarm-report/plan-<slug>-state.md` | операционно | нет, в git не попадает | Находки исследования, лог циклов ревью. Удаляется по завершении. |
 
-`docs/plans/` is intentionally a sibling of `docs/specs/`: spec = *what* (requirements + AC), plan =
-*how* (design + tasks). Both live in git because their value is being reviewable in the PR and
-resumable later — the exact property built-in plan mode lacks.
+`docs/plans/` намеренно лежит рядом с `docs/specs/`: спека — *что* (требования и AC), план — *как*
+(дизайн и задачи). Оба живут в git, потому что их ценность в том, что они рецензируемы в PR и
+возобновляемы позже, — ровно того свойства встроенному режиму планирования и не хватает.
 
-Slug derivation: see `SKILL.md` Phase 0.1.
+Вывод слага — `SKILL.md`, фаза 0.1.
 
-## Status lifecycle
+## Жизненный цикл статуса
 
-`plan.md` frontmatter `status`: `draft` → `approved` (Phase 4 on PASS/CONDITIONAL). On
-`review_verdict: escalate`, leave `status: draft` and stop with the blocking open questions
-surfaced.
+`status` во frontmatter `plan.md`: `draft` → `approved` (фаза 4 на PASS и CONDITIONAL). При
+`review_verdict: escalate` оставить `status: draft` и остановиться, вынеся блокирующие открытые
+вопросы.
 
-`review_verdict`: `pending` → `pass` | `conditional` | `escalate`, written by the Phase 3 loop (and
-by the profile receipt).
+`review_verdict`: `pending` → `pass` | `conditional` | `escalate`, пишется циклом фазы 3 и распиской
+профиля.
 
-## Confirmation message (default, autonomous)
+## Сообщение подтверждения (по умолчанию, автономно)
 
-One sentence, e.g.:
+Одно предложение, например:
 
-> Plan saved to `docs/plans/offline-mode/plan.md` (review: PASS, 7 tasks). Starting with T-1 —
-> add the offline cache layer.
+> План сохранён в `docs/plans/offline-mode/plan.md` (ревью: PASS, 7 задач). Начинаю с T-1 — добавить
+> слой офлайн-кэша.
 
-No approval prompt. With `--interactive`, present the compact summary and ask one go/adjust question
-before flipping to `approved`.
+Запроса на одобрение нет. С `--interactive` — показать компактную сводку и задать один вопрос
+«идём / поправить» до перевода в `approved`.
 
-## Hand-off rules
+## Правила передачи
 
-- Do **not** auto-invoke downstream skills. Suggest the next step (implement the tasks; then
-  `/acceptance`) and let the user/agent drive — toolbox model. (The mandatory Phase 3 inline `multiexpert-review` call and the Phase 3.5 adversarial
-  red-team Agent call are the review gate built into this skill, not downstream chains — these are
-  the sanctioned in-skill invocations.)
-- `progress.md` is the durable committed ledger: as each `T-N` lands, check its box and append a
-  one-line learning. Execution itself is a separate skill (`/implement-plan`), which seeds the live
-  `TodoWrite` status list from `tasks.md` and drives the tasks — this skill only initializes the
-  file. The implementer commits plan + code together so the PR shows the plan that produced the
-  change.
-- `create-pr` discovers `docs/plans/<slug>/plan.md` and references it in the PR body; `/acceptance`
-  anchors its `code-reviewer` pass on the same plan. No extra wiring needed beyond writing the file.
+- **Не** вызывать скиллы ниже по потоку автоматически. Предложить следующий шаг (исполнить задачи,
+  затем `/acceptance`) и оставить управление пользователю или агенту — модель «ящик с инструментами».
+  Обязательный инлайновый вызов `multiexpert-review` в фазе 3 и вызов враждебного агента красной
+  команды в фазе 3.5 — это встроенный в скилл гейт ревью, а не цепочка вниз по потоку: они
+  санкционированы внутри скилла.
+- `progress.md` — долговременный закоммиченный журнал: как только садится очередной `T-N`, отметить
+  его чекбокс и дописать строку выученного. Само исполнение — отдельный скилл (`/implement-plan`),
+  который поднимает живой список статусов из `tasks.md` и ведёт задачи; этот скилл только
+  инициализирует файл. Реализатор коммитит план вместе с кодом, чтобы в PR был виден план, породивший
+  изменение.
+- `create-pr` находит `docs/plans/<slug>/plan.md` и ссылается на него в теле PR; `/acceptance`
+  привязывает к тому же плану свой проход `code-reviewer`. Никакой дополнительной обвязки, кроме
+  записи файла, не нужно.

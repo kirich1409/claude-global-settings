@@ -1,14 +1,14 @@
-Referenced from: `~/.claude/skills/write-plan/references/test-plan.md` (§Receipt).
+Ссылается из: `~/.claude/skills/write-plan/references/test-plan.md` (§Расписка).
 
-# Test Plan Receipt Format
+# Формат расписки тест-плана
 
-When this skill is invoked with an explicit `slug` argument, in addition to the permanent
-document, produce a **receipt** at `swarm-report/<slug>-test-plan.md` that downstream
-consumers (`multiexpert-review`, `acceptance`) can read for receipt-based gating.
+Вместе с постоянным документом выпускается **расписка** в `swarm-report/<slug>-test-plan.md`, которую
+читают потребители ниже по потоку (`multiexpert-review`, `/acceptance`) для гейтинга по расписке.
 
-The permanent file remains the source of truth. The receipt is metadata + pointer.
+Источник истины — постоянный файл. Расписка это метаданные плюс указатель. Имена полей английские: их
+парсят YAML-потребители.
 
-Receipt format:
+Формат расписки:
 
 ```markdown
 ---
@@ -18,53 +18,53 @@ slug: <slug>
 type: test-plan-receipt
 status: Draft
 permanent_path: docs/testplans/<slug>-test-plan.md
-source_spec: <path to spec if any, or "inline spec">
+source_spec: <путь к спеке, если она есть, либо "inline spec">
 review_verdict: pending
-review_warnings: []            # populated by multiexpert-review on WARN — list of short strings
-review_blockers: []            # populated by multiexpert-review on FAIL — list of short strings
+review_warnings: []            # заполняет multiexpert-review на WARN — список коротких строк
+review_blockers: []            # заполняет multiexpert-review на FAIL — список коротких строк
 phase_coverage: [Phase 1, Phase 2, ...]
-platform: []                   # optional; inherited from the source spec's `platform:` field when present.
-                               # Drives platform-aware TC generation and downstream acceptance checks (e.g.,
-                               # skip mobile-only TCs on a backend-only target). Leave empty when the spec
-                               # did not set it; acceptance falls back to its project-type heuristic.
+platform: []                   # необязательно; наследуется из поля `platform:` исходной спеки, если оно есть.
+                               # Питает генерацию TC с учётом платформы и проверки приёмки ниже по потоку
+                               # (например, пропустить мобильные TC на чисто бэкендовой цели). Оставить
+                               # пустым, если спека его не задала: приёмка откатится на свою эвристику.
 created: YYYY-MM-DD
 updated: YYYY-MM-DD
 ---
 
 # Test Plan Receipt: <slug>
 
-**Status:** <status>
+**Status:** <статус>
 **Permanent artifact:** [`docs/testplans/<slug>-test-plan.md`](../docs/testplans/<slug>-test-plan.md)
-**Source spec:** <path or description>
-**Review verdict:** <verdict>
+**Source spec:** <путь или описание>
+**Review verdict:** <вердикт>
 ```
 
-## Field conventions
+## Конвенции полей
 
-- `status`: `Draft` right after generation; `Ready` after multiexpert-review returns PASS/WARN;
-  `Approved` when the user explicitly signs off; `Mounted` when a user-authored permanent
-  file is adopted without regeneration.
-- `review_verdict`: `pending` at creation; updated by `multiexpert-review` to
-  `PASS | WARN | FAIL`; `skipped` on mount (no review occurs).
-- `review_warnings` / `review_blockers`: arrays of short strings populated by `multiexpert-review`.
-  `review_warnings` is written on WARN verdicts (items d or e of the checklist violated —
-  non-blocking); `review_blockers` is written on FAIL (items a, b, or c violated —
-  blocks transition to Implement). Both remain empty arrays on PASS / pending / skipped.
-  Frontmatter is the single source of truth for review findings — the receipt body does
-  not re-list them, keeping downstream YAML parsers authoritative.
-- `phase_coverage`: list of phase labels present in the permanent file. Empty list if the
-  feature has no phase segmentation.
-- `created` / `updated`: ISO dates (`YYYY-MM-DD`). `updated` must change whenever either the
-  permanent file or any receipt field is modified.
-- Relative path in the markdown link assumes the conventional `swarm-report/` ↔ `docs/`
-  sibling layout at the repo root.
+- `status`: `Draft` сразу после генерации; `Ready` после того, как `multiexpert-review` вернул PASS
+  или WARN; `Approved`, когда пользователь явно согласовал; `Mounted`, когда взят написанный
+  пользователем постоянный файл без перегенерации.
+- `review_verdict`: `pending` при создании; обновляется `multiexpert-review` до `PASS | WARN | FAIL`;
+  `skipped` при монтировании, когда ревью не проводилось.
+- `review_warnings` и `review_blockers`: массивы коротких строк, заполняемые `multiexpert-review`.
+  `review_warnings` пишется на вердикт WARN (нарушены пункты d или e чеклиста — не блокирующие),
+  `review_blockers` — на FAIL (нарушены a, b или c, переход к реализации заблокирован). На PASS,
+  `pending` и `skipped` оба остаются пустыми массивами. Frontmatter — единственный источник истины по
+  находкам ревью: тело расписки их не перечисляет заново, чтобы YAML-парсеры ниже по потоку
+  оставались авторитетными.
+- `phase_coverage`: список меток фаз, присутствующих в постоянном файле. Пустой список, если фича не
+  разбита на фазы.
+- `created` и `updated`: даты в ISO (`YYYY-MM-DD`). `updated` обязано меняться всякий раз, когда
+  изменился постоянный файл либо любое поле расписки.
+- Относительный путь в markdown-ссылке предполагает обычную раскладку, где `swarm-report/` и `docs/`
+  лежат рядом в корне репозитория.
 
-## Pre-existing files
+## Уже существующие файлы
 
-Test plans authored before this convention, and those written when `generate-test-plan` still
-ran standalone, are **not** auto-migrated: they stay readable, but mount logic matches only the
-exact `docs/testplans/<slug>-test-plan.md` path. A plan whose filename does not carry the slug
-is mounted by `/acceptance` only after it is renamed.
+Тест-планы, написанные до этой конвенции, и те, что появились, когда `generate-test-plan` ещё работал
+отдельным скиллом, автоматически **не** мигрируются: они остаются читаемыми, но логика монтирования
+совпадает только с точным путём `docs/testplans/<slug>-test-plan.md`. План, чьё имя файла не несёт
+слаг, `/acceptance` смонтирует только после переименования.
 
-A permanent file without a receipt is the `test_plan_source: mounted` branch, not an error —
-`/acceptance` writes the mount-receipt itself.
+Постоянный файл без расписки — это ветка `test_plan_source: mounted`, а не ошибка: mount-расписку
+`/acceptance` пишет сам.
