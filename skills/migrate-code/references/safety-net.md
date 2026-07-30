@@ -99,7 +99,9 @@ no acceptance of its own, while an extracted one that overruns is visible as a l
 
 A coverage gap identified in Phase 0 is handed to `test-authoring-role` as a report with a fixed
 six-field schema. One report per gap. The recipient is a **role**, not a named tool: whichever
-agent, skill, or person fills the role in this environment consumes the same schema.
+agent, skill, or person fills the role in this environment consumes the same schema. Here that is
+`/cover-with-tests`, which takes the report via `--from-report` — but the role stays abstract on
+purpose, because the schema must survive the tool being replaced.
 
 | Field | Meaning |
 |---|---|
@@ -194,15 +196,20 @@ the stack, not of the migration. `[[scope]]` states the ownership side of this b
 coverage is in scope, authoring test bodies is not. Here it decides how the chosen branch actually
 runs:
 
-- **Automated.** Where the environment provides a tool that fills `test-authoring-role` — Kotlin and
-  Swift stacks are the ones with one available today (e.g. a characterization-mode test-writing
-  skill) — the handoff is a delegation. Coverage authoring runs unattended, safety-net-first and
-  coverage-as-you-go stay cheap, and the batch-by-batch cadence of branch 3 is practical.
-- **Manual.** On every other stack the role is filled by a person. This is a degraded but supported
-  mode, not an unsupported one. Plan for it: the pause of branch 1 becomes a scheduling dependency
-  rather than a step, extract usually beats embed (see `## Embed or extract`), and branch 2's
-  golden-master baseline is often the cheapest reachable option because a recording needs less
-  authoring than a specification.
+- **Automated with a specialist.** `/cover-with-tests` fills `test-authoring-role` in this
+  environment, and its `--characterize` mode is exactly branch 2. Where the stack also has an
+  engineer agent that owns the surface, the handoff is a delegation that runs unattended:
+  safety-net-first and coverage-as-you-go stay cheap and the batch cadence of branch 3 is
+  practical.
+- **Automated without a specialist.** On a stack with no matching engineer agent the same skill
+  still runs — it discovers the project's framework and conventions and writes the checks in the
+  orchestrating session instead of delegating. Slower per batch, same deliverable. Do not classify
+  this as manual.
+- **Manual.** A person fills the role when authoring needs knowledge the repository does not
+  contain — an undocumented external contract, a behavior only the product owner can adjudicate.
+  Degraded but supported: the pause of branch 1 becomes a scheduling dependency rather than a step,
+  extract usually beats embed (see `## Embed or extract`), and branch 2's golden-master baseline is
+  often the cheapest reachable option because a recording needs less authoring than a specification.
 
 Do not hide this boundary from the user when proposing a mode in Phase 0. A plan that assumes
 unattended coverage authoring on a stack that has none is a plan whose safety net silently never

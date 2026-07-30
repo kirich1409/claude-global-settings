@@ -170,29 +170,28 @@ rollout gates remain sound; `WARN` for minor inefficiencies or missing
 `timeout-minutes` / `concurrency` guards; `FAIL` for leaked secrets, disabled safety gates,
 or breaking workflow syntax.
 
-## Coverage audit (engineer agent, not a reviewer)
+## Coverage audit (measurement only)
 
-Executed by the engineer agent that owns the changed surface — `kotlin-engineer`,
-`swift-engineer`, `compose-developer`, or `swiftui-developer`. It both audits and closes gaps,
-which is why it is not a read-only reviewer.
+Read-only in every mode, including under `--fix` — acceptance grades coverage, it never authors
+it. Any agent that can read the diff and the test sources can run it; no engineer agent is needed
+because nothing is written.
 
 Prompt contents:
 1. **Trigger** — `new-public-api` / `tp-tc-mismatch` / `data-layer-no-tests` /
    `--coverage-audit`, with the symbols or TC IDs that matched.
 2. **Test plan** — `docs/testplans/<slug>-test-plan.md`, or `N/A: no test plan`.
 3. **Diff** — scoped to the changed sources plus their test sources.
-4. **Mode** — `report` (default) or `fix`, passed through from `--fix`. In `fix` mode the
-   mandate is to write the missing tests in this same call and re-run the project's
-   mechanical-block commands; stopping after the audit is then an incomplete run. In `report`
-   mode the mandate is the opposite: list the gaps and change nothing.
-5. **Output path** — `swarm-report/<slug>-coverage-audit.md` (schema in
-   [`judgement-layers.md`](judgement-layers.md) §Coverage audit), plus
+4. **Mandate** — cross-reference declared TCs and changed public symbols against the test sources
+   and list what is unproven. Do **not** write, modify, or delete a check. For each gap, name the
+   minimum pyramid level the missing check must reach, so the row can be handed to
+   `/cover-with-tests` unchanged.
+5. **Output** — `swarm-report/<slug>-coverage-audit.md` (schema in
+   [`judgement-layers.md`](judgement-layers.md) §Coverage audit) plus
    `swarm-report/<slug>-acceptance-coverage.md` with `check: coverage` carrying the verdict.
 
-Verdict mapping: `PASS` → everything already covered; `GAPS_FOUND` → gaps listed in `report`
-mode, treated as BLOCK; `GAPS_RESOLVED` → tests written and the mechanical block is green,
-treated as PASS; `ESCALATE` → no viable test after 3 attempts or a structurally untestable gap,
-treated as BLOCK.
+Verdict mapping: `PASS` → everything already covered; `GAPS_FOUND` → gaps listed, treated as
+BLOCK, remedy is a separate `/cover-with-tests` run; `ESCALATE` → a behavior is structurally
+unobservable, treated as BLOCK and needing a decision.
 
 ## L3 / L4 automated device checks
 

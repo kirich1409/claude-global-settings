@@ -78,24 +78,26 @@ or use-case files without adding or updating tests; `--coverage-audit`.
 `--skip-coverage-audit`; the affected module has no test infrastructure — short-circuit and
 file a follow-up ("add test harness for X"). Never skip silently.
 
-**Executor: the project's engineer agent, not a dedicated reviewer** — `kotlin-engineer`,
-`swift-engineer`, `compose-developer`, or `swiftui-developer`, invoked with a coverage-audit
-prompt. It reads the test plan, the diff, and the test sources and writes
-`swarm-report/<slug>-coverage-audit.md`.
+**Acceptance measures coverage; it never authors it.** The audit is read-only in every mode,
+including under `--fix`. Writing a check requires investigating the area, choosing a kind and a
+level, and often building a seam or a harness — a different discipline with its own skill. A gate
+that also authors what it grades stops being a gate.
 
-Writing a test is a mutation, so it follows the same rule as every other fix: **under `--fix`**
-the agent closes each gap in the same call and re-runs the mechanical block (the author fixes
-their own tests — `~/.claude/rules/qa-and-testing.md`); **without `--fix`** it reports the gap
-list and stops. A reported gap is still a BLOCK — an untested public symbol fails the gate
-whether or not the gate was allowed to write the test.
+So the audit produces a gap list and nothing else. Each gap is a **BLOCK**: an untested public
+symbol fails the gate regardless of whether anyone was willing to write the check. The remedy
+named in the receipt is `/cover-with-tests <area> --source <test plan>`, run by the caller as its
+own step; when it completes, re-run acceptance and the gap is gone or it is not.
+
+`ESCALATE` instead of a gap list means the audit found a behavior that is structurally
+unobservable — no seam, no assertable effect. That is a finding about the code, not about the
+missing check, and it needs a decision rather than another attempt.
 
 ```markdown
 # Coverage audit: <slug>
 
 **Date:** <ISO date>
 **Triggered by:** new-public-api | tp-tc-mismatch | data-layer-no-tests | --coverage-audit
-**Mode:** report | fix
-**Verdict:** PASS | GAPS_FOUND | GAPS_RESOLVED | ESCALATE
+**Verdict:** PASS | GAPS_FOUND | ESCALATE
 
 ## Inputs
 - Test plan: `docs/testplans/<slug>-test-plan.md` (or `N/A: no test plan`)
@@ -112,18 +114,16 @@ whether or not the gate was allowed to write the test.
 | Symbol | File | Status | Test file |
 |---|---|---|---|
 
-## Gaps and resolution
-- (gap-1) <what was missing> — <what was added>
-
-## Mechanical block after fixes
-verdict: PASS
-ran: [build, lint, typecheck, tests]
+## Gaps
+- (gap-1) <symbol or TC> — <what is unproven> — remedy: `/cover-with-tests <area> --level L<n>`
 ```
 
-`PASS` — everything already covered. `GAPS_FOUND` — gaps listed, nothing written (the default
-mode); treated as BLOCK. `GAPS_RESOLVED` — tests written under `--fix` and the mechanical block
-is green; treated as PASS. `ESCALATE` — no viable test after 3 attempts, or the gap is
-structurally untestable; treated as BLOCK against the round budget.
+`PASS` — everything already covered. `GAPS_FOUND` — gaps listed with their remedy; BLOCK.
+`ESCALATE` — a behavior is structurally unobservable and needs a decision, not another attempt;
+BLOCK against the round budget.
+
+The gap rows are shaped to be handed straight to `/cover-with-tests` — `symbol`, what is unproven,
+and the minimum level — which is the same information its `--from-report` contract expects.
 
 ## Grading and the fix loop
 

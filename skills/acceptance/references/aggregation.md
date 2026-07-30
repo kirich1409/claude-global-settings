@@ -59,7 +59,7 @@ Save to `swarm-report/<slug>-acceptance.md`. Legacy fields preserved; new sectio
 **Spec source:** [what was used]
 **Test plan:** [resolved permanent path / generated on-the-fly / none]
 **test_plan_source:** receipt | mounted | on-the-fly | absent
-**Context artifacts:** [paths to upstream artifacts used as input — e.g. research.md, debug.md, write-tests.md, coverage-audit.md]
+**Context artifacts:** [paths to upstream artifacts used as input — e.g. research.md, debug.md, coverage-diagnosis.md, coverage-audit.md]
 **Arguments:** [the argument string verbatim, with the caller's reason for each narrowing flag — or `none`]
 
 ## Idempotency Hashes
@@ -79,8 +79,12 @@ don't need to read them.
 
 | Check | Agent / Tool | Verdict | Severity | Confidence | Artifact |
 |---|---|---|---|---|---|
-| Manual QA | manual-tester | … | … | … | swarm-report/<slug>-acceptance-manual.md |
+| Mechanical | bash | … | … | … | swarm-report/<slug>-acceptance-mechanical.md |
 | Code review | code-reviewer | … | … | … | swarm-report/<slug>-acceptance-code.md |
+| Coverage | cover-with-tests | … | … | … | swarm-report/<slug>-acceptance-coverage.md |
+| UI tests | bash | … | … | … | swarm-report/<slug>-acceptance-ui-tests.md |
+| E2E | bash | … | … | … | swarm-report/<slug>-acceptance-e2e.md |
+| Manual QA | manual-tester | … | … | … | swarm-report/<slug>-acceptance-manual.md |
 | AC coverage | business-analyst | … | … | … | swarm-report/<slug>-acceptance-ac-coverage.md |
 | Design | ux-expert | … | … | … | swarm-report/<slug>-acceptance-design.md |
 | A11y | ux-expert | … | … | … | swarm-report/<slug>-acceptance-a11y.md |
@@ -89,7 +93,6 @@ don't need to read them.
 | Architecture | architecture-expert | … | … | … | swarm-report/<slug>-acceptance-architecture.md |
 | Build config | build-engineer | … | … | … | swarm-report/<slug>-acceptance-build-config.md |
 | DevOps | devops-expert | … | … | … | swarm-report/<slug>-acceptance-devops.md |
-| Build smoke | bash | … | … | … | swarm-report/<slug>-acceptance-build.md |
 
 ## Convergence signals
 Issues raised by 2+ sub-checks independently. Strongest signal of real problems.
@@ -121,8 +124,11 @@ reported it.]
   then re-run acceptance. Max 3 round-trips.
 - **FAILED** with P0/P1 and unclear cause → investigate root cause (plan-mode debug) first,
   then fix and re-run.
-- **FAILED** with P0/P1 requiring regression coverage → append a `## Regression TC` to the
-  test plan, then fix and re-run.
+- **FAILED** with P0/P1 requiring regression coverage → `/cover-with-tests <area> --regression`
+  authors the check (it verifies the red-green contract, which acceptance cannot — by the time
+  acceptance runs, the fix is already in). Then fix and re-run.
+- **GAPS_FOUND** from the coverage audit → `/cover-with-tests` on the listed gaps as its own step,
+  then re-run. Acceptance never closes the gap itself.
 - **PARTIAL** with P2/P3 only or WARN — ask the user: fix now or ship with known issues
   (continue to `create-pr`, include in PR description).
 - **PARTIAL** with `blocked_on` — surface the blocker; do not continue until resolved.

@@ -1,6 +1,6 @@
 # Test Infrastructure Discovery
 
-Reference for `write-tests` Phase 2 — see `../SKILL.md` for the skill entry point.
+Reference for `cover-with-tests` Phase 4 — see `../SKILL.md` for the skill entry point.
 
 Use these tables while inspecting existing tests (3-5 samples if available) and build
 configuration to produce the Test Infrastructure Summary that drives downstream code

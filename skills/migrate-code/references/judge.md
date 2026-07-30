@@ -52,7 +52,7 @@ Writing test code for this baseline is out of scope for this skill — it is han
 `test-authoring-role` (see `[[safety-net]]` for the handoff and its schema). Writing tests that pin
 current behavior instead of asserting correctness is a mode of test authoring — commonly called
 characterization — whose semantics and disciplines are owned by the skill that fills that role
-(e.g. `write-tests`), and are deliberately not restated here.
+(e.g. `cover-with-tests`), and are deliberately not restated here.
 
 ### 3. Runtime scenario parity
 

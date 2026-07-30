@@ -45,7 +45,7 @@ itself is worse than a gate that reports.
 | Argument | Effect |
 |---|---|
 | `<slug>` (first bare token) | Artifact family under `swarm-report/`. Default: branch name with a `feature/`, `fix/`, `chore/`, `refactor/`, `docs/` prefix stripped. |
-| `--fix` | Enable mutation: the judgement fix loop repairs BLOCK findings and the coverage audit writes the missing tests. Without it both only report. |
+| `--fix` | Enable mutation: the judgement fix loop repairs BLOCK findings. Without it, findings are only reported. Never extends to authoring checks — that is `/cover-with-tests`, run as its own step. |
 | `--levels <list>` | Run exactly these pyramid levels. `L0,L1a,L2` = mechanical only; `L1b` = judgement only; `L3,L4,L5` = device only. Any level not listed is `SKIPPED` with `blocked_on: excluded by --levels`. |
 | `--skip-levels <list>` | Subtractive form of the same knob — everything except these. Mutually exclusive with `--levels`; both given → stop and ask which was meant. |
 | `--reviewers <list>` | Force these judgement reviewers regardless of their triggers, e.g. `security-expert,ux-expert`. Additive: triggered reviewers still run. |

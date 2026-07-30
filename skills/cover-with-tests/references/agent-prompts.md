@@ -1,6 +1,6 @@
 # Agent Prompt Templates
 
-Reference for `write-tests` Phase 4.2 — see `../SKILL.md` for the skill entry point.
+Reference for `cover-with-tests` Phase 5 — see `../SKILL.md` for the skill entry point.
 
 Pick the template that matches the agent you selected in Phase 4.1 and fill in the `{…}`
 placeholders from Phases 1-3. Keep the section headings exactly as written so downstream
