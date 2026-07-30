@@ -1,216 +1,210 @@
-# Safety Net
+# Страховочная сетка
 
-This file owns the entry into a migration through coverage: what to do when Phase 0 finds no
-reachable judge with the tests that exist today. It owns three entry branches, the deliverable
-boundary, the coverage-gap handoff report schema, the post-migration fate of characterization tests,
-and the compensation available when nothing better is reachable.
+Что делать, когда фаза 0 находит, что судья, которого требует миграция, недостижим при том покрытии,
+которое существует сегодня. Файл владеет тремя входными ветками, seam-ловушкой, границей «встроить или
+извлечь», схемой отчёта о передаче пробела покрытия, судьбой характеризационных тестов после миграции и
+компенсацией, доступной когда ничего лучше недостижимо.
 
-Adjacent ownership, do not re-derive here: verification levels L0-L5 are defined in
-`[[verification-matrix]]`; the judge coverage assessment and the test coupling inventory are
-produced in `[[judge]]`; the IN/OUT taxonomy and the two STOP conditions belong to `[[scope]]`.
-The disciplines of writing characterization tests — how to pin behavior, how to name what was
-captured — belong to the test-authoring skill of the environment, not to this file.
+Смежное владение, здесь не выводится заново: уровни верификации L0–L5 определены в
+`[[verification-matrix]]`; оценка покрытия судьи и инвентарь связанности тестов производятся в
+`[[judge]]`; таксономия IN/OUT и два условия STOP принадлежат `[[scope]]`. Дисциплины написания
+характеризационных тестов — как зафиксировать поведение, как назвать зафиксированное — принадлежат
+скиллу авторства тестов этого окружения, а не этому файлу.
 
-## Three entry branches
+## Три входные ветки
 
-Phase 0 output 9 is a safety-net decision, and the decision has exactly three answers. Pick by the
-two Phase 0 measurements that already exist: the risk rank of the surface being migrated, and how
-much of that surface the current judge actually watches.
+Выход 9 фазы 0 — это решение по страховочной сетке, и у решения ровно три ответа. Выбирать по двум уже
+существующим измерениям фазы 0: ранг риска мигрируемой поверхности и то, какую её долю реально
+наблюдает текущий судья.
 
-1. **Safety-net-first — stop the migration and grow coverage before any code moves.**
-   Choose when the migrated surface carries P0/P1 risk *and* the judge sees materially none of it,
-   or when the migration is cross-cutting (a graph or a shared layer) so the failure mode compiles
-   cleanly and only a runtime observer can catch it. The cost is a full pause; the payoff is that
-   Phase 6 has something to discharge its claim against. This branch is the only one that turns a
-   NO-GO under `[[scope]]` § STOP conditions into a GO.
+1. **Сначала сетка — остановить миграцию и нарастить покрытие до того, как сдвинется код.**
+   Выбирать, когда мигрируемая поверхность несёт риск P0/P1 *и* судья не видит её по существу; либо
+   когда миграция сквозная (граф или общий слой), так что режим отказа компилируется чисто и поймать
+   его может только наблюдатель в рантайме. Цена — полная пауза; выигрыш в том, что фазе 6 есть против
+   чего закрывать своё утверждение. Это единственная ветка, превращающая NO-GO по §Условия STOP в
+   `[[scope]]` в GO.
 
-2. **Golden-master baseline — capture what the system does today, without claiming it is right.**
-   Choose when behavior is observable end to end but not specified: legacy code whose intent is
-   lost, screens with no assertions, pipelines whose output is a file or a payload you can snapshot.
-   The baseline is a recording, not a specification. It has no authority over whether the current
-   behavior is correct — it only fails when the migration changes it. State that explicitly when
-   reporting, because a golden master that is silently read as "the tests say it is correct" invites
-   a wrong bug fix to be reverted as a regression later.
+2. **Golden-master baseline — записать, что система делает сегодня, не утверждая, что это правильно.**
+   Выбирать, когда поведение наблюдаемо от начала до конца, но не специфицировано: legacy-код с
+   утраченным замыслом, экраны без утверждений, конвейеры, чей выход это файл или полезная нагрузка,
+   которые можно снять снимком. Baseline — это запись, а не спецификация. У неё нет власти над вопросом,
+   правильно ли текущее поведение: она падает только тогда, когда миграция его изменила. Говорить это
+   в отчёте явно, потому что golden master, молча прочитанный как «тесты говорят, что это верно»,
+   провоцирует откат настоящего фикса как регрессии позже.
 
-3. **Incremental coverage-as-you-go — grow coverage batch by batch, ahead of each batch.**
-   Choose when the migration is localized (each site independent), risk is P2/P3, and the work queue
-   is long enough that a full up-front pause would dominate the schedule. The rule that keeps it
-   honest: coverage for a batch lands **before** that batch is translated, never after. Coverage
-   written after the translation encodes the new behavior and proves nothing about parity.
+3. **Инкрементальное покрытие по ходу — растить покрытие пачка за пачкой, впереди каждой.** Выбирать,
+   когда миграция локализована (каждое место независимо), риск P2/P3, а очередь работ достаточно
+   длинная, чтобы полная пауза наверху съела расписание. Правило, которое держит это честным: покрытие
+   для пачки садится **до** того, как пачка транслирована, и никогда после. Покрытие, написанное после
+   трансляции, кодирует новое поведение и про соответствие не доказывает ничего.
 
-Two branches can combine — a golden-master baseline over the observable surface plus incremental
-unit coverage per batch is common. What is not allowed is choosing none of them and proceeding: the
-absence of a judge is not resolved by starting work and hoping one appears.
+Две ветки можно сочетать — golden-master baseline по наблюдаемой поверхности плюс инкрементальное
+юнит-покрытие на пачку встречается часто. Чего делать нельзя — не выбрать ни одной и продолжить:
+отсутствие судьи не разрешается тем, что работу начали в надежде, что судья появится.
 
-## The seam trap
+## Seam-ловушка
 
-Getting code under test often requires a seam — an injection point, an extracted interface, a
-constructor parameter where a static call used to be. Creating that seam is a refactoring, and a
-refactoring of the code you are about to migrate is itself a **mini-migration**: same technology
-underneath, same absence of a judge, same need to prove behavior survived. That is the trap, and it
-recurses if you let it — building a seam requires a test, the test requires another seam, and the
-preparation consumes the task it was supposed to enable.
+Чтобы взять код под тест, часто нужен seam — точка внедрения, извлечённый интерфейс, параметр там, где
+был статический вызов. Создание этого seam'а есть рефакторинг, а рефакторинг кода, который вы
+собираетесь мигрировать, сам является **мини-миграцией**: та же технология под ним, то же отсутствие
+судьи, та же нужда доказать, что поведение уцелело. Это и есть ловушка, и она рекурсирует, если
+позволить: построение seam'а требует теста, тест требует следующего seam'а, и подготовка съедает
+задачу, которую должна была сделать возможной.
 
-Three rules keep it bounded:
+Три правила держат это в границах:
 
-- **Do not recurse.** A seam refactoring gets no safety net of its own. It is justified only when
-  the change is compiler-checked or mechanical enough that the compiler is a valid referee at L0-L1
-  — extract an interface, add a parameter, move an instantiation up one level. If a seam needs a
-  behavior judge to be safe, it is not a seam, it is a second migration, and it goes back to Phase 0
-  as its own job.
-- **Budget it before starting.** Name a bounded share of the migration effort for seam work at
-  Phase 0 and treat overrun as a signal, not as an overspend to absorb. When the budget is exhausted
-  and the seam is not in place, the honest outcomes are a coarser judge one level up (test the
-  system where it is already observable rather than where you wish it were) or a NO-GO — not a
-  deeper refactoring.
-- **Prefer observation over surgery.** A judge attached to an existing observable boundary — a
-  process boundary, a screen, an emitted artifact — costs nothing in seams. Reach for the surgical
-  seam only after the outer boundary has been ruled out as too coarse to distinguish the failure
-  mode you actually fear.
+- **Не рекурсировать.** У seam-рефакторинга нет собственной страховочной сетки. Он оправдан, только
+  когда изменение проверяется компилятором или достаточно механично, чтобы компилятор был валидным
+  арбитром на L0–L1: извлечь интерфейс, добавить параметр, поднять создание объекта уровнем выше. Если
+  seam'у для безопасности нужен поведенческий судья, это не seam, а вторая миграция, и она уходит
+  обратно в фазу 0 как собственная работа.
+- **Забюджетировать до начала.** Назвать в фазе 0 ограниченную долю усилий миграции под работу с
+  seam'ами и считать перерасход сигналом, а не тратой, которую надо впитать. Когда бюджет исчерпан, а
+  seam так и не на месте, честные исходы это судья грубее уровнем выше (проверять систему там, где она
+  уже наблюдаема, а не там, где хотелось бы) либо NO-GO — но не более глубокий рефакторинг.
+- **Предпочитать наблюдение хирургии.** Судья, прицепленный к уже существующей наблюдаемой границе —
+  границе процесса, экрану, выпускаемому артефакту, — не стоит ни одного seam'а. Тянуться к
+  хирургическому seam'у только после того, как внешняя граница признана слишком грубой, чтобы отличить
+  тот режим отказа, которого вы на самом деле боитесь.
 
-## Embed or extract
+## Встроить или извлечь
 
-The coverage work is either a phase inside the migration or a separate deliverable that precedes it.
-This is a real fork with different reporting, different review, and different ownership — decide it
-in Phase 0 and say which one you chose.
+Работа по покрытию — либо фаза внутри миграции, либо отдельный результат, который ей предшествует. Это
+настоящая развилка с разной отчётностью, разным ревью и разным владением: решить её в фазе 0 и сказать,
+что выбрано.
 
-**Embed** — the coverage step runs between Phase 0 and Phase 1 of the same job. Choose when the
-volume is small (hours, not days), the tests are scaffolding whose whole purpose is to survive until
-Phase 6, and the migration fits in one working session so the context that produced the coverage is
-still the context that consumes it.
+**Встроить** — шаг покрытия идёт между фазами 0 и 1 той же работы. Выбирать, когда объём мал (часы, а
+не дни), тесты являются лесами, чья цель дожить до фазы 6, а миграция помещается в одну рабочую сессию,
+так что контекст, произведший покрытие, — это всё ещё тот контекст, который его потребляет.
 
-**Extract** — coverage is delivered and accepted on its own before the migration is scheduled.
-Choose when any of the following holds:
+**Извлечь** — покрытие поставляется и принимается само по себе до того, как миграция запланирована.
+Выбирать, когда верно любое:
 
-- **Volume.** The coverage work is comparable to or larger than the migration itself.
-- **Durability.** The tests are a permanent asset — they describe behavior the project wants pinned
-  regardless of this migration, so they should be reviewed on their own merits and not as migration
-  scaffolding.
-- **Session boundary.** The work will not fit in one session, or the authoring is done by a
-  different executor (frequently a human, see `## Coverage authoring: automated vs manual`). Then the
-  coverage-gap handoff report is not a convenience — it is the only carrier of intent across the
-  boundary.
+- **Объём.** Работа по покрытию сравнима с самой миграцией или больше неё.
+- **Долговечность.** Тесты являются постоянным активом: они описывают поведение, которое проект хочет
+  зафиксировать независимо от этой миграции, — значит и ревьюить их надо по их собственным заслугам, а
+  не как леса миграции.
+- **Граница сессии.** Работа не поместится в одну сессию либо авторство делает другой исполнитель. Тогда
+  отчёт о передаче пробела покрытия не удобство, а единственный носитель замысла через границу.
 
-The default when the criteria are mixed is extract, because the failure mode of embedding is worse:
-an embedded coverage phase that overruns silently converts the migration into a testing project with
-no acceptance of its own, while an extracted one that overruns is visible as a late deliverable.
+Дефолт при смешанных критериях — извлечь, потому что режим отказа встраивания хуже: встроенная фаза
+покрытия, вышедшая за бюджет, молча превращает миграцию в тестовый проект без собственной приёмки, а
+извлечённая, вышедшая за бюджет, видна как опаздывающий результат.
 
-## Coverage-gap handoff report
+## Отчёт о передаче пробела покрытия
 
-A coverage gap identified in Phase 0 is handed to `test-authoring-role` as a report with a fixed
-six-field schema. One report per gap. The recipient is a **role**, not a named tool: whichever
-agent, skill, or person fills the role in this environment consumes the same schema. Here that is
-`/cover-with-tests`, which takes the report via `--from-report` — but the role stays abstract on
-purpose, because the schema must survive the tool being replaced.
+Пробел покрытия, найденный в фазе 0, передаётся роли `test-authoring-role` отчётом с фиксированной
+схемой из шести полей. По отчёту на пробел. Получатель — **роль**, а не именованный инструмент: тот
+агент, скилл или человек, который закрывает роль в этом окружении, потребляет одну и ту же схему. Здесь
+это `/cover-with-tests`, принимающий отчёт через `--from-report`, — но роль намеренно остаётся
+абстрактной, потому что схема обязана пережить замену инструмента.
 
-| Field | Meaning |
+| Поле | Значение |
 |---|---|
-| `target` | The site, symbol, or screen to be covered |
-| `baseline` | Reference to the current implementation plus the observable effects to pin |
-| `risk_rank` | P0-P3, taken from the verification matrix and blast radius |
-| `coupling` | `agnostic` or `coupled` — whether the test is welded to the outgoing technology |
-| `judge_level` | Minimum valid level L0-L5 that the resulting test must reach |
-| `test_type` | Proposed type: unit, screenshot, graph-verify, or scenario |
+| `target` | место, символ или экран, который надо покрыть |
+| `baseline` | ссылка на текущую реализацию плюс наблюдаемые эффекты, которые надо зафиксировать |
+| `risk_rank` | P0–P3, берётся из матрицы верификации и радиуса поражения |
+| `coupling` | `agnostic` либо `coupled` — приварен ли тест к уходящей технологии |
+| `judge_level` | минимальный валидный уровень L0–L5, которого обязан достичь получившийся тест |
+| `test_type` | предлагаемый тип: unit, screenshot, graph-verify либо scenario |
 
-Worked example:
+Разобранный пример:
 
 ```
 target:      CartTotalsCalculator.applyPromotions
-baseline:    current implementation at the call site listed in the gap inventory;
-             observable effects to pin: returned total, order of applied promotions,
-             the rounding of the discount on a 3-item cart with two stacked promotions
+baseline:    текущая реализация в месте вызова, перечисленном в инвентаре пробелов;
+             наблюдаемые эффекты для фиксации: возвращаемая сумма, порядок применённых
+             промоакций, округление скидки на корзине из 3 позиций с двумя стакающимися промо
 risk_rank:   P1
 coupling:    agnostic
 judge_level: L2
 test_type:   unit
 ```
 
-**Why `baseline` is in the schema.** The other five fields describe a work order; none of them says
-what the correct answer is. An automated executor on a stack it knows can often read the current
-implementation itself; a manual executor receives a target with no specification of what to capture
-and either guesses or asks. The `baseline` field carries the reference to the current implementation
-and the observable effects that must be pinned, which is exactly the information a characterization
-test needs and no other field supplies.
+**Почему `baseline` есть в схеме.** Остальные пять полей описывают наряд на работу, но ни одно из них
+не говорит, каков правильный ответ. Автоматический исполнитель на знакомом стеке часто может прочитать
+текущую реализацию сам; ручной исполнитель получает цель без спецификации того, что фиксировать, и либо
+гадает, либо спрашивает. Поле `baseline` несёт ссылку на текущую реализацию и наблюдаемые эффекты,
+которые надо зафиксировать, — ровно ту информацию, которая нужна характеризационному тесту и которую не
+даёт никакое другое поле.
 
-**The report is optional for the receiving side.** The consumer must be able to work without it —
-"characterize this class" with no report is a valid request and must remain one. The report is an
-accelerator that removes a discovery step, not a protocol dependency, and no receiver may make the
-report a precondition for doing the work.
+**Отчёт необязателен для принимающей стороны.** Потребитель обязан уметь работать без него:
+«охарактеризуй этот класс» без всякого отчёта — валидный запрос, и он обязан таким остаться. Отчёт это
+ускоритель, снимающий шаг обнаружения, а не зависимость протокола, и ни один получатель не имеет права
+делать отчёт предусловием работы.
 
-Two notes on filling it in. `risk_rank` and `judge_level` are copied from Phase 0 artifacts, not
-re-estimated here — a report that disagrees with the verification matrix means the matrix is stale
-and gets fixed there. `coupling` is copied from the test coupling inventory in `[[judge]]` and is the
-field that decides what happens after the migration, below.
+Два замечания по заполнению. `risk_rank` и `judge_level` копируются из артефактов фазы 0, а не
+переоцениваются здесь: отчёт, расходящийся с матрицей верификации, означает, что протухла матрица, и
+чинят её там. `coupling` копируется из инвентаря связанности тестов в `[[judge]]` и является тем полем,
+которое решает, что произойдёт после миграции.
 
-## Fate of characterization tests
+## Судьба характеризационных тестов
 
-Characterization tests written to enable a migration are not automatically part of the project's
-permanent test suite. When Phase 6 has passed, every such test gets one of two dispositions, decided
-per test and reported explicitly. Silence is not a disposition: an unreviewed characterization suite
-becomes maintenance debt that nobody remembers agreeing to.
+Характеризационные тесты, написанные ради того, чтобы миграция стала возможной, автоматически частью
+постоянного тестового сьюта проекта не становятся. Когда фаза 6 пройдена, каждый такой тест получает
+одно из двух распоряжений, решаемое по тесту и сообщаемое явно. Молчание распоряжением не является:
+непроревьюенный характеризационный сьют становится долгом сопровождения, на который никто не помнит,
+чтобы соглашался.
 
-**Criterion:** a test that pins an idiom of the outgoing technology is a delete candidate; a test
-that is agnostic to the technology stays. This is the `coupling` field of the handoff report, read
-after the fact.
+**Критерий:** тест, фиксирующий идиому уходящей технологии, — кандидат на удаление; тест, нейтральный к
+технологии, остаётся. Это поле `coupling` отчёта о передаче, прочитанное постфактум.
 
-- **Keep — the test is an asset.** It asserts on behavior stated in the domain's own terms: inputs
-  and outputs, screen contents, emitted payloads, error semantics. It would have been worth writing
-  even without the migration, and it will keep failing usefully after the outgoing technology is
-  gone. Fold it into the regular suite, under the regular naming and review conventions.
-- **Delete — the test is debt.** It asserts on the mechanics of the technology being removed: mocks
-  of the old library's types, snapshots of a rendering model that no longer exists, assertions on a
-  callback ordering that the new mechanism does not have. Post-migration it either fails to compile,
-  needs continuous rewriting to keep passing, or passes vacuously. Removing it is the completion of
-  the migration, not a loss of coverage — the coverage it nominally provided was coverage of code
-  that no longer exists.
+- **Оставить — тест является активом.** Он утверждает о поведении в собственных терминах предметной
+  области: входы и выходы, содержимое экрана, выпускаемые полезные нагрузки, семантика ошибок. Его
+  стоило бы написать и без миграции, и он продолжит полезно падать после того, как уходящей технологии
+  не станет. Влить в обычный сьют, под обычные конвенции именования и ревью.
+- **Удалить — тест является долгом.** Он утверждает о механике удаляемой технологии: моки типов старой
+  библиотеки, снимки модели отрисовки, которой больше нет, утверждения о порядке колбэков, которого у
+  нового механизма нет. После миграции он либо не компилируется, либо требует непрерывного
+  переписывания, чтобы проходить, либо проходит вхолостую. Его удаление это завершение миграции, а не
+  потеря покрытия: покрытие, которое он номинально давал, было покрытием кода, которого больше нет.
 
-The ambiguous case — an agnostic assertion reached through a coupled fixture — is a rewrite, not a
-third outcome: keep the assertion, replace the fixture, and if that rewrite is not worth its cost the
-disposition is delete.
+Неоднозначный случай — нейтральное утверждение, достигаемое через приваренную фикстуру, — это
+переписывание, а не третий исход: сохранить утверждение, заменить фикстуру, а если это переписывание не
+стоит своей цены, распоряжением становится удаление.
 
-## Post-release compensation
+## Компенсация после релиза
 
-Some projects run real production traffic while releases are checked by limited manual testing and
-no regression pass exists before release. For that profile, when no branch above yields a judge
-strong enough for the risk, the remaining lever is to move detection after the release:
+Часть проектов гоняет реальный продакшен-трафик, при этом релизы проверяются ограниченным ручным
+тестированием, а регрессионного прогона перед релизом нет. Для такого профиля, когда ни одна ветка выше
+не даёт судью, достаточно сильного для риска, остаётся один рычаг — перенести обнаружение за релиз:
 
-- **Staged rollout.** Ship the migrated code to a small share of traffic first and widen only on a
-  clean signal. The exposure of a defect is then bounded by the share, and rollback is a
-  configuration change rather than a new release.
-- **Crash-free and error-rate monitoring.** Watch crash-free sessions, error rates, and the handful
-  of business metrics the migrated surface touches, with a pre-agreed threshold and a pre-agreed
-  rollback owner. Thresholds and owner are agreed **before** the rollout starts; agreeing on them
-  while a metric is dropping produces negotiation, not a rollback.
+- **Поэтапная раскатка.** Отгрузить мигрированный код сначала на малую долю трафика и расширять только
+  на чистом сигнале. Тогда подверженность дефекту ограничена долей, а откат это изменение конфигурации,
+  а не новый релиз.
+- **Мониторинг crash-free и уровня ошибок.** Следить за долей сессий без падений, уровнем ошибок и той
+  горсткой бизнес-метрик, которых касается мигрированная поверхность, с заранее согласованным порогом и
+  заранее назначенным владельцем отката. Порог и владелец согласуются **до** начала раскатки:
+  согласование в момент, когда метрика падает, порождает переговоры, а не откат.
 
-**This is a weaker level than coverage, and it must be reported as weaker.** It detects, it does not
-prevent: users see the defect first, and only failures that surface as a crash or a moving metric are
-visible at all — silent wrong results, corrupted persisted data, and byte-format drift pass every
-monitor listed above. It is a legitimate compensating control on a P2/P3 surface and a legitimate
-supplement on any surface. It is never a substitute for a judge on a P0/P1 surface, and stating
-"we have staged rollout" does not close a coverage gap in a Phase 6 report.
+**Это более слабый уровень, чем покрытие, и сообщать о нём надо как о более слабом.** Он обнаруживает,
+но не предотвращает: дефект первыми видят пользователи, и видны вообще только те отказы, которые
+всплывают падением или движением метрики. Тихие неверные результаты, повреждённые сохранённые данные и
+дрейф байтового формата проходят мимо каждого перечисленного монитора. Это легитимный компенсирующий
+контроль на поверхности P2/P3 и легитимное дополнение на любой поверхности. Он никогда не заменяет
+судью на поверхности P0/P1, и фраза «у нас есть поэтапная раскатка» пробел покрытия в отчёте фазы 6 не
+закрывает.
 
-## Coverage authoring: automated vs manual
+## Авторство покрытия: автоматически или вручную
 
-The three entry branches are not equally executable everywhere, and the difference is a property of
-the stack, not of the migration. `[[scope]]` states the ownership side of this boundary — assessing
-coverage is in scope, authoring test bodies is not. Here it decides how the chosen branch actually
-runs:
+Три входные ветки исполнимы не везде одинаково, и разница это свойство стека, а не миграции.
+`[[scope]]` излагает сторону владения этой границей: оценка покрытия в области, написание тел тестов
+нет. Здесь она решает, как выбранная ветка реально исполняется:
 
-- **Automated with a specialist.** `/cover-with-tests` fills `test-authoring-role` in this
-  environment, and its `--characterize` mode is exactly branch 2. Where the stack also has an
-  engineer agent that owns the surface, the handoff is a delegation that runs unattended:
-  safety-net-first and coverage-as-you-go stay cheap and the batch cadence of branch 3 is
-  practical.
-- **Automated without a specialist.** On a stack with no matching engineer agent the same skill
-  still runs — it discovers the project's framework and conventions and writes the checks in the
-  orchestrating session instead of delegating. Slower per batch, same deliverable. Do not classify
-  this as manual.
-- **Manual.** A person fills the role when authoring needs knowledge the repository does not
-  contain — an undocumented external contract, a behavior only the product owner can adjudicate.
-  Degraded but supported: the pause of branch 1 becomes a scheduling dependency rather than a step,
-  extract usually beats embed (see `## Embed or extract`), and branch 2's golden-master baseline is
-  often the cheapest reachable option because a recording needs less authoring than a specification.
+- **Автоматически со специалистом.** `/cover-with-tests` закрывает `test-authoring-role` в этом
+  окружении, и его режим `--characterize` это в точности ветка 2. Там, где у стека есть ещё и
+  инженерный агент, владеющий поверхностью, передача становится делегированием, идущим без присмотра:
+  «сначала сетка» и «покрытие по ходу» остаются дешёвыми, а пачечный ритм ветки 3 практичным.
+- **Автоматически без специалиста.** На стеке без подходящего инженерного агента тот же скилл всё равно
+  работает: он обнаруживает фреймворк и конвенции проекта и пишет проверки в оркестрирующей сессии
+  вместо делегирования. Медленнее на пачку, результат тот же. Ручным режимом это не считать.
+- **Вручную.** Роль закрывает человек, когда авторству нужно знание, которого в репозитории нет:
+  недокументированный внешний контракт, поведение, которое может рассудить только владелец продукта.
+  Ухудшенный, но поддерживаемый режим: пауза ветки 1 становится зависимостью по расписанию, а не шагом,
+  извлечение обычно выигрывает у встраивания (см. §Встроить или извлечь), а golden-master baseline
+  ветки 2 часто оказывается самым дешёвым достижимым вариантом, потому что запись требует меньше
+  авторства, чем спецификация.
 
-Do not hide this boundary from the user when proposing a mode in Phase 0. A plan that assumes
-unattended coverage authoring on a stack that has none is a plan whose safety net silently never
-gets built.
+Не прятать эту границу от пользователя, предлагая режим в фазе 0. План, предполагающий авторство
+покрытия без присмотра на стеке, где его нет, — это план, чья страховочная сетка молча никогда не будет
+построена.
