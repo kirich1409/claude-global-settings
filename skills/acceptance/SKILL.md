@@ -2,210 +2,214 @@
 name: acceptance
 argument-hint: "[slug] [--fix] [--levels L0,L1a,L2,L3,L4,L5] [--skip-levels …] [--reviewers …] [--base ref] [--max-rounds N]"
 description: >
-  The single post-implementation gate. Verifies an implementation against its verification
-  contract (spec, test plan, or bug reproduction) by running the L0–L5 pyramid: a mechanical
-  block, judgement layers, then device checks, aggregated into one receipt. Read-only by
-  default — pass `--fix` to let it repair what it finds.
+  Единственный гейт после реализации. Проверяет реализацию против её контракта верификации
+  (спецификация, тест-план или воспроизведение бага), прогоняя пирамиду L0–L5 тремя блоками:
+  механический, слои суждения, device-проверки, — и сводит всё в одну расписку. По умолчанию
+  ничего не меняет: правки включаются флагом `--fix`.
   Triggers: "acceptance", "verify this", "test this", "verify against spec", "QA the
   implementation", "run the test plan", "validate acceptance criteria", "verify the fix",
-  "confirm bug is gone", "code quality pass", "polish the code", "prepare for review".
+  "confirm bug is gone", "code quality pass", "polish the code", "prepare for review",
+  «проверь это», «прогони приёмку», «баг ушёл?».
 ---
 
 # Acceptance
 
-Choreographer skill and the only mandatory gate after implementation. It executes a
-pre-existing verification contract — it never invents checks. No contract → Step 1.5 halts and
-names the upstream skill that produces one.
+Скилл-хореограф и единственный обязательный гейт после реализации. Он исполняет **уже
+существующий** контракт верификации и никогда не выдумывает проверки. Контракта нет — шаг 1.5
+останавливает прогон и называет вышестоящий скилл, который его производит.
 
-Pyramid levels L0–L5 are defined in `~/.claude/rules/qa-and-testing.md`; that file also fixes
-the rule this skill depends on most — **a level says what must be proven, the project says what
-proves it**. Acceptance derives every command it runs from the project at hand.
+Уровни пирамиды L0–L5 определены в `~/.claude/rules/qa-and-testing.md`; там же закреплено правило,
+на которое этот скилл опирается сильнее всего: **уровень говорит, что обязано быть доказано, а
+проект говорит, чем именно**. Поэтому каждую команду acceptance выводит из проекта, с которым
+работает.
 
-| File | Covers |
+| Файл | Содержит |
 |---|---|
-| [`references/source-branches.md`](references/source-branches.md) | Step 1 spec frontmatter and the four `test_plan_source` branches (receipt / mounted / on-the-fly / absent) |
-| [`references/judgement-layers.md`](references/judgement-layers.md) | Block 2 — reviewer routing, security pattern triggers, coverage audit, fix loop and round budget, tolerance flags |
-| [`references/subcheck-prompts.md`](references/subcheck-prompts.md) | Per-agent prompt contracts and output paths for every sub-check |
-| [`references/aggregation.md`](references/aggregation.md) | Step 6 PoLL aggregation, Aggregated Status table, receipt template, downstream routing |
-| [`references/re-verification.md`](references/re-verification.md) | Re-verification Loop `diff_hash` decision table and spec/test-plan change overrides |
+| [`references/source-branches.md`](references/source-branches.md) | Шаг 1: frontmatter спецификации и четыре ветки `test_plan_source` (receipt / mounted / on-the-fly / absent) |
+| [`references/judgement-layers.md`](references/judgement-layers.md) | Блок 2: маршрутизация ревьюеров, паттерн-триггеры безопасности, coverage-аудит, цикл фиксов и бюджет раундов |
+| [`references/subcheck-prompts.md`](references/subcheck-prompts.md) | Контракты промптов и пути вывода для каждой подпроверки |
+| [`references/aggregation.md`](references/aggregation.md) | Шаг 6: агрегация PoLL, таблица Aggregated Status, шаблон расписки, маршрутизация дальше |
+| [`references/re-verification.md`](references/re-verification.md) | Цикл повторной верификации: таблица решений по `diff_hash` и переопределения при изменении спеки и тест-плана |
 
 ---
 
-## Inputs
+## Входные данные
 
-Arguments arrive as one free-text string — parse it, do not expect positional substitution.
-Everything is optional: with no arguments the gate runs the full pyramid for the slug it derives
-from the branch. Unrecognised token → stop and say what was not understood; never guess.
+Аргументы приходят одной свободной строкой — её надо разобрать, позиционной подстановки не ждать.
+Всё необязательно: без аргументов гейт прогоняет полную пирамиду для слага, выведенного из ветки.
+Неизвестный токен — остановиться и сказать, что именно не понято; не угадывать.
 
-**The gate is read-only by default.** It runs every level, reports every finding, and changes
-nothing. Fixing is opted into with `--fix`, because an unasked-for fix is a change the caller
-did not review — and on an unfamiliar repository a gate that rewrites working code to prove
-itself is worse than a gate that reports.
+**По умолчанию гейт только читает.** Он прогоняет все уровни, сообщает все находки и ничего не
+меняет. Правки включаются флагом `--fix`, потому что незапрошенная правка — это изменение, которого
+вызывающий не просматривал; а на чужом репозитории гейт, переписывающий рабочий код, чтобы доказать
+себя, хуже гейта, который просто отчитывается.
 
-| Argument | Effect |
+| Аргумент | Действие |
 |---|---|
-| `<slug>` (first bare token) | Artifact family under `swarm-report/`. Default: branch name with a `feature/`, `fix/`, `chore/`, `refactor/`, `docs/` prefix stripped. |
-| `--fix` | Enable mutation: the judgement fix loop repairs BLOCK findings. Without it, findings are only reported. Never extends to authoring checks — that is `/cover-with-tests`, run as its own step. |
-| `--levels <list>` | Run exactly these pyramid levels. `L0,L1a,L2` = mechanical only; `L1b` = judgement only; `L3,L4,L5` = device only. Any level not listed is `SKIPPED` with `blocked_on: excluded by --levels`. |
-| `--skip-levels <list>` | Subtractive form of the same knob — everything except these. Mutually exclusive with `--levels`; both given → stop and ask which was meant. |
-| `--reviewers <list>` | Force these judgement reviewers regardless of their triggers, e.g. `security-expert,ux-expert`. Additive: triggered reviewers still run. |
-| `--skip-reviewers <list>` | Suppress these reviewers even when triggered. Each suppression is recorded as an acknowledged risk with the caller's reason. |
-| `--source <path>` | Use this file as the verification source instead of probing. Skips the Step 1 probe, not Step 1.5's requirement that a source exist. |
-| `--base <ref>` | Diff base for every diff-derived trigger and for `diff_hash`. Default: merge-base with the remote default branch. |
-| `--max-rounds N` | Judgement fix-loop budget, default 3. Meaningful only with `--fix`; given alone it is a no-op and worth saying so rather than silently ignoring. |
-| `--coverage-audit` / `--skip-coverage-audit` | Force or suppress the coverage audit. |
-| `--skip-security-review` | Turn off both the frontmatter and the diff-pattern security triggers. Discouraged. |
+| `<slug>` (первый голый токен) | Семейство артефактов в `swarm-report/`. По умолчанию — имя ветки без префикса `feature/`, `fix/`, `chore/`, `refactor/`, `docs/`. |
+| `--fix` | Разрешить мутации: цикл фиксов чинит находки уровня BLOCK. Без флага находки только сообщаются. Никогда не распространяется на авторство проверок — это `/cover-with-tests` отдельным шагом. |
+| `--levels <список>` | Прогнать ровно эти уровни. `L0,L1a,L2` — только механический блок; `L1b` — только суждение; `L3,L4,L5` — только device. Не названный уровень получает `SKIPPED` с `blocked_on: excluded by --levels`. |
+| `--skip-levels <список>` | Вычитающая форма того же рычага: всё, кроме перечисленного. Несовместим с `--levels`; заданы оба — остановиться и спросить, что имелось в виду. |
+| `--reviewers <список>` | Запустить этих ревьюеров независимо от их триггеров, например `security-expert,ux-expert`. Добавляет к сработавшим, а не заменяет их. |
+| `--skip-reviewers <список>` | Подавить этих ревьюеров даже при сработавшем триггере. Каждое подавление уходит в расписку как принятый риск с причиной вызывающего. |
+| `--source <path>` | Взять этот файл источником истины вместо зондирования. Отменяет пробу шага 1, но не требование шага 1.5, чтобы источник вообще существовал. |
+| `--base <ref>` | База диффа для всех diff-триггеров и для `diff_hash`. По умолчанию — merge-base с дефолтной веткой remote. |
+| `--max-rounds N` | Бюджет цикла фиксов, по умолчанию 3. Имеет смысл только с `--fix`; переданный сам по себе — no-op, о котором лучше сказать, чем молча его проигнорировать. |
+| `--coverage-audit` / `--skip-coverage-audit` | Форсировать или подавить coverage-аудит. |
+| `--skip-security-review` | Выключить и frontmatter-триггер, и diff-паттерны безопасности. Не рекомендуется. |
 
-**A flag narrows scope, it never changes a verdict.** Every excluded level, suppressed reviewer
-and skipped audit appears in the receipt under `acknowledged risks` with the argument verbatim
-and the caller's reason — an excluded level is a tracked exception, never a silent pass. When a
-flag excludes a level that `~/.claude/rules/qa-and-testing.md` marks mandatory for this task type
-(L5 for version bumps, migrations, infra-layer changes, "must not change behavior"), say so
-explicitly at the start of the run and require the caller to confirm.
+**Флаг сужает scope, но никогда не меняет вердикт.** Каждый исключённый уровень, подавленный
+ревьюер и пропущенный аудит попадают в расписку в раздел принятых рисков — с аргументом дословно и
+причиной вызывающего. Исключённый уровень это отслеживаемое исключение, а не молчаливый проход. Если
+флаг исключает уровень, который `~/.claude/rules/qa-and-testing.md` объявляет обязательным для
+данного типа задачи (L5 для бампов версий, миграций, изменений infra-слоя и задач «поведение не
+должно измениться»), сказать это в начале прогона и потребовать подтверждения.
 
-**L0 cannot be excluded.** It is the implicit input gate of every other level: nothing is proven
-about code that does not build.
-
----
-
-## Execution model — three blocks
-
-The pyramid answers "what must be proven", not "in what order processes run". Execution splits
-into three blocks; the contract axis (conformance to the source of truth) runs across all three.
-
-1. **Mechanical block** — L0 build, L1a lint and typecheck, L2 isolated tests, then the
-   public-API coverage gate. Machine verdicts, fail-fast, no judgement.
-2. **Judgement layers** — L1b. `code-reviewer` plus a conditional expert panel and the coverage
-   audit, on top of a green mechanical block. Under `--fix`, **the mechanical block is re-run
-   after every mutation**; that interleave is load-bearing, not a detail, because a fix that
-   breaks the build invalidates every judgement made after it.
-3. **Device block** — L3 UI tests → L4 E2E → L5 manual verification, strictly in that order.
-   The gate owns the device and the installed build for the whole block.
-
-Blocks are ordered. A red mechanical block never fans out to judgement; a failing judgement
-layer with unresolved BLOCKs never proceeds to the device block.
+**L0 исключить нельзя.** Это неявный входной гейт всех остальных уровней: про код, который не
+собирается, не доказано ничего.
 
 ---
 
-## Vocabulary
+## Модель исполнения — три блока
 
-Canonical values; `create-pr` and every downstream consumer read them from the receipt.
+Пирамида отвечает на вопрос «что обязано быть проверено», а не «в каком порядке запускаются
+процессы». Исполнение делится на три блока, и ось контракта — соответствие источнику истины —
+проходит поперёк всех трёх.
+
+1. **Механический блок** — L0 сборка, L1a линт и типы, L2 изолированные тесты, затем гейт покрытия
+   public API. Машинные вердикты, fail-fast, без суждения.
+2. **Слои суждения** — L1b. `code-reviewer` плюс условная экспертная панель и coverage-аудит,
+   поверх зелёного механического блока. Под `--fix` **механический блок перепрогоняется после каждой
+   мутации**; этот интерливинг несущий, а не деталь: фикс, ломающий сборку, обесценивает все
+   суждения, вынесенные после него.
+3. **Device-блок** — L3 UI-тесты → L4 E2E → L5 ручная верификация, строго в этом порядке. Гейт
+   владеет устройством и установленной сборкой на всём протяжении блока.
+
+Блоки упорядочены. Красный механический блок не веерится в суждение; слой суждения с непогашенным
+BLOCK не пускает в device-блок.
+
+---
+
+## Словарь
+
+Канонические значения; `create-pr` и все потребители ниже по потоку читают их из расписки.
 
 - **`project_type`** — `android | ios | web | desktop | backend-jvm | backend-node | cli |
   library | generic`.
-- **`has_ui_surface`** — derived from `project_type`. True for `android`, `ios`, `web`,
-  `desktop`; `generic` → ask the user.
-- **`ecosystem`** — build stack (`gradle | node | rust | go | python | xcode`), used only to
-  select mechanical-block commands. Orthogonal to `project_type`.
-- **Per-check verdict** — `PASS | WARN | FAIL | SKIPPED`, plus `severity`
-  (`critical | major | minor`), `confidence` (`high | medium | low`) and `domain_relevance`
-  for aggregation.
-- **Finding grade** — judgement findings are graded on the 0–100 confidence rubric defined
-  once in `~/.claude/agents/code-reviewer.md` and inherited everywhere. **BLOCK** =
-  critical/major ≥ 75. **WARN** = minor ≥ 50, reported only. Below threshold → dropped.
+- **`has_ui_surface`** — выводится из `project_type`. Истина для `android`, `ios`, `web`,
+  `desktop`; для `generic` — спросить пользователя.
+- **`ecosystem`** — стек сборки (`gradle | node | rust | go | python | xcode`), нужен только для
+  выбора команд механического блока. Ортогонален `project_type`.
+- **Вердикт подпроверки** — `PASS | WARN | FAIL | SKIPPED`, плюс `severity`
+  (`critical | major | minor`), `confidence` (`high | medium | low`) и `domain_relevance` для
+  агрегации.
+- **Оценка находки** — находки суждения оцениваются по рубрике confidence 0–100, определённой один
+  раз в `~/.claude/agents/code-reviewer.md` и унаследованной везде. **BLOCK** — critical/major ≥ 75.
+  **WARN** — minor ≥ 50, только сообщается. Ниже порога — отбрасывается.
 - **Aggregated Status** — `VERIFIED | FAILED | PARTIAL`.
-- **Pyramid levels** — `L0` build, `L1a` static analysis, `L1b` expert agent review, `L2`
-  isolated tests, `L3` integration, `L4` E2E, `L5` manual verification. Defined once in
-  `~/.claude/rules/qa-and-testing.md`; `--levels` and `--skip-levels` address them by these names.
+- **Уровни пирамиды** — `L0` сборка, `L1a` статический анализ, `L1b` экспертное агентное ревью,
+  `L2` изолированные тесты, `L3` интеграционные, `L4` E2E, `L5` ручная верификация. Определены один
+  раз в `~/.claude/rules/qa-and-testing.md`; `--levels` и `--skip-levels` адресуют их этими именами.
 
 ---
 
-## Step 0: Detect Project Type
+## Шаг 0: определить тип проекта
 
-Detect from build files, manifests, and source layout: Android (`AndroidManifest.xml`,
-`build.gradle*` with `com.android.application`), iOS (`*.xcodeproj`, `Package.swift` with iOS
-targets), web (`package.json` with a browser-targeted framework), desktop (Compose Desktop,
-Tauri, Electron), backend (Spring/Ktor/Express without UI), CLI / library (no UI surface).
-Ambiguous → ask. Output: `project_type`, `has_ui_surface`, `ecosystem`.
+Определять по build-файлам, манифестам и раскладке исходников: Android (`AndroidManifest.xml`,
+`build.gradle*` с `com.android.application`), iOS (`*.xcodeproj`, `Package.swift` с iOS-таргетами),
+web (`package.json` с браузерным фреймворком), desktop (Compose Desktop, Tauri, Electron), backend
+(Spring/Ktor/Express без UI), CLI и библиотека (UI-поверхности нет). Неоднозначно — спросить. На
+выходе: `project_type`, `has_ui_surface`, `ecosystem`.
 
-**Override policy.** Non-empty spec frontmatter `platform:` wins — take its first value as
-`project_type`, record the full list as `platforms: [...]`, never invent a `multi-platform`
-type. Record `project_type_override: spec`, or `user` if corrected mid-run.
+**Правило переопределения.** Непустой `platform:` во frontmatter спецификации побеждает: первое его
+значение становится `project_type`, полный список записывается как `platforms: [...]`, тип
+`multi-platform` не выдумывается. Записать `project_type_override: spec`, либо `user`, если
+пользователь поправил определение по ходу.
 
-Step 0 and Step 1 file reads are disjoint — issue both sets in one batched Read call set.
+Чтения файлов шага 0 и шага 1 не пересекаются — выдать оба набора одним пакетом вызовов Read.
 
 ---
 
-## Step 1: Gather Inputs
+## Шаг 1: собрать входы
 
-Acceptance requires at least one verification source. Read spec sources (Figma, PRD, AC list,
-PR description, issue) and load the spec frontmatter (`platform`, `surfaces`, `risk_areas`,
+Приёмке нужен хотя бы один источник верификации. Прочитать источники спецификации (Figma, PRD,
+список AC, описание PR, issue) и загрузить frontmatter спеки (`platform`, `surfaces`, `risk_areas`,
 `non_functional`, `acceptance_criteria_ids`, `design.figma`).
 
-Probe artifacts in a single batched Read call set: `swarm-report/<slug>-test-plan.md`,
+Прозондировать артефакты одним пакетом вызовов Read: `swarm-report/<slug>-test-plan.md`,
 `docs/testplans/<slug>-test-plan.md`, `swarm-report/<slug>-debug.md`.
 
-The selected source fires one of four branches — `test_plan_source: receipt | mounted |
-on-the-fly | absent`. `debug.md` as the only source qualifies Branch 3 (`on-the-fly`): bug-fix
-verification treats it as a spec-like input. Branch semantics, mount-receipt overrides, and the
-`surfaces` invariant guards live in
-[`references/source-branches.md`](references/source-branches.md). Record the branch in the
-receipt.
+Выбранный источник запускает одну из четырёх веток — `test_plan_source: receipt | mounted |
+on-the-fly | absent`. `debug.md` как единственный источник подходит под ветку 3 (`on-the-fly`):
+верификация багфикса относится к нему как к спека-подобному входу. Семантика веток, переопределения
+mount-расписки и инварианты по `surfaces` — в
+[`references/source-branches.md`](references/source-branches.md). Ветку записать в расписку.
 
-**Instrumentation verification.** When the test plan carries a `## Non-functional /
-Instrumentation` section that is present and not `N/A: <reason>`, verify against the running
-app that each declared event, metric, or span fires when its behavior runs. Declared but not
-emitted, or emitted with wrong fields → P1 finding routed through the normal FAILED loop.
+**Верификация инструментирования.** Если тест-план несёт раздел `## Non-functional /
+Instrumentation`, и он не `N/A: <причина>`, проверить на работающем приложении, что каждое
+объявленное событие, метрика или span действительно испускается, когда исполняется его поведение.
+Объявлено, но не испускается, либо испускается с неверными полями — находка P1 через обычный цикл
+FAILED.
 
 ---
 
-## Step 1.5: Source-Missing Gate
+## Шаг 1.5: гейт отсутствующего источника
 
-Fires only on `test_plan_source: absent`.
+Срабатывает только на `test_plan_source: absent`.
 
-| Situation | Proposal |
+| Ситуация | Предложение |
 |---|---|
-| No spec, no test plan (feature) | `/write-spec` for the requirements, then re-run |
-| Spec without AC, no test plan, UI project | Add AC to the spec, or `/write-plan --test-plan` for executable TCs |
-| Bugfix without reproduction notes | Capture root cause + reproduction in `swarm-report/<slug>-debug.md`, then re-run |
-| Only `design.figma`, no test plan, UI project | Design-only review via `ux-expert`; functional acceptance needs AC in the spec first |
+| Нет спеки, нет тест-плана (фича) | `/write-spec` за требованиями, затем повторить прогон |
+| Спека без AC, тест-плана нет, UI-проект | Добавить AC в спеку либо `/write-plan --test-plan` за исполнимыми TC |
+| Багфикс без шагов воспроизведения | Зафиксировать первопричину и репро в `swarm-report/<slug>-debug.md`, затем повторить |
+| Только `design.figma`, тест-плана нет, UI-проект | Ревью дизайна через `ux-expert`; функциональной приёмке сначала нужны AC в спеке |
 
-Options: create the missing source via the named upstream skill and re-run, or abort without a
-receipt. Exploratory QA without a scenario is `manual-tester` called directly — never offered
-as a fallback inside acceptance.
-
----
-
-## Step 2: Persist E2E Scenario
-
-Only when `has_ui_surface == true` and a scenario source exists. Save to
-`swarm-report/<slug>-e2e-scenario.md` using the canonical template in
-`~/.claude/rules/context-resilience.md`, adding `Project type:` and `Spec source:` at the head.
-`manual-tester` re-anchors against this file; acceptance writes it and re-reads it during
-aggregation. The running-app environment is owned by `manual-tester` — this skill never probes
-devices, installs builds, or starts dev servers.
-
-Bug-fix rule: steps are the `debug.md` reproduction inverted — "Step X triggers the bug"
-becomes "Step X no longer triggers the bug".
+Варианты: создать недостающий источник названным вышестоящим скиллом и повторить прогон либо
+прервать без расписки. Исследовательское QA без сценария — это `manual-tester` напрямую, и он
+никогда не предлагается как запасной вариант внутри приёмки.
 
 ---
 
-## Step 2.5: Persist Run State
+## Шаг 2: сохранить E2E-сценарий
 
-Save the plan and compaction-resilient progress to
-`swarm-report/<slug>-acceptance-state.md` — operational state, never a receipt. Write it after
-all conditional triggers resolve and before the first agent spawns.
+Только когда `has_ui_surface == true` и источник сценария существует. Сохранить в
+`swarm-report/<slug>-e2e-scenario.md` по каноническому шаблону из
+`~/.claude/rules/context-resilience.md`, дописав в шапку `Project type:` и `Spec source:`.
+`manual-tester` переякоряется на этот файл; приёмка его пишет и перечитывает при агрегации. Средой
+работающего приложения владеет `manual-tester` — этот скилл никогда не зондирует устройства, не
+ставит сборки и не поднимает dev-серверы.
+
+Правило для багфикса: шаги — это инвертированное воспроизведение из `debug.md`, «шаг X вызывает баг»
+превращается в «шаг X больше не вызывает баг».
+
+---
+
+## Шаг 2.5: сохранить состояние прогона
+
+Записать план и устойчивый к сжатию прогресс в `swarm-report/<slug>-acceptance-state.md` — это
+операционное состояние, никогда не расписка. Писать после того, как разрешены все условные триггеры,
+и до запуска первого агента.
 
 ```markdown
 # Acceptance State: <slug>
 
 Status: planning | mechanical | judgement | device | aggregating | done
-Arguments: <the argument string verbatim, or `none`>
-Levels: <resolved level set after --levels / --skip-levels>
-Cycle: <N> of 3              # incremented on Re-verification Loop re-entry
-Round: <N> of <max-rounds>   # judgement-layer fix rounds
+Arguments: <строка аргументов дословно, либо `none`>
+Levels: <разрешённый набор уровней после --levels / --skip-levels>
+Cycle: <N> of 3              # растёт при входе в цикл повторной верификации
+Round: <N> of <max-rounds>   # раунды фиксов в слоях суждения
 Started: <ISO8601>
 Base: <base-branch>
-Diff hash: <sha256 of git diff <base>...HEAD>
-Spec hash: <sha256 of spec file, or null>
-Test-plan hash: <sha256 of permanent test plan, or null>
+Diff hash: <sha256 от git diff <base>...HEAD>
+Spec hash: <sha256 файла спеки, либо null>
+Test-plan hash: <sha256 постоянного тест-плана, либо null>
 
 ## Planned Checks
-- [ ] mechanical (always)
-- [ ] code (always)
-- [ ] ac-coverage (triggered by spec.acceptance_criteria_ids)
-- [ ] security (triggered by risk_areas: [auth])
-- [ ] manual (triggered by has_ui_surface + scenario)
+- [ ] mechanical (всегда)
+- [ ] code (всегда)
+- [ ] ac-coverage (триггер: spec.acceptance_criteria_ids)
+- [ ] security (триггер: risk_areas: [auth])
+- [ ] manual (триггер: has_ui_surface + сценарий)
 
 ## Completed Checks
 - [x] mechanical — swarm-report/<slug>-acceptance-mechanical.md — PASS
@@ -213,140 +217,139 @@ Test-plan hash: <sha256 of permanent test plan, or null>
 ## Aggregated Verdict History
 ### Cycle 1
 Verdict: FAILED
-Blockers: <copy from aggregated receipt>
+Blockers: <скопировать из сводной расписки>
 ```
 
-Re-read before every major action (spawning a batch, aggregating, writing the receipt).
-Completed `[x]` checks are never re-spawned after a compaction. Mark each `[x]` with artifact
-path and verdict as soon as its file is written. On Re-verification Loop re-entry: increment
-`Cycle`, reset `Planned Checks` from the new hashes, move reused checks under
-`## Re-used from previous cycle`, append to the verdict history. `Status: done` makes the file
-read-only history.
+Перечитывать перед каждым значимым действием — запуском пачки агентов, агрегацией, записью расписки.
+Завершённые `[x]` проверки после сжатия контекста заново не запускаются. Помечать `[x]` с путём
+артефакта и вердиктом сразу, как только файл записан. При входе в цикл повторной верификации:
+увеличить `Cycle`, пересобрать `Planned Checks` по новым хешам, перенести переиспользованные проверки
+в раздел `## Re-used from previous cycle`, дописать историю вердиктов. `Status: done` превращает файл
+в историю только для чтения.
 
 ---
 
-## Step 3: Mechanical Block (L0, L1a, L2)
+## Шаг 3: механический блок (L0, L1a, L2)
 
-Derive the commands from the project, in this priority order:
+Команды выводятся из проекта в таком порядке приоритета:
 
-1. Explicit project instruction — its `CLAUDE.md`, the task plan, a documented `check` target.
-2. Inferred from the stack — the build tool's aggregate task (`./gradlew check`,
+1. Явное указание проекта — его `CLAUDE.md`, план задачи, задокументированная агрегатная цель.
+2. Вывод из стека — агрегатная задача системы сборки (`./gradlew check`,
    `npm test && npm run lint`, `cargo test && cargo clippy`, `swift build && swift test`,
-   `make check`), detected linter and typechecker configs, existing test layout.
-3. Neither yields a command → say so explicitly and record a tracked exception with the reason.
-   Never silently treat a level as inapplicable.
+   `make check`), найденные конфиги линтеров и типизации, существующая раскладка тестов.
+3. Ни то ни другое команду не дало — сказать это явно и оформить отслеживаемым исключением с
+   причиной. Никогда не считать уровень неприменимым молча.
 
-Run build → lint/typecheck → isolated tests as one fail-fast sequence, then the **public-API
-coverage gate** from `~/.claude/rules/qa-and-testing.md` §Gate покрытия public API: every
-changed public symbol whose behavior or signature changed is matched to a test, or marked
-trivial. An unmatched symbol is a BLOCK handled by the coverage audit in Block 2.
+Прогнать сборку → линт и типы → изолированные тесты одной fail-fast последовательностью, затем
+**гейт покрытия public API** из `~/.claude/rules/qa-and-testing.md`: каждому изменённому публичному
+символу, у которого изменились поведение или сигнатура, сопоставлен тест либо он помечен
+тривиальным. Несопоставленный символ — BLOCK, которым занимается coverage-аудит блока 2.
 
-Non-code artifacts get the same levels with a different composition — for configuration, L0 is
-"the file parses" and L1a is its schema or `validate-config`; a valid-looking diff is not a
-verification.
+Не-кодовые артефакты получают те же уровни в другом наполнении: для конфигурации L0 — «файл
+парсится», L1a — его schema или `validate-config`; правдоподобно выглядящий дифф верификацией не
+является.
 
-Write `swarm-report/<slug>-acceptance-mechanical.md`. **Red block → stop and report**, with or
-without `--fix`. Judgement layers do not run on code that does not build, and making a broken
-build green is implementation work, not acceptance: `--fix` repairs findings the gate raised, it
-does not finish someone's unfinished change.
+Записать `swarm-report/<slug>-acceptance-mechanical.md`. **Красный блок — остановиться и
+отчитаться**, и с `--fix`, и без него. Слои суждения не работают по коду, который не собирается, а
+привести сломанную сборку в зелёное — это работа реализации, а не приёмки: `--fix` чинит находки,
+поднятые самим гейтом, и не доделывает чужое незаконченное изменение.
 
 ---
 
-## Step 4: Judgement Layers (L1b)
+## Шаг 4: слои суждения (L1b)
 
-Emit **one** message containing every triggered Agent call simultaneously. `code-reviewer`
-always runs. Conditional experts fire on spec frontmatter **or** on diff patterns — the diff
-path matters most, because bug fixes and unspec'd tasks carry no frontmatter to declare risk.
+Выдать **одно** сообщение со всеми сработавшими вызовами агентов одновременно. `code-reviewer`
+работает всегда. Условные эксперты срабатывают по frontmatter спеки **или** по паттернам диффа,
+причём путь через дифф важнее: у багфиксов и задач без спеки нет frontmatter, чтобы объявить риск.
 
-Routing tables, the security broad/narrow pattern tiers and their thresholds, the coverage
-audit, and the fix loop with its round budget all live in
-[`references/judgement-layers.md`](references/judgement-layers.md). Per-agent prompts live in
-[`references/subcheck-prompts.md`](references/subcheck-prompts.md).
+Таблицы маршрутизации, тиры broad/narrow паттернов безопасности с порогами, coverage-аудит и цикл
+фиксов с бюджетом раундов — в [`references/judgement-layers.md`](references/judgement-layers.md).
+Промпты по агентам — в [`references/subcheck-prompts.md`](references/subcheck-prompts.md).
 
-**Diff detection — two cached passes**, alive for the whole run, never re-probed per agent:
+**Обнаружение по диффу — два кэшируемых прохода**, живут весь прогон и никогда не повторяются на
+каждого агента:
 
-1. **Path pass** — `git diff -M --name-only <base>...HEAD` once; drives every path rule.
-2. **Content pass** — `git diff -M --unified=0 <base>...HEAD -- <cached-paths>` once, on first
-   demand; drives every content rule. Content patterns match added/modified hunks only, so a
-   pure rename cannot match them but can still match path patterns.
+1. **Проход по путям** — `git diff -M --name-only <base>...HEAD` один раз; питает все правила по
+   путям.
+2. **Проход по содержимому** — `git diff -M --unified=0 <base>...HEAD -- <закэшированные пути>` один
+   раз, по первому запросу; питает все правила по содержимому. Паттерны содержимого совпадают только
+   с добавленными и изменёнными ханками, поэтому чистое переименование им не соответствует, но может
+   соответствовать паттерну по пути.
 
-**Without `--fix`** there is no loop: findings are graded, written to their artifacts, and a
-surviving BLOCK makes the aggregated status `FAILED`. **With `--fix`**, each mutation is followed
-by a re-run of Step 3; the round ends when no BLOCK remains (→ Step 5) or the budget is exhausted
-(→ ESCALATE, aggregated as `FAILED`).
+**Без `--fix`** цикла нет: находки оцениваются, пишутся в свои артефакты, и уцелевший BLOCK делает
+сводный статус `FAILED`. **С `--fix`** после каждой мутации перепрогоняется шаг 3; раунд
+заканчивается, когда BLOCK не осталось (→ шаг 5) либо бюджет исчерпан (→ ESCALATE, сводно `FAILED`).
 
-### Per-check artifact schema
+### Схема артефакта подпроверки
 
-Each sub-check writes `swarm-report/<slug>-acceptance-<check>.md`:
+Каждая подпроверка пишет `swarm-report/<slug>-acceptance-<check>.md`:
 
 ```yaml
 ---
 type: acceptance-check
 check: mechanical | code | coverage | ac-coverage | design | a11y | security | performance | architecture | build-config | devops | ui-tests | e2e | manual
-agent: <agent-name or "bash">
+agent: <имя агента или "bash">
 verdict: PASS | WARN | FAIL | SKIPPED
 severity: critical | major | minor | null
 confidence: high | medium | low | null
 domain_relevance: high | medium | low | null
-diff_hash: <sha256 of `git diff <base>...HEAD` when the check ran; null if the check does not depend on the diff>
-blocked_on: <what the user must resolve; also used when a planned artifact is missing>
+diff_hash: <sha256 от `git diff <base>...HEAD` на момент прогона проверки; null, если проверка от диффа не зависит>
+blocked_on: <что должен разрешить пользователь; сюда же пишется отсутствие запланированного артефакта>
 ---
 ```
 
-`severity`, `confidence` and `domain_relevance` are required for `WARN` and `FAIL`, null for
-`PASS` and `SKIPPED`. One file per `check` value; an agent covering two concerns writes two
-files. `diff_hash` is computed once per run and recorded identically by every check; a check
-that writes `diff_hash: null` is never skipped by the Re-verification Loop on a hash match.
+`severity`, `confidence` и `domain_relevance` обязательны для `WARN` и `FAIL` и равны null для
+`PASS` и `SKIPPED`. Один файл на значение `check`; агент, закрывающий две области, пишет два файла.
+`diff_hash` вычисляется один раз за прогон и одинаково записывается каждой проверкой; проверку с
+`diff_hash: null` цикл повторной верификации никогда не пропускает по совпадению хеша.
 
 ---
 
-## Step 5: Device Block (L3, L4, L5)
+## Шаг 5: device-блок (L3, L4, L5)
 
-Runs only when `has_ui_surface == true` and the judgement layers left no BLOCK. Strictly
-ordered, because each level is more expensive and less precise than the one before it:
+Работает только когда `has_ui_surface == true` и слои суждения не оставили BLOCK. Порядок строгий,
+потому что каждый следующий уровень дороже и менее точен, чем предыдущий:
 
-1. **L3 — UI / instrumentation tests.** The project's automated UI suite against a real
-   runtime. No suite and no way to add one cheaply → tracked exception with the reason, not a
-   silent skip.
-2. **L4 — E2E.** Whole-scenario runs, when the project has them.
-3. **L5 — manual verification.** `manual-tester` against `swarm-report/<slug>-e2e-scenario.md`.
+1. **L3 — UI и инструментальные тесты.** Автоматический UI-сьют проекта на реальном рантайме. Сьюта
+   нет и дёшево добавить нельзя — отслеживаемое исключение с причиной, а не молчаливый пропуск.
+2. **L4 — E2E.** Прогоны сценария целиком, если они у проекта есть.
+3. **L5 — ручная верификация.** `manual-tester` против `swarm-report/<slug>-e2e-scenario.md`.
 
-**The device is an exclusive resource.** The gate owns it and the installed build for the whole
-block: never run two device checks against one instance concurrently, and address the target
-explicitly when several exist. `manual-tester` owns environment setup, cloning, and teardown
-inside its own run.
+**Устройство — эксклюзивный ресурс.** Гейт владеет им и установленной сборкой весь блок: никогда не
+гонять две device-проверки против одного экземпляра одновременно и адресовать целевой явно, когда их
+несколько. Подъём среды, клонирование и teardown внутри своего прогона делает `manual-tester`.
 
-L5 is mandatory — not optional — for library version bumps (patch included), tech and framework
-migrations, infra-layer changes (network, storage, auth, DI), and any task claiming "this must
-not change behavior". For a non-UI project L5 is still real execution: the hook fired, the rule
-rejected the call, the fresh session came up clean.
+L5 обязателен, а не опционален, для бампов версий библиотек (включая patch), tech- и
+framework-миграций, изменений infra-слоя (network, storage, auth, DI) и любой задачи, заявляющей
+«поведение не должно измениться». Для не-UI проекта L5 — тоже реальное исполнение: hook сработал,
+правило отвергло вызов, свежая сессия поднялась чисто.
 
 ---
 
-## Step 6: Aggregate and Write Receipt
+## Шаг 6: агрегировать и записать расписку
 
-Apply the PoLL rules and the Aggregated Status table from
-[`references/aggregation.md`](references/aggregation.md). Read each per-check artifact's
-frontmatter first; read the body only when `verdict != PASS`. A missing artifact is
-`verdict: FAIL` with `blocked_on: per-check artifact missing` — never silently dropped.
+Применить правила PoLL и таблицу Aggregated Status из
+[`references/aggregation.md`](references/aggregation.md). Сначала читать frontmatter каждого
+артефакта подпроверки, тело — только при `verdict != PASS`. Отсутствующий артефакт это
+`verdict: FAIL` с `blocked_on: per-check artifact missing`, и он никогда не отбрасывается молча.
 
-Save `swarm-report/<slug>-acceptance.md` from the template in the same reference. Post a chat
-summary (≤20 lines); never paste receipt tables into chat — the file is the audit trail.
+Сохранить `swarm-report/<slug>-acceptance.md` по шаблону из того же reference. Затем выдать сводку в
+чат, до 20 строк; таблицы расписки в чат не вставлять — файл и есть audit trail.
 
-- **VERIFIED** — "N checks passed." Up to 3 bullets: what ran, what was skipped and why. Next
-  step: `/create-pr`, or `/drive-to-merge` when a PR exists.
-- **FAILED** — "N check(s) failed." Up to 5 bullets, one failure each. One question: fix and
-  re-run, or ship accepting the risk.
-- **PARTIAL** — "N passed, M inconclusive." Bullets: what was inconclusive and why. One
-  question: proceed to PR or re-run the inconclusive checks.
+- **VERIFIED** — «N проверок пройдено». До трёх пунктов: что прогонялось, что пропущено и почему.
+  Следующий шаг: `/create-pr`, либо `/drive-to-merge`, если PR уже есть.
+- **FAILED** — «N проверок упало». До пяти пунктов, по одному отказу на пункт. Один вопрос: чинить и
+  прогонять заново либо отгружать, принимая риск.
+- **PARTIAL** — «N пройдено, M неопределённо». Пункты: что осталось неопределённым и почему. Один
+  вопрос: идти в PR или перепрогнать неопределённые проверки.
 
 ---
 
-## Re-verification Loop
+## Цикл повторной верификации
 
-On re-entry after a fix (`FAILED` → fix on the branch → re-run), compute `diff_hash_new` and
-decide per check what to re-run and what to reuse, per the decision table in
-[`references/re-verification.md`](references/re-verification.md). A `spec_hash` or
-`test_plan_hash` mismatch forces `business-analyst` and `manual-tester` regardless of the diff.
-Aggregate into a fresh receipt overwriting the previous one; repeat until VERIFIED or the user
-decides to ship as-is.
+При повторном входе после фикса (`FAILED` → фикс на ветке → новый прогон) вычислить `diff_hash_new`
+и решить по каждой проверке, что перезапускать, а что переиспользовать, по таблице решений в
+[`references/re-verification.md`](references/re-verification.md). Расхождение `spec_hash` или
+`test_plan_hash` форсирует `business-analyst` и `manual-tester` независимо от диффа. Агрегировать в
+свежую расписку поверх предыдущей и повторять, пока не VERIFIED либо пока пользователь не решит
+отгружать как есть.
