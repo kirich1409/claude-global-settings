@@ -335,13 +335,6 @@
     "claude-code-wakatime@wakatime": true
   },
   "extraKnownMarketplaces": {
-    "ast-index-marketplace": {
-      "source": {
-        "source": "github",
-        "repo": "defendend/Claude-ast-index-search"
-      },
-      "autoUpdate": true
-    },
     "krozov-ai-tools": {
       "source": {
         "source": "github",
@@ -352,12 +345,6 @@
       "source": {
         "source": "github",
         "repo": "firebase/firebase-tools"
-      }
-    },
-    "respawn-tools": {
-      "source": {
-        "source": "github",
-        "repo": "respawn-app/claude-plugin-marketplace"
       }
     },
     "context-mode": {
@@ -390,12 +377,6 @@
       "source": {
         "source": "git",
         "url": "https://github.com/wakatime/claude-code-wakatime.git"
-      }
-    },
-    "claude-code-workflows": {
-      "source": {
-        "source": "git",
-        "url": "https://github.com/wshobson/agents.git"
       }
     }
   },
