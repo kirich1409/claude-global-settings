@@ -1,192 +1,200 @@
 ---
 name: implement-plan
-description: "Execute an approved implementation plan task-by-task — the delivery counterpart to write-plan. Consumes docs/plans/<slug>/{plan,tasks,progress}.md, builds the execution DAG from the tasks' `after:` dependencies, chooses an execution strategy (sequential, or auto-parallel across independent DAG layers with worktree isolation), seeds a live TodoWrite status list rendered in the Claude Code interface, and dispatches a specialist subagent per task — the main session orchestrates, specialists write the code. Each task is gated by its own `check` before it is marked done; progress.md is the durable ledger, TodoWrite the live view. Use when: \"implement the plan\", \"execute the plan\", \"build out docs/plans/<slug>\", \"start the tasks\", \"run the plan\", \"do the implementation\" for an ALREADY-WRITTEN, approved plan. Do NOT use for: writing the plan (use write-plan), deciding what/how (use research / write-spec), code from scratch with no plan (write a plan first), or getting an open PR merged (use drive-to-merge)."
+argument-hint: "[--from slug|path] [--sequential | --parallel] [--interactive] [--resume] [--dry-run]"
+description: "Исполняет утверждённый план реализации задача за задачей — доставляющая половина пары с write-plan. Читает docs/plans/<slug>/{plan,tasks,progress}.md, строит DAG исполнения по зависимостям `after:`, выбирает стратегию (последовательно либо автопараллельно по независимым слоям DAG с изоляцией в worktree), поднимает живой список статусов в интерфейсе Claude Code и отправляет по субагенту-специалисту на задачу — главная сессия оркестрирует, код пишут специалисты. Каждая задача закрывается собственным `check` до отметки «готово»; progress.md — долговременный журнал, живой список — его проекция. Use when: \"implement the plan\", \"execute the plan\", \"build out docs/plans/<slug>\", \"start the tasks\", \"run the plan\", \"do the implementation\", «исполни план», «запусти задачи» — для УЖЕ НАПИСАННОГО и утверждённого плана. НЕ использовать для: написания плана (write-plan), решения что и как строить (research / write-spec), кода с нуля без плана (сначала план), доведения открытого PR до merge (drive-to-merge)."
 ---
 
 # Implement Plan
 
-Turn an **approved, on-disk plan** into shipped code, task-by-task, safely and autonomously. This is
-the delivery counterpart to `write-plan`: that skill produces `docs/plans/<slug>/{plan,tasks,progress}.md`;
-this skill executes them.
+Превращает **утверждённый план, лежащий на диске**, в отгруженный код — задача за задачей, безопасно
+и автономно. Это доставляющая половина пары с `write-plan`: тот скилл производит
+`docs/plans/<slug>/{plan,tasks,progress}.md`, этот их исполняет.
 
-**Role:** Delivery orchestrator. The plan is the contract; this skill walks its tasks in dependency
-order, dispatches a specialist to implement each one, verifies each against its own `check`, and keeps
-both the live status list and the durable ledger truthful.
+**Роль:** оркестратор доставки. План — контракт; скилл обходит его задачи в порядке зависимостей,
+отправляет специалиста на каждую, проверяет её собственным `check` и держит правдивыми и живой
+список статусов, и долговременный журнал.
 
-**Hard boundary (orchestration.md):** the main session **never edits production code** — it delegates
-every code edit, even a one-liner, to a subagent. So this skill is an *orchestrator*: it reads,
-decides, dispatches, and integrates; the implementer subagents write files and run the per-task
-`check`. Heavy builds/tests run inside the subagent's context, not the main session's.
+**Жёсткая граница ([[orchestration]]):** главная сессия **никогда не правит продуктовый код** — любая
+правка, даже однострочная, делегируется субагенту. Поэтому скилл именно *оркестратор*: читает,
+решает, отправляет и интегрирует, а файлы пишут и `check` гоняют субагенты-исполнители. Тяжёлые
+сборки и тесты идут в их контексте, не в контексте главной сессии.
 
-**Core principles:**
+**Принципы:**
 
-1. **Orchestrate, don't implement.** Every task's code is written by a dispatched specialist at the
-   right `model × effort` ([[model-effort-routing]]), never by the main session.
-2. **Two-level status.** `TodoWrite` is the live in-session view rendered in the Claude Code
-   interface; `progress.md` is the durable committed ledger that survives compaction and resume
-   ([[context-resilience]]). A task is done only when both agree.
-3. **Every task is gated by its own `check`.** A task is `completed` only after the specialist runs
-   the `check` from `tasks.md` and it passes — never on "looks done".
-4. **Strategy is chosen from the plan, at launch.** The `after:` dependency graph and per-task risk
-   decide sequential vs. parallel; the choice is stated up front, not hard-coded.
+1. **Оркестрировать, а не реализовывать.** Код каждой задачи пишет отправленный специалист на
+   подходящей паре `model × effort` ([[model-effort-routing]]), никогда не главная сессия.
+2. **Статус на двух уровнях.** Живой список задач харнеса — эфемерная проекция в интерфейсе;
+   `progress.md` — долговременный закоммиченный журнал, переживающий сжатие контекста и возобновление
+   ([[context-resilience]]). Задача завершена, только когда согласны оба.
+3. **Каждая задача закрывается своим `check`.** Статус `completed` ставится после того, как
+   специалист прогнал `check` из `tasks.md` и тот прошёл, — никогда по признаку «выглядит сделанным».
+4. **Стратегия выбирается из плана, на старте.** Граф зависимостей `after:` и риск каждой задачи
+   решают, идти последовательно или параллельно; выбор объявляется вслух, а не зашит.
 
-### Headless mode (the autonomy contract)
+### Headless-режим (контракт автономности)
 
-Default is autonomous: no approval pauses. `AskUserQuestion` is used **only** with `--interactive`
-or when a user is actively present. In a headless run, never block on it — on a genuine blocker
-(a task's `check` fails after one retry, the plan contradicts the codebase, a parallel conflict
-can't be resolved) STOP per [[task-execution]] and surface the blocker, leaving `progress.md` truthful
-so a later `--resume` picks up exactly where it stopped.
+По умолчанию автономно, без пауз на одобрение. `AskUserQuestion` применяется **только** при
+`--interactive` либо когда пользователь активно присутствует. В headless-прогоне на нём не
+блокироваться: настоящий блокер — `check` задачи не прошёл после одной повторной попытки, план
+противоречит кодовой базе, конфликт параллельных веток не разрешается — это STOP по
+[[task-execution]] с объявлением блокера и правдивым `progress.md`, чтобы позднейший `--resume`
+подхватил ровно с места остановки.
 
 ---
 
-## Flags
+## Флаги
 
-| Flag | Effect |
+| Флаг | Действие |
 |---|---|
-| (default) | Autonomous. Load plan → build DAG → auto-select strategy → seed TodoWrite → execute all tasks → whole-change verification → hand off. |
-| `--interactive` | Present the chosen strategy + task order for one go/adjust confirmation before executing, and pause before any task tagged risky. |
-| `--sequential` | Force strict one-at-a-time order; never parallelize (the safe default when in doubt). |
-| `--parallel` | Permit fan-out of independent DAG layers with worktree isolation (see reference). Auto-selection may pick this anyway; the flag forces it where safe. |
-| `--resume` | Continue an interrupted run: pre-mark `progress.md` `[x]` tasks done and start at the first unchecked task. |
-| `--dry-run` | Print the resolved DAG, the chosen strategy, and the per-task dispatch plan — dispatch nothing. The "think through the options at launch" preview. |
-| `--from <slug\|path>` | Target a specific plan instead of auto-discovering one. |
+| (по умолчанию) | Автономно: загрузить план → построить DAG → выбрать стратегию → поднять живой список → исполнить все задачи → верификация изменения целиком → передача дальше. |
+| `--interactive` | Показать выбранную стратегию и порядок задач для одного подтверждения до исполнения, плюс пауза перед каждой задачей, помеченной рискованной. |
+| `--sequential` | Строго по одной, никакого параллелизма — безопасный выбор при сомнении. |
+| `--parallel` | Разрешить веер по независимым слоям DAG с изоляцией в worktree (см. reference). Автовыбор может прийти к этому и сам; флаг форсирует там, где это безопасно. |
+| `--resume` | Продолжить прерванный прогон: задачи, отмеченные `[x]` в `progress.md`, считать выполненными и начать с первой неотмеченной. |
+| `--dry-run` | Напечатать разрешённый DAG, выбранную стратегию и план отправки по задачам — не отправлять ничего. |
+| `--from <slug\|path>` | Взять конкретный план вместо автообнаружения. |
 
 ---
 
-## Phase 0: Load & Validate
+## Фаза 0: загрузить и проверить
 
-Resolve the plan directory `docs/plans/<slug>/` (from `--from`, else the branch/task-derived slug,
-else the newest plan whose slug matches the task). Read `plan.md`, `tasks.md`, `progress.md`.
+Разрешить каталог плана `docs/plans/<slug>/` — из `--from`, иначе по слагу из ветки или задачи, иначе
+самый свежий план, чей слаг совпадает с задачей. Прочитать `plan.md`, `tasks.md`, `progress.md`.
 
-STOP and redirect if:
+STOP и перенаправление, если:
 
-- **No plan exists** → redirect to `write-plan`; this skill executes a plan, it does not invent one.
-- **`plan.md` `status` is not `approved`** (still `draft`, or `review_verdict: escalate`) → the plan
-  has not passed its review gate; surface the open questions and stop.
-- **`tasks.md` has a task with no checkable `check`** → an unverifiable task cannot be safely
-  auto-executed; flag it and stop (or, `--interactive`, ask how to verify it).
+- **Плана нет** → к `write-plan`: скилл исполняет план, а не выдумывает его.
+- **`status` в `plan.md` не `approved`** (всё ещё `draft` либо `review_verdict: escalate`) → план не
+  прошёл свой гейт ревью; показать открытые вопросы и остановиться.
+- **В `tasks.md` есть задача без проверяемого `check`** → неверифицируемую задачу нельзя безопасно
+  исполнять автономно: отметить и остановиться, либо, при `--interactive`, спросить, чем её проверять.
 
-Read the plan's **Verification & Sources** section now — it defines the whole-change gate for Phase 4,
-and for a migration / "shouldn't change behavior" task it names a before-state baseline that must be
-captured **before** the first edit ([[qa-and-testing]], [[task-types]]).
-
----
-
-## Phase 1: Build the DAG & Choose Strategy
-
-Parse each task's `after:` field into a dependency graph and derive its topological **layers** (a
-layer = tasks whose dependencies are all satisfied). Then choose how to walk it — the details
-(layering, the file-disjointness + risk test for parallelism, worktree isolation, fall-back rules)
-live in [`references/strategy-selection.md`](references/strategy-selection.md).
-
-- **Default auto-selection:** sequential, *unless* a layer holds ≥2 tasks that touch **disjoint**
-  files and carry no shared risk — then that layer may fan out in parallel, each task in its own
-  worktree (`.worktrees/`, [[git-workflow]]), integrated back one at a time. When unsure, sequential
-  wins: parallelism is an optimization, never a correctness requirement.
-- `--sequential` / `--parallel` override the auto-choice; `--dry-run` prints it and stops.
-- State the resolved strategy in one line before executing (e.g. *"9 tasks, 4 layers; layer 2
-  (T-3,T-4) parallel — disjoint files; rest sequential"*). With `--interactive`, get one go/adjust
-  confirmation here.
+Раздел плана **Verification & Sources** прочитать уже здесь: он задаёт гейт на всё изменение для
+фазы 4, а для миграции и задач «поведение не должно измениться» называет baseline состояния до
+изменений, который снимается **до первой правки** ([[qa-and-testing]], [[task-types]]).
 
 ---
 
-## Phase 2: Seed Live Status
+## Фаза 1: построить DAG и выбрать стратегию
 
-Seed a `TodoWrite` list with one item per `T-N` from `tasks.md`, in DAG order, all `pending`. This is
-the live view in the Claude Code interface. With `--resume`, mark tasks already `[x]` in `progress.md`
-as `completed` and begin at the first unchecked one. Keep exactly one task `in_progress` at a time
-(one per parallel branch when fanning out).
+Разобрать поле `after:` каждой задачи в граф зависимостей и вывести его топологические **слои** (слой
+— задачи, все зависимости которых уже удовлетворены). Затем выбрать, как его обходить; детали —
+слоение, проверка на непересекающиеся файлы и общий риск, изоляция в worktree, правила отката — в
+[`references/strategy-selection.md`](references/strategy-selection.md).
+
+- **Автовыбор по умолчанию:** последовательно, *кроме* случая, когда в слое есть две и более задачи,
+  трогающие **непересекающиеся** файлы и не несущие общего риска, — такой слой может пойти веером,
+  каждая задача в своём worktree (`.worktrees/`, [[git-workflow]]), с интеграцией обратно по одной.
+  При сомнении побеждает последовательность: параллелизм это оптимизация, а не требование
+  корректности.
+- `--sequential` и `--parallel` перекрывают автовыбор, `--dry-run` печатает его и останавливается.
+- Объявить разрешённую стратегию одной строкой до исполнения — например, «9 задач, 4 слоя; слой 2
+  (T-3, T-4) параллельно, файлы не пересекаются; остальное последовательно». При `--interactive`
+  получить здесь одно подтверждение.
 
 ---
 
-## Phase 3: Execute Loop
+## Фаза 2: поднять живой статус
 
-For each task, honoring the chosen strategy:
+Создать живой список задач харнеса: по пункту на каждый `T-N` из `tasks.md`, в порядке DAG, все в
+состоянии ожидания. Это проекция в интерфейсе Claude Code. При `--resume` пометить выполненными те,
+что уже `[x]` в `progress.md`, и начать с первой неотмеченной. В работе держать ровно одну задачу —
+по одной на каждую параллельную ветвь при веере.
 
-1. **Mark `in_progress`** in TodoWrite.
-2. **Dispatch a specialist subagent** ([[model-effort-routing]] for `model × effort` — always specify
-   the model explicitly, an omitted model silently inherits the session's most expensive one across
-   every parallel sibling). Brief via the **dispatch contract** below.
-3. **Read only the status line** the subagent returns (details live in its report file — see below),
-   then act per the **status protocol** below.
-4. **On DONE (check passed):** mark the TodoWrite item `completed`, check the task's box in
-   `progress.md`, append one learning line (surprises, gotchas, decisions). For a parallel layer,
-   integrate each passing worktree into the working branch one at a time; a merge conflict demotes the
-   remaining siblings to sequential (see reference §3–4).
+---
 
-The main session only **reads** each subagent's status — it never runs the builds/tests itself.
+## Фаза 3: цикл исполнения
 
-### Dispatch contract
+По каждой задаче, соблюдая выбранную стратегию:
 
-Hand the subagent **file paths, not pasted content** — everything pasted into a dispatch prompt stays
-resident in the orchestrator's context and is re-read every later turn (a real session hit 42k chars,
-99 % of it prior-task history). This is the concrete form of the [[orchestration]] "keep the main
-session lean" rule. Write a per-task brief file to scratch (`./swarm-report/<slug>-brief-<T-N>.md`)
-containing the task block from `tasks.md` verbatim (`files`, `interface`, `acceptance`, `check`) plus
-the relevant slice of `plan.md` (approach, decisions, Global constraints). The dispatch prompt itself
-is short — five parts:
+1. **Пометить в работе** в живом списке.
+2. **Отправить субагента-специалиста** ([[model-effort-routing]] для пары `model × effort` — модель
+   указывать всегда явно: опущенная молча наследует самую дорогую модель сессии, и сразу во все
+   параллельные ветви). Бриф — по контракту отправки ниже.
+3. **Прочитать только строку статуса**, которую вернул субагент (подробности лежат в его файле
+   отчёта), и действовать по протоколу статусов ниже.
+4. **На `DONE` (check прошёл):** пометить пункт выполненным, отметить чекбокс задачи в `progress.md`,
+   дописать одну строку выученного (неожиданности, подводные камни, решения). Для параллельного слоя
+   интегрировать каждый прошедший worktree в рабочую ветку по одному; конфликт слияния переводит
+   оставшихся соседей в последовательный режим (reference, §3–4).
 
-1. **Where it fits** — one line (which task, which layer).
-2. **Brief path** — the scratch file above; tell the subagent to read it.
-3. **Neighbour interfaces** — the `produces:` lines of the tasks this one `consumes:` from (and, in a
-   parallel layer, its siblings' `produces:`). This is the cross-task API the subagent can't see —
-   inject it explicitly, or independent tasks drift on each other's names/types.
-4. **Constraints** — the **minimal-diff** mandate (touch only what the task requires — CLAUDE.md
-   Principles) plus any project convention the task depends on. Stack-specific style lives in the
-   engineering agents' own definitions, so route the task to the matching agent rather than
-   restating its rules.
-5. **Report path** — where to write its full report + diff (`./swarm-report/<slug>-report-<T-N>.md`),
-   and the instruction to **run the `check` itself** and put the evidence there. The prompt returns
-   only the status line.
+Главная сессия только **читает** статусы субагентов и никогда не гоняет сборки и тесты сама.
 
-### Status protocol
+### Контракт отправки
 
-The subagent returns one status (evidence in its report file — do not ask it to inline the diff):
+Передавать субагенту **пути к файлам, а не вставленное содержимое**: всё вставленное в промпт
+отправки остаётся резидентным в контексте оркестратора и перечитывается на каждом следующем ходу
+(реальный случай — 42k символов, из них 99% история предыдущих задач). Это конкретная форма правила
+[[orchestration]] «держать главную сессию лёгкой». Записать бриф задачи в scratch-файл
+(`./swarm-report/<slug>-brief-<T-N>.md`) с блоком задачи из `tasks.md` дословно (`files`,
+`interface`, `acceptance`, `check`) плюс релевантный срез `plan.md` (подход, решения, глобальные
+ограничения). Сам промпт короткий, пять частей:
 
-| Status | Meaning | Orchestrator reaction |
+1. **Куда это встраивается** — одна строка: какая задача, какой слой.
+2. **Путь к брифу** — тот самый scratch-файл, с указанием прочитать его.
+3. **Интерфейсы соседей** — строки `produces:` тех задач, из которых эта `consumes:`, а в
+   параллельном слое ещё и `produces:` её соседей. Это кросс-задачный API, которого субагент не
+   видит: не внедрить явно — независимые задачи разъедутся по именам и типам.
+4. **Ограничения** — мандат **минимального диффа** (трогать только то, что требует задача, — принципы
+   `CLAUDE.md`) плюс конвенции проекта, от которых задача зависит. Стековый стиль живёт в
+   определениях самих инженерных агентов, поэтому задачу маршрутизировать в подходящего агента, а не
+   пересказывать его правила.
+5. **Путь отчёта** — куда положить полный отчёт и дифф (`./swarm-report/<slug>-report-<T-N>.md`), и
+   указание **прогнать `check` самому** и положить туда доказательство. Наружу возвращается только
+   строка статуса.
+
+### Протокол статусов
+
+Субагент возвращает один статус, доказательства — в его файле отчёта; просить его вставить дифф в
+ответ нельзя:
+
+| Статус | Значение | Реакция оркестратора |
 |---|---|---|
-| `DONE` | `check` run and passed | Integrate + mark complete (step 4). |
-| `DONE_WITH_CONCERNS` | passed, but the subagent flags a risk/smell | Record the concern in `progress.md`; mark complete; surface if it affects later tasks. |
-| `BLOCKED` | cannot proceed (missing access, plan contradicts reality) | Do not retry blindly — diagnose per [[task-execution]]; if the plan drifted, STOP and report. |
-| `NEEDS_CONTEXT` | missing an interface/decision it needs | Supply the missing neighbour interface or decision and re-dispatch. |
+| `DONE` | `check` прогнан и прошёл | Интегрировать и пометить выполненной (шаг 4). |
+| `DONE_WITH_CONCERNS` | прошёл, но субагент отмечает риск или запах | Записать замечание в `progress.md`, пометить выполненной, поднять, если оно влияет на следующие задачи. |
+| `BLOCKED` | продолжать нельзя (нет доступа, план противоречит реальности) | Не перезапускать вслепую — диагностировать по [[task-execution]]; план разъехался с кодом → STOP и отчёт. |
+| `NEEDS_CONTEXT` | не хватает интерфейса или решения | Выдать недостающий интерфейс соседа или решение и отправить заново. |
 
-Never re-dispatch the **same** task to the **same** model unchanged — change something (more context,
-a more capable model, or split the task smaller) or escalate. One autonomous retry, then STOP and
-surface, leaving `progress.md` truthful so `--resume` restarts exactly here.
-
----
-
-## Phase 4: Whole-Change Verification
-
-Per-task checks prove each task; they do not prove the whole change is coherent. After the last task,
-run the plan's **Verification & Sources** contract — the pyramid levels L0–L5 it declares
-([[qa-and-testing]]). Delegate this — a verifier or general-purpose subagent, in the background
-when the build is long — never run it in the main session. L5 (working-app) is mandatory for
-library bumps, migrations, and infra-layer changes; if the plan marked a mandatory level and it's
-skipped, name it and the tracked exception rather than passing silently.
+Никогда не отправлять **ту же** задачу **той же** модели без изменений — менять что-то (больше
+контекста, более сильная модель, дробление задачи) либо эскалировать. Одна автономная повторная
+попытка, затем STOP с объявлением, оставив `progress.md` правдивым, чтобы `--resume` стартовал ровно
+отсюда.
 
 ---
 
-## Phase 5: Hand Off
+## Фаза 4: верификация изменения целиком
 
-Retire any operational state file. Confirm completion in one sentence (plan path, tasks done, the
-verification verdict). Then suggest the toolbox next steps — do **not** auto-chain them:
-`/acceptance` (working-app proof) → `/create-pr` → `/drive-to-merge`. The implementer commits plan +
-code together so the PR shows the plan that produced the change.
+Проверки по задачам доказывают каждую задачу, но не связность изменения. После последней задачи
+исполнить контракт **Verification & Sources** из плана — объявленные им уровни пирамиды L0–L5
+([[qa-and-testing]]). Делегировать это — верификатору или general-purpose субагенту, в фоне при
+долгой сборке, — и никогда не запускать в главной сессии. L5 обязателен для бампов версий библиотек,
+миграций и изменений infra-слоя; если план пометил уровень обязательным, а он пропущен, назвать это и
+оформить отслеживаемым исключением, а не пройти молча.
 
 ---
 
-## Red Flags / STOP Conditions
+## Фаза 5: передача дальше
 
-- **No plan / unapproved plan** — nothing to execute safely. Redirect to `write-plan`; do not
-  improvise tasks.
-- **Unverifiable task** — a `check` that isn't a concrete test/grep/build target. Auto-execution is
-  only safe when "done" is checkable; flag and stop.
-- **Plan contradicts the codebase** — a task's `files`/approach no longer match reality (the plan
-  drifted). Stop, report the drift, and update the plan — do not silently improvise around it
-  ([[task-execution]] scope creep).
-- **Parallel tasks collide** — tasks in a "parallel" layer turn out to share files or state. Fall
-  back to sequential for that layer; never race two writers on the same file.
-- **Missing critical access** — a task needs systems / APIs / credentials not available. List what's
-  needed and stop.
+Убрать операционный файл состояния. Подтвердить завершение одним предложением: путь плана, сколько
+задач сделано, вердикт верификации. Затем предложить следующие шаги как инструменты, **не сцепляя их
+автоматически**: `/acceptance` (доказательство на работающем приложении) → `/create-pr` →
+`/drive-to-merge`. Реализатор коммитит план вместе с кодом, чтобы в PR был виден план, породивший
+изменение.
+
+---
+
+## Красные флаги и условия STOP
+
+- **Плана нет либо он не утверждён** — исполнять нечего. Перенаправить в `write-plan`, задачи не
+  импровизировать.
+- **Неверифицируемая задача** — `check`, который не сводится к конкретному тесту, grep или цели
+  сборки. Автономное исполнение безопасно только тогда, когда «готово» проверяемо: отметить и
+  остановиться.
+- **План противоречит кодовой базе** — `files` или подход задачи больше не совпадают с реальностью,
+  план разъехался. Остановиться, сообщить о расхождении и обновить план, а не обходить его молча
+  ([[task-execution]], расширение scope).
+- **Параллельные задачи столкнулись** — задачи «параллельного» слоя на деле делят файлы или
+  состояние. Откатить этот слой в последовательный режим; двух писателей на один файл не гонять
+  никогда.
+- **Нет критичного доступа** — задаче нужны системы, API или credentials, которых нет. Перечислить
+  недостающее и остановиться.
