@@ -18,7 +18,7 @@ Shared [Claude Code](https://claude.ai/claude-code) configuration synced across 
 
 `CLAUDE.md` and every `rules/*.md` without a `paths:` frontmatter are injected into the context of
 every session and every subagent, before the first message. `rules/` is walked recursively, so a
-subdirectory does not opt out. That budget is measured by `scripts/measure-context.sh`.
+subdirectory does not opt out. That budget is measured by the `optimize-harness` skill.
 
 `references/` is not loaded by anything. A rule keeps the imperative core -- what must happen, and
 when -- and points at `~/.claude/references/<name>.md` for the detail needed only at one specific
