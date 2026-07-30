@@ -1,68 +1,71 @@
 ---
 name: worktree-cleanup
 description: >-
-  Scan the current repo for stale git worktrees and local branches, classify them
-  (merged / remote-gone / stale agent worktrees / still-active), and remove the safe ones
-  after a single user confirmation. Enforces the disk-economy policy from
-  rules/git-workflow.md: unused worktrees are not kept "just in case".
+  Находит в текущем репозитории простаивающие git worktree и локальные ветки, классифицирует их
+  (смержена / remote исчез / брошенный агентский worktree / ещё в работе) и удаляет безопасные
+  после одного подтверждения. Исполняет дисковую политику из rules/git-workflow.md: незанятые
+  worktree не держат «на всякий случай».
 
   Use when: "clean up worktrees", "убери worktrees", "почисти ветки", "disk space",
-  "stale branches", "worktree cleanup", after a PR merge when the worktree is no longer
-  needed, or at end-of-session when several worktrees look finished. Do NOT use to delete
-  a worktree with uncommitted changes or unpushed commits — those are surfaced, never removed.
+  "stale branches", "worktree cleanup", после слияния PR, когда worktree больше не нужен, либо
+  в конце сессии, когда несколько worktree выглядят законченными. НЕ использовать для удаления
+  worktree с незакоммиченными изменениями или незапушенными коммитами — такие показываются, но
+  никогда не удаляются.
 ---
 
 # Worktree cleanup
 
-Goal: bring the repo back to "no idle worktrees" (disk-economy policy, `rules/git-workflow.md`).
-Deletion is destructive — classify first, confirm once with the full list, then remove.
+Цель — вернуть репозиторий в состояние «нет простаивающих worktree» (дисковая политика,
+`rules/git-workflow.md`). Удаление необратимо, поэтому порядок жёсткий: сначала классифицировать,
+затем один раз подтвердить полным списком, и только потом удалять.
 
-## Step 1 — gather (read-only)
+## Шаг 1 — собрать (только чтение)
 
 ```bash
 git fetch --prune
 git worktree list --porcelain
-git branch -vv          # gone-markers + upstream state
+git branch -vv          # маркеры gone и состояние upstream
 git branch --merged origin/main
 ```
 
-For each worktree (skip the main checkout) also check:
+По каждому worktree, кроме основного чекаута, дополнительно:
 
 ```bash
-git -C <wt> status --porcelain     # uncommitted changes?
-git -C <wt> log --oneline @{u}.. 2>/dev/null   # unpushed commits?
+git -C <wt> status --porcelain                 # есть незакоммиченное?
+git -C <wt> log --oneline @{u}.. 2>/dev/null   # есть незапушенное?
 ```
 
-## Step 2 — classify
+## Шаг 2 — классифицировать
 
-| Class | Criteria | Action |
+| Класс | Признаки | Действие |
 |---|---|---|
-| **Safe to remove** | branch merged into `origin/main`, or remote-tracking branch `gone`; worktree clean; no unpushed commits | propose removal |
-| **Stale agent worktree** | `worktree-agent-*` / auto-generated name; clean; branch has no open PR | propose removal |
-| **Locked** | `git worktree list` shows `locked` | skip, mention with lock reason |
-| **Active** | uncommitted changes, unpushed commits, or open non-draft PR awaiting review rounds | keep, list as "in use" |
+| **Безопасно удалить** | ветка смержена в `origin/main` либо remote-tracking ветка `gone`; worktree чист; незапушенных коммитов нет | предложить удаление |
+| **Брошенный агентский worktree** | имя `worktree-agent-*` или автогенерированное; чист; по ветке нет открытого PR | предложить удаление |
+| **Заблокирован** | `git worktree list` показывает `locked` | пропустить, назвать причину блокировки |
+| **В работе** | есть незакоммиченное, незапушенное или открытый не-draft PR в раундах ревью | оставить, показать как «занят» |
 
-Open-PR check: `gh pr list --head <branch> --state open` (or `glab` on GitLab remotes).
+Проверка открытого PR: `gh pr list --head <branch> --state open` (либо `glab` на GitLab-remote).
 
-## Step 3 — confirm once, then remove
+## Шаг 3 — подтвердить один раз, затем удалить
 
-Present ONE table: path, branch, class, evidence (merged PR #N / gone / clean). Ask a single
-yes/no (optionally per-row exclusions). Never delete without this confirmation.
+Показать ОДНУ таблицу: путь, ветка, класс, доказательство (смержен PR #N / gone / чист). Задать
+один вопрос да/нет, при желании с исключением отдельных строк. Без этого подтверждения не удалять
+ничего.
 
-On confirmation, per worktree:
+После подтверждения, по каждому worktree:
 
 ```bash
-git worktree remove <path>          # --force only if user explicitly approved a dirty removal
-git branch -D <branch>              # only when merged or remote is gone
-git push origin --delete <branch>   # only for merged branches whose remote lingers
+git worktree remove <path>          # --force только если пользователь явно одобрил удаление грязного
+git branch -D <branch>              # только когда ветка смержена или remote исчез
+git push origin --delete <branch>   # только для смерженных веток, у которых remote завис
 ```
 
-Finish with `git worktree prune` and report freed paths. Branches are cheap to recreate
-from remote — "might need it later" is not a reason to keep (policy).
+Закончить `git worktree prune` и сообщить освобождённые пути. Ветку дёшево воссоздать из remote,
+поэтому «вдруг ещё понадобится» основанием держать её не является — так велит политика.
 
-## Guardrails
+## Ограничители
 
-- Never touch the main checkout or the current session's own worktree.
-- Never delete locked worktrees; report the holder instead.
-- Uncommitted/unpushed → surface loudly, never remove, never stash silently.
-- This skill deletes local state only; closing PRs or issues is out of scope.
+- Никогда не трогать основной чекаут и worktree собственной сессии.
+- Заблокированные worktree не удалять, вместо этого сообщить, кто держит блокировку.
+- Незакоммиченное и незапушенное — показывать громко, не удалять и молча не прятать в stash.
+- Скилл удаляет только локальное состояние; закрывать PR и issue — вне его области.
