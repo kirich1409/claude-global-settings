@@ -1,71 +1,78 @@
-# Research Consortium — Expert Prompt Templates
+# Research Consortium — шаблоны промптов экспертов
 
-Phase 2 launches each expert in one parallel message. Each agent runs independently — never share one agent's findings with another. Two **codebase-bound** tracks (Codebase, Architecture) use the verbatim prompts below on Explore / architecture-expert; the four **external** tracks (Web, Docs, Dependencies, OSS Examples) run on the `source-researcher` agent (see *External tracks* below).
+Фаза 2 запускает каждого эксперта одним параллельным сообщением. Каждый агент работает независимо;
+находки одного другому не передаются никогда. Два трека, **привязанных к кодовой базе** (Codebase,
+Architecture), используют дословные промпты ниже на `Explore` и `architecture-expert`; четыре
+**внешних** трека (Web, Docs, Dependencies, OSS Examples) работают на агенте `source-researcher`
+(см. раздел про внешние треки).
 
-> **Intentional overlap with the `write-spec` skill.** The Codebase / Architecture prompts
-> here overlap with `../../write-spec/references/research-prompts.md`, where they appear as an
-> enriched superset. The two files are kept separate **on purpose** so each skill stays
-> self-contained — do not merge them into a shared file. (Both skills route external-source
-> gathering through the same `source-researcher` agent + `rules/external-sources.md`, so that
-> method *is* shared — only the codebase prompts are intentionally duplicated.)
+> **Пересечение с `write-spec` намеренное.** Промпты Codebase и Architecture здесь пересекаются с
+> `../../write-spec/references/research-prompts.md`, где они выглядят обогащённым надмножеством. Файлы
+> держатся раздельно **специально**, чтобы каждый скилл оставался самодостаточным, — сливать их в
+> общий не надо. Сбор внешних источников оба скилла маршрутизируют через одного и того же агента
+> `source-researcher` плюс `rules/external-sources.md`, так что *метод* как раз общий; дублируются
+> намеренно только промпты по кодовой базе.
 
-All prompts must include this line: *"Respond in the same language as the research topic description."*
-
----
-
-## Tool discovery & multi-channel use — single source
-
-The method for discovering reachable tools/MCP, querying **all** relevant channels of a class,
-and cross-checking by trust tier is **not duplicated here**. It lives in one place:
-`rules/external-sources.md` § *Что здесь есть кроме web* (+ `rules/verify-library-api.md`
-for stack composition, § *Оценка доверия* for tiers). That rule is unconditional
-and is inherited by every subagent, so the `source-researcher` agent and the Explore /
-architecture tracks all apply the same discipline without restating it.
-
-The four **external** tracks (Web / Docs / Dependencies / OSS Examples) do not get a hardcoded
-tool in their prompt — they run on the **`source-researcher`** agent, which does its own runtime
-discovery. The two **codebase-bound** tracks keep their own prompts (Explore and architecture-expert
-have different jobs and toolchains).
+Каждый промпт обязан содержать строку: *«Respond in the same language as the research topic
+description.»*
 
 ---
 
-## External tracks — launch via the `source-researcher` agent
+## Обнаружение инструментов и работа по нескольким каналам — единый источник
 
-Web, Docs, Dependencies, and OSS Examples are four **independent** instances of `source-researcher`,
-each with a different `focus` (independence per instance preserves the synthesis-bias invariant —
-do not collapse them into one call). The agent already knows its method and report structure;
-the launch prompt only supplies focus + topic + constraints. Model/effort are pinned in the
-agent definition (`sonnet` / `medium`) — do not override unless the topic clearly needs more.
+Метод обнаружения доступных инструментов и MCP, опроса **всех** релевантных каналов класса и
+перекрёстной проверки по tier доверия здесь **не дублируется**. Он лежит в одном месте:
+`rules/external-sources.md`, § *Что здесь есть кроме web*, плюс `rules/verify-library-api.md` про
+состав стека и § *Оценка доверия* про tier. Это правило безусловно и наследуется каждым субагентом,
+поэтому и `source-researcher`, и треки Explore с architecture применяют одну дисциплину, не
+пересказывая её.
 
-Launch each selected external track with `agentType: source-researcher` and this prompt:
+Четыре **внешних** трека не получают зашитого инструмента в промпте: они идут на агенте
+**`source-researcher`**, который обнаруживает каналы сам в рантайме. Два трека, привязанных к кодовой
+базе, сохраняют собственные промпты — у `Explore` и `architecture-expert` разные задачи и
+инструментарий.
+
+---
+
+## Внешние треки — запуск через агента `source-researcher`
+
+Web, Docs, Dependencies и OSS Examples — четыре **независимых** экземпляра `source-researcher`, каждый
+со своим `focus`. Независимость экземпляров и сохраняет инвариант против синтетического смещения:
+схлопывать их в один вызов нельзя. Агент уже знает свой метод и структуру отчёта, поэтому промпт
+запуска задаёт только focus, тему и ограничения. Модель и effort закреплены в определении агента
+(`sonnet` / `medium`) — не переопределять, пока тема явно не требует большего.
+
+Каждый выбранный внешний трек запускать с `agentType: source-researcher` и таким промптом:
 
 ```
-focus: {web | library-docs | dependency-intelligence}
-topic: {topic}
-constraints: {known boundaries — KMP-only, no new deps, pinned versions, deadline}
+focus: {web | library-docs | dependency-intelligence | oss-examples}
+topic: {тема}
+constraints: {известные границы — только KMP, без новых зависимостей, закреплённые версии, срок}
 
 Investigate only your focus class for this topic, per your standing instructions
 (discover available channels → query all relevant ones → cross-check by tier → report
 without synthesizing). Respond in the same language as the topic description.
 ```
 
-Track → focus mapping:
+Соответствие трека и focus:
 
-| Track | `focus` | Covers |
+| Трек | `focus` | Что покрывает |
 |---|---|---|
-| Web | `web` | industry practice, trade-offs, pitfalls, ≤12-mo developments, consensus — from articles and discussion (the *discourse* about an approach, not the code) |
-| Docs | `library-docs` | API reference, guides, changelogs, migration/compat, version-specific behavior |
-| Dependencies | `dependency-intelligence` | current vs latest versions, CVEs, KMP/AGP compat, health, breaking changes, alternatives |
-| OSS Examples | `oss-examples` | real usages in open-source code, feasibility evidence ("does a working example exist?"), current wiring/integration patterns — pointers to repo/file/version, not embedded code. Channel catalog: `rules/external-sources.md` § *Что здесь есть кроме web* |
+| Web | `web` | индустриальная практика, компромиссы, подводные камни, события за последние ≤12 месяцев, консенсус — из статей и обсуждений, то есть *дискурс* о подходе, а не код |
+| Docs | `library-docs` | справочник API, руководства, changelog, миграции и совместимость, поведение конкретных версий |
+| Dependencies | `dependency-intelligence` | текущие и последние версии, CVE, совместимость, здоровье проекта, ломающие изменения, альтернативы |
+| OSS Examples | `oss-examples` | реальные использования в открытом коде, свидетельства реализуемости («существует ли рабочий пример?»), актуальные паттерны связывания и интеграции — указатели на репозиторий, файл и версию, а не вставленный код. Каталог каналов: `rules/external-sources.md`, § *Что здесь есть кроме web* |
 
-The detailed per-class angles that used to live here now live in the agent's system prompt
-(`agents/source-researcher.md`) and in `external-sources.md` — single source, no restating.
+Подробные углы по классам, раньше лежавшие здесь, теперь живут в системном промпте агента
+(`agents/source-researcher.md`) и в `external-sources.md` — единый источник, без пересказов.
 
 ---
 
-## Codebase Expert (Explore subagent)
+## Codebase Expert (субагент Explore)
 
-Use a structured code-index tool when available (resolves classes, usages, dependencies, API by symbol). Fall back to `Grep` + `Read` if no index — same report structure either way.
+Использовать структурированный индекс кода, когда он доступен: он разрешает классы, использования,
+зависимости и API по символу. Индекса нет — откатиться на `Grep` и `Read`; структура отчёта одинакова
+в обоих случаях.
 
 ```
 Investigate the codebase for everything related to: {topic}
@@ -86,7 +93,7 @@ then findings grouped by category.
 
 ---
 
-## Architecture Expert (architecture-expert agent)
+## Architecture Expert (агент architecture-expert)
 
 ```
 Evaluate the architectural implications of: {topic}
