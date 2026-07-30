@@ -1,326 +1,328 @@
-# The judge
-
-"Behavior preserved" is a claim, and a claim without a referee is decoration. The judge is whatever
-mechanism can distinguish a correct migration from an incorrect one for *this* migration. Phase 0
-names it before any code moves, and names it concretely enough that someone else could run it.
-
-This file owns three Phase 0 concerns:
-
-- where a judge comes from (three sources, in order of preference);
-- **judge coverage assessment** — Phase 0 output 4, how much of the migrated surface the judge
-  actually watches;
-- **test coupling inventory** — Phase 0 output 5, how much of the existing suite dies with the
-  outgoing technology.
-
-Outputs 4 and 5 are separate and stay separate. A suite can watch 90% of the migration surface and
-still be worthless as a judge because every assertion is written against the API being removed.
-
-The *strength* a judge must have is not decided here: it comes from the minimum valid level in
-`[[verification-matrix]]`. This file decides where a judge of that strength comes from and whether
-the one you have qualifies. If no source produces a valid judge at any level and no safety net can
-be built, that is a NO-GO — the condition is normative in `[[scope]]` § STOP conditions.
-
-## Three judge sources
-
-Preference order. Each step down costs more to build, so stop at the first source that reaches the
-required level — per surface, which is not always the same source for the whole migration
-(see § Composing sources across surfaces).
-
-### 1. Existing tests
-
-The cheapest judge, and the only one that is free. It qualifies when two things hold: the tests
-cover the migration surface (measured — see below, not assumed), and they assert on observable
-behavior rather than on the outgoing technology's API shape. A suite that fails the second condition
-is not a judge; it is a second migration target, and the coupling inventory says how big.
-
-### 2. Authored baseline: golden master
-
-When existing tests do not reach the level, capture the current behavior of the old code as data and
-diff the new behavior against it. Golden master is the workhorse form: record real inputs and the
-outputs the current implementation produces — serialized bytes, rendered trees, response payloads,
-log traces — and make the migrated code reproduce them exactly. It is strong where it applies,
-because it asserts on the whole observable output instead of the fields someone remembered to check,
-and it needs no understanding of *why* the output is what it is.
-
-Two things it does not give you. It cannot tell a preserved behavior from a preserved bug — that is
-the point, and it is why a golden-master diff that "looks wrong" is a question for the product
-owner, not a licence to edit the baseline. And it is only as good as the input corpus: a recorded
-corpus that never exercises the error path leaves the error path unjudged, which is a coverage
-question, not a golden-master question.
-
-Writing test code for this baseline is out of scope for this skill — it is handed to
-`test-authoring-role` (see `[[safety-net]]` for the handoff and its schema). Writing tests that pin
-current behavior instead of asserting correctness is a mode of test authoring — commonly called
-characterization — whose semantics and disciplines are owned by the skill that fills that role
-(e.g. `cover-with-tests`), and are deliberately not restated here.
-
-### 3. Runtime scenario parity
-
-When behavior is not capturable as data — it lives in a running system, an interaction sequence, a
-rendered screen — the judge becomes execution: drive the same scenario against the pre-migration
-build and the post-migration build and compare what is observed. This is what `scenario-judge-role`
-executes. It is the most expensive source and the only one available for cross-cutting migrations
-where the failure mode is a wiring graph that no unit test instantiates (see `[[cross-cutting]]`).
-
-Scenario parity is only a judge if the scenarios are written down before the run. An operator
-clicking around after the fact produces an impression, not a verdict. The deliverable is an ordered
-list of scenarios with the observation each one makes, stable enough to re-run on both builds.
-
-Post-release monitoring is not a fourth source. It observes a migration that already shipped, which
-makes it compensation for coverage the judge lacked, not judgement — it belongs to `[[safety-net]]`.
-
-### Composing sources across surfaces
-
-"Stop at the first source that reaches the required level" is a rule about one surface, not about the
-migration. The ordinary case on a real migration is a **split judge**: source 1 reaches the level on
-one surface and stops short on another, so source 2 or 3 is built for the remainder only. A
-serializer swap where the existing suite pins the encoded bytes but nothing exercises decoding is the
-recurring shape — the composite judge is "existing tests on the encode side, golden master on the
-decode side", and that is a normal outcome, not a sign the analysis went wrong.
-
-Two conditions keep a composed judge honest:
-
-- **The split is written down by surface, not by source.** Name each surface of the migration and,
-  next to it, the source that judges it and the level that source reaches there. A source listed
-  without the surface it covers is a claim that it covers everything.
-- **The composite reaches the minimum valid level only if every surface does.** The weakest surface
-  sets the verdict. A surface left with no source is not a cheaper composition; it is an unwatched
-  row, and it goes to the safety-net decision (Phase 0 output 9) like any other.
-
-## Building the differential corpus
-
-Mandatory wherever the judge compares recorded output: a golden master, a byte-for-byte payload
-comparison, or an existing test that pins an emitted value. Such a judge is not built until its
-**input corpus** is built. A single recorded sample is an illustration, not a golden master — it
-fixes one point of the input space and reads as though it pinned the format. The step is bound to
-the judge's *form*, not to its source: a suite that already pins one payload string (source 1)
-needs the corpus exactly as much as a baseline authored from scratch (source 2).
-
-The form is a **differential probe**: run the old implementation and the new one side by side over
-the same list of inputs and diff the two outputs, instead of asserting the new output against one
-remembered string. Diffing two runs is what makes an unexpected divergence visible; a single
-assertion can only report the case someone already suspected.
-
-What is owned here is the corpus *specification* — the input classes below and the ordering
-constraint — as a step of judge construction. Writing the probe code itself is test authoring like
-any other and goes to `test-authoring-role` under the handoff above.
-
-**Record while the old implementation is still on the build.** The probe runs against the old code
-first, and its output is a Phase 0 artifact. Once the dependency is swapped, "before" cannot be
-reproduced, and the corpus degrades into whatever the new code happens to emit.
-
-### The input classes
-
-Cover every class below, or state per class why it cannot apply to this surface. The input-class
-checklist exists so that corpus breadth does not depend on the executor's inventiveness — how many inputs a
-class needs is judgement, whether the class is present is not.
-
-- **Escaping and special characters.** Quotes, backslashes, control characters, and the punctuation
-  engines disagree about. The recurring find: one engine escapes `& < > ' =` as `\uXXXX` and the
-  other has no such option at all, so the bytes diverge on input as ordinary as `Ben & Jerry`.
-- **Non-ASCII.** Accented text, non-Latin scripts, emoji and surrogate pairs — escaped or emitted
-  literally is an engine-level choice.
-- **Numeric boundaries.** Minimum and maximum of each width, zero, negative, and values that force a
-  representation change (a fractional value where an integer is declared).
-- **Fields left at their default and fields set explicitly.** Both, as separate inputs. Whether a
-  defaulted field appears on the wire at all is exactly what a round-trip test cannot see.
-- **Missing keys and unknown keys.** Absent required fields, absent optional fields, extra keys, and
-  keys renamed by the mapping under migration.
-- **Empty and null values.** Empty strings, empty collections, explicit nulls, and an empty
-  container.
-- **Malformed input.** Syntactically invalid payloads, truncated payloads, trailing content, and
-  wrong top-level shape. Whether it throws, what it throws, and what it silently accepts are all
-  observable.
-
-### Compatibility settings must be shown to be load-bearing
-
-A migration that restores old behavior through configuration — a flag that keeps defaults on the
-wire, a flag that tolerates unknown keys — has added a judge dependency that can regress silently,
-because removing the flag still compiles and still passes every test that was never written for it.
-Verify each such setting by **removing it alone and confirming the probe goes red**, one setting at
-a time, and record which case each one defends. A setting whose removal changes nothing is either
-decorative or unwatched, and both readings are findings.
-
-Divergences the corpus turns up are input to the parity decision, not automatically defects to
-close: some of them are the old implementation's bugs, and preserving those is a product question
-under the rule above, not a licence to edit the baseline.
-
-## Judge coverage assessment
-
-Phase 0 output 4. The question is narrow and inward-facing: **of the code this migration touches,
-how much does the judge actually observe?** It is not a work order and not a request for anyone to
-write tests — that artifact is the coverage-gap handoff report in `[[safety-net]]`, a different
-thing with a different audience. Do not use the two terms interchangeably.
-
-The assessment takes one of two forms, and which one applies is decided by the surface before
-anything is measured, not by the number after it is seen. **Instrumented measurement** applies when
-the migration's failure modes are things a line or a branch either executes or does not: call sites,
-error paths, conditional handling. A **behavioral checklist** applies when they are not — the cases
-listed under § Behavioral checklist where line coverage is meaningless. Two consequences that get
-mishandled in opposite directions: having no coverage tool in the stack is not a licence to estimate
-a percentage — either wire one up, or establish that the checklist form applies and the percentage
-was never the deliverable; and a tool that *is* installed but produces a number meaningless for this
-migration gets quoted as context at most, with the checklist as the actual output. The installed tool
-does not decide the form; the surface does.
-
-Where the assessment is instrumented, three properties make the number mean something.
-
-**Measured with the stack's own tool.** Line and branch coverage from whatever the stack already
-runs — a coverage report, not an estimate from reading the test directory. An unmeasured "the tests
-look decent" is the single most common way a migration acquires an imaginary judge.
-
-**Scoped to the migration.** Repo-wide coverage is noise here. The denominator is the set of files
-and symbols the migration will touch, as identified by the Phase 0 read of the target code that
-produced outputs 1-3. It is deliberately not the work queue from `[[depmap-and-queue]]` or the gap
-inventory: both are Phase 1 artifacts and do not exist yet, so an output that waited for them could
-never be produced. Phase 1 refines the set; a refinement that moves it materially is a reason to
-re-run this assessment, not a reason to have deferred it. A repo at 70% can be at 15% on exactly the
-package being swapped, and the repo number hides it.
-
-**Measured on the old code, before the migration starts.** The number must describe what the judge
-watched *before* anything moved. Run after the fact and it measures the migrated code plus whatever
-tests were adjusted to keep it green — which is the thing under suspicion, used as evidence for
-itself. Capture the report as a Phase 0 artifact.
-
-### Executed is not asserted
-
-Coverage tools report execution, not judgement. A line that runs inside a test whose assertions
-never touch its effect is covered and unjudged. So the number is an upper bound on what the judge
-sees, never a floor: 80% line coverage means at most 80% is watched. Where the gap between executed
-and asserted looks large — smoke-style tests that construct a lot and assert little — say so in the
-assessment rather than quoting the percentage bare.
-
-### Behavioral checklist where line coverage is meaningless
-
-Some migration surfaces produce a coverage number that is true and useless. Substitute an explicit
-checklist of observable behaviors and mark each as watched or unwatched, by name:
-
-- **Wiring and injection graphs.** Registering a binding executes the registration line; nothing
-  asserts that resolution returns the right instance with the right lifetime. Coverage happily
-  reports 100% on a graph that is wrong.
-- **Declarative UI.** Executing a composable or view builder is not observing what it renders.
-- **Byte-level serialization.** Encoder code runs on every test that round-trips a value; field
-  order, discriminator encoding and numeric width are unasserted unless something inspects the
-  bytes. Byte-for-byte compatibility is a separate acceptance criterion (`[[scope]]`
-  § Serialization).
-- **Generated code.** Coverage of generated sources measures the generator's output volume, not the
-  contract you care about; judge the contract at its call sites instead.
-- **Concurrency and dispatch.** A coroutine or queue swap executes the same lines; ordering,
-  threading and cancellation are what changed, and lines do not record them.
-
-The checklist output is a list, one row per behavior, each either "watched by X" or "unwatched".
-Unwatched rows are the input to the safety-net decision (Phase 0 output 9). On these surfaces the
-checklist **replaces** the percentage as this output rather than accompanying it as a softer version
-of the same claim — reporting both invites the number to be read as the verdict it cannot support.
-
-## Test coupling inventory
-
-Phase 0 output 5. Classify the tests that cover the migration surface by what they are welded to.
-This is what tells you whether the suite survives the migration or is part of its cost.
-
-**Agnostic** — the test asserts on observable behavior and would compile and pass against either
-implementation: given this input, the parsed object has these values; given this action, the screen
-shows this text. Agnostic tests migrate for free and are the judge you want.
-
-**Coupled** — the test names the outgoing technology in its setup, its assertions, or its expected
-values: it builds the old library's types, mocks the old interface, reaches into internals only the
-old implementation has, or pins an output that is an artifact of the old implementation and that the
-new one is under no obligation to reproduce. A coupled test does not survive the migration untouched,
-and — the part that gets missed — **it cannot judge the migration either**, because making it compile
-against the new code means editing the assertions whose stability was the whole point.
-
-**Contract-bound** — an agnostic test whose expected value *is* the contract the migration must
-preserve: the exact wire bytes, the shape of a payload, an on-disk record, an observable protocol
-exchange, the rendered text of a screen. The old implementation merely happened to produce that value
-first; the value is not its property. This is the case the two labels above are most often misapplied
-to, because such a test does pin a literal that the outgoing library emitted — and it is nevertheless
-the strongest judge in the tree, the built-in golden master a serialization or protocol migration
-would otherwise have to author from scratch.
-
-**The discriminator: ask what the expected value does if the migration is correct.** Bound to a
-preserved contract → it stays byte-identical, and any change in it is a defect by definition; the
-test is the judge. Coupled to the outgoing technology → it legitimately changes, because what it
-pinned was a detail of the library being removed. That question is the only decider. "It still
-compiles against the new code" is a screen, not an answer: it rules out coupling by type — imports,
-mocks, internals — and says nothing about a pinned value, because a test that pins an artifact of the
-old implementation compiles perfectly well and merely fails. Passing the screen buys the right to ask
-the question, not a verdict. Two migrations can pin the same literal and land on opposite sides — the
-classification is a property of the contract, not of the string.
-
-The inventory is one row per test file or class: name, agnostic (marking the contract-bound ones,
-because they are judge candidates before any other source is considered) or coupled, and for coupled
-rows what it is coupled to. Count the coupled rows before choosing a judge; a surface that is 100%
-covered by coupled tests has, for migration purposes, no judge at all.
-
-Every coupled row gets exactly one of three remedies, decided in Phase 0, not during the loop:
-
-1. **Rewrite at an agnostic level.** Re-express the same intent one level further out — assert on
-   the value the parser returns rather than on the parser's internal calls, on rendered text rather
-   than on the view type. Correct when the behavior under test is real and only the expression of it
-   was bound to the old technology. Cost: authoring work, handed to `test-authoring-role`. This is
-   the default when the test guards behavior that must keep working after the migration.
-2. **Replace with a golden master.** Drop the assertion set and capture the current output as a
-   baseline instead (source 2 above). Correct when the behavior is wide, mechanical, or tedious to
-   re-express by hand — serializer output, large response mapping, rendered trees — and when the old
-   code can still be run to record it. Cheaper than rewriting and usually stronger, since it
-   captures fields nobody thought to assert on.
-3. **Accept as single-use and retire it.** The test exists only to pin an idiom of the outgoing
-   technology and has no meaning once that technology is gone. Correct when the assertion would have
-   no reader after the migration. Mark it in the inventory as scheduled for deletion so it is not
-   mistaken for coverage while the judge is being chosen, and delete it in the migration's own
-   commit rather than leaving a permanently skipped test behind.
-
-The decision rule between them: rewrite when the behavior matters and is narrow, capture when the
-behavior matters and is wide, retire when only the old idiom mattered. The fate of baseline tests
-authored during the migration is a different question, decided after it — see `[[safety-net]]`.
-
-## Legacy profile: no tests
-
-A codebase with no usable test suite is a **first-class migration profile with its own judge**, not
-an emergency and not a reason to refuse the work. INV-3 is explicit about this: structured manual
-scenario parity plus a golden master is a valid judge. Migrations of exactly this kind — old code,
-no coverage, the technology underneath end-of-life — are among the most valuable ones there are, and
-a skill that only works on well-tested code would decline most of the work that needs doing.
-
-What the profile looks like when Phase 0 detects it (output 7): no automated coverage of the
-migration surface, or a suite that exists but never runs, or a suite that runs but whose coverage of
-that surface is entirely coupled to the outgoing technology (output 5, § Test coupling inventory
-above), or no regression pass before release. The third form is the one that hides: the tests are
-green today and gone tomorrow, so the profile is about having no judge, not about having no test
-files.
-
-The judge for this profile has two halves, and both are required:
-
-**Structured manual scenario parity.** Written before the migration, from the old code and from
-whoever knows the product: an ordered list of scenarios covering the surface being migrated, each
-with its inputs and the observation that decides pass or fail. Written down is the load-bearing word
-— the artifact must be re-runnable by a different person on the post-migration build and produce the
-same verdict. Run it once against the old build first: that pass is the baseline, and it is also how
-you find out that a scenario was ambiguous while it is still cheap to fix. Execution belongs to
-`scenario-judge-role`.
-
-**Golden master over whatever the old code can be made to emit.** Anything the legacy system already
-produces as data is capturable without writing tests around its internals: serialized files,
-database rows, request payloads, log output, rendered output. Prefer capturing at the outermost
-boundary you can reach — it is the boundary least likely to move during the migration. This half is
-often the stronger of the two, because it needs no product knowledge at all.
-
-### Semi-automating the manual half
-
-Manual scenario parity does not have to stay manual. Where the platform exposes a structural
-description of what is on screen — an accessibility or UI tree, a serializable view hierarchy —
-capture that tree at each scenario step on the old build and diff it against the new one. This turns
-a human judgement ("the screen looks the same") into a mechanical comparison with a recorded
-artifact, and it converts the scenario list into a golden master. Bind that capability to
-`scenario-judge-role`; it is the same role, better equipped, not a new one.
-
-The parts that resist capture — animation, timing, feel — stay human and stay on the list. Marking
-them explicitly is what keeps the semi-automated run honest about what it did not check.
-
-### The residual risk, stated
-
-This judge is weaker than a good test suite and the plan should say so out loud rather than imply
-parity. It watches the scenarios someone thought of, at the boundaries someone could capture. Rank
-the migration surface against the scenario list and name the parts no scenario reaches; those
-unwatched parts are the input to the safety-net decision and, if they carry real risk, the reason to
-stop and build coverage first (`[[safety-net]]` § Three entry branches).
+# Судья
+
+«Поведение сохранено» — это утверждение, а утверждение без арбитра является украшением. Судья — тот
+механизм, который способен отличить верную миграцию от неверной для *этой* миграции. Фаза 0 называет
+его до того, как сдвинется код, и называет достаточно конкретно, чтобы его мог прогнать кто-то другой.
+
+Файл владеет тремя вопросами фазы 0:
+
+- откуда берётся судья (три источника в порядке предпочтения);
+- **оценка покрытия судьи** — выход 4 фазы 0, какую долю мигрируемой поверхности судья реально
+  наблюдает;
+- **инвентарь связанности тестов** — выход 5 фазы 0, какая доля существующего сьюта умирает вместе с
+  уходящей технологией.
+
+Выходы 4 и 5 раздельны и такими остаются. Сьют может наблюдать 90% поверхности миграции и всё равно
+ничего не стоить как судья, потому что каждое его утверждение написано против удаляемого API.
+
+*Силу*, которую судья обязан иметь, решают не здесь: она приходит из минимального валидного уровня в
+`[[verification-matrix]]`. Этот файл решает, откуда берётся судья такой силы и годится ли тот, что у
+вас есть. Если ни один источник не даёт валидного судьи ни на одном уровне и страховочную сетку
+построить нельзя, это NO-GO — условие нормативно в `[[scope]]`, §Условия STOP.
+
+## Три источника судьи
+
+Порядок предпочтения. Каждый следующий шаг дороже в постройке, поэтому останавливаться на первом
+источнике, достающем до нужного уровня, — по поверхности, а это не всегда один и тот же источник для
+всей миграции (см. §Составление источников по поверхностям).
+
+### 1. Существующие тесты
+
+Самый дешёвый судья и единственный бесплатный. Годится, когда верны две вещи: тесты покрывают
+поверхность миграции (измеренно, см. ниже, а не по предположению) и утверждают о наблюдаемом поведении,
+а не о форме API уходящей технологии. Сьют, проваливший второе условие, судьёй не является: он вторая
+цель миграции, и насколько большая — говорит инвентарь связанности.
+
+### 2. Авторский baseline: golden master
+
+Когда существующие тесты до уровня не достают, снять текущее поведение старого кода как данные и
+сравнивать с ним новое. Golden master — рабочая лошадка этой формы: записать реальные входы и выходы,
+которые производит текущая реализация (сериализованные байты, отрисованные деревья, полезные нагрузки
+ответов, трассы логов), и заставить мигрированный код воспроизвести их точно. Он силён там, где
+применим, потому что утверждает обо всём наблюдаемом выходе, а не о полях, которые кто-то вспомнил
+проверить, и ему не требуется понимание того, *почему* выход именно такой.
+
+Двух вещей он не даёт. Он не отличает сохранённое поведение от сохранённого бага — в этом и смысл, и
+поэтому дифф golden master, который «выглядит неправильно», это вопрос к владельцу продукта, а не
+разрешение править baseline. И он ровно настолько хорош, насколько хорош корпус входов: записанный
+корпус, который никогда не нагружает путь ошибки, оставляет этот путь несудимым, а это вопрос покрытия,
+а не golden master.
+
+Написание тестового кода под этот baseline вне области этого скилла: оно передаётся
+`test-authoring-role` (передача и её схема — в `[[safety-net]]`). Написание тестов, фиксирующих текущее
+поведение вместо утверждения о корректности, — это режим авторства тестов, обычно называемый
+характеризацией, чьей семантикой и дисциплинами владеет тот скилл, который закрывает роль (например
+`cover-with-tests`); здесь они намеренно не пересказываются.
+
+### 3. Соответствие сценариев в рантайме
+
+Когда поведение не снимается данными — оно живёт в работающей системе, в последовательности
+взаимодействий, в отрисованном экране, — судьёй становится исполнение: прогнать один и тот же сценарий
+против домиграционной и послемиграционной сборки и сравнить наблюдаемое. Это и есть то, что исполняет
+`scenario-judge-role`. Самый дорогой источник и единственный доступный для сквозных миграций, где режим
+отказа — это граф обвязки, который не создаёт ни один юнит-тест (см. `[[cross-cutting]]`).
+
+Соответствие сценариев является судьёй, только если сценарии записаны до прогона. Оператор, покликавший
+постфактум, производит впечатление, а не вердикт. Результат — упорядоченный список сценариев с
+наблюдением, которое делает каждый, достаточно устойчивый, чтобы перепрогнать его на обеих сборках.
+
+Мониторинг после релиза четвёртым источником не является. Он наблюдает миграцию, которая уже
+отгружена, а значит компенсирует покрытие, которого судье не хватило, но не судит: он принадлежит
+`[[safety-net]]`.
+
+### Составление источников по поверхностям
+
+«Останавливаться на первом источнике, достающем до уровня» — правило про одну поверхность, а не про
+миграцию. Обычный случай реальной миграции — **разделённый судья**: источник 1 достаёт до уровня на
+одной поверхности и не достаёт на другой, поэтому источник 2 или 3 строится только для остатка. Замена
+сериализатора, где существующий сьют фиксирует закодированные байты, но декодирование не нагружает
+ничто, — повторяющаяся форма: составной судья это «существующие тесты на стороне кодирования, golden
+master на стороне декодирования», и это нормальный исход, а не признак того, что анализ пошёл не так.
+
+Два условия держат составного судью честным:
+
+- **Разделение записывается по поверхностям, а не по источникам.** Назвать каждую поверхность миграции
+  и рядом — источник, который её судит, и уровень, до которого он там достаёт. Источник, названный без
+  поверхности, которую он покрывает, — это заявка, что он покрывает всё.
+- **Составной судья достигает минимального валидного уровня, только если его достигает каждая
+  поверхность.** Вердикт задаёт слабейшая. Поверхность, оставшаяся без источника, — это не более
+  дешёвая композиция, а ненаблюдаемая строка, и она уходит в решение по страховочной сетке (выход 9
+  фазы 0) как любая другая.
+
+## Построение дифференциального корпуса
+
+Обязательно везде, где судья сравнивает записанный выход: golden master, побайтовое сравнение полезной
+нагрузки либо существующий тест, фиксирующий выпускаемое значение. Такой судья не считается
+построенным, пока не построен его **корпус входов**. Один записанный образец это иллюстрация, а не
+golden master: он фиксирует одну точку пространства входов и читается так, будто зафиксировал формат.
+Шаг привязан к *форме* судьи, а не к его источнику: сьют, уже фиксирующий одну строку полезной нагрузки
+(источник 1), нуждается в корпусе ровно так же, как baseline, написанный с нуля (источник 2).
+
+Форма — **дифференциальный зонд**: прогнать старую и новую реализации бок о бок по одному и тому же
+списку входов и сравнить два выхода, вместо того чтобы утверждать новый выход против одной запомненной
+строки. Именно сравнение двух прогонов делает неожиданное расхождение видимым; одиночное утверждение
+способно сообщить только о том случае, который кто-то уже подозревал.
+
+Здесь принадлежит *спецификация* корпуса — классы входов ниже и ограничение по порядку — как шаг
+построения судьи. Написание кода самого зонда это авторство тестов, как любое другое, и уходит
+`test-authoring-role` по передаче выше.
+
+**Записывать, пока старая реализация ещё в сборке.** Зонд сначала прогоняется против старого кода, и
+его выход это артефакт фазы 0. Как только зависимость заменена, «до» воспроизвести уже нельзя, и корпус
+вырождается в то, что случайно испускает новый код.
+
+### Классы входов
+
+Покрыть каждый класс ниже либо по каждому сказать, почему он к этой поверхности неприменим. Чеклист
+классов входов существует, чтобы широта корпуса не зависела от изобретательности исполнителя: сколько
+входов нужно классу — вопрос суждения, а присутствует ли класс — нет.
+
+- **Экранирование и специальные символы.** Кавычки, обратные слэши, управляющие символы и та
+  пунктуация, о которой движки расходятся. Повторяющаяся находка: один движок экранирует `& < > ' =`
+  как `\uXXXX`, а у другого такой опции нет вовсе, поэтому байты расходятся на входе не сложнее, чем
+  `Ben & Jerry`.
+- **Не-ASCII.** Текст с диакритикой, нелатинские письменности, эмодзи и суррогатные пары —
+  экранировать или выпускать буквально решает движок.
+- **Числовые границы.** Минимум и максимум каждой разрядности, ноль, отрицательные значения и
+  значения, вынуждающие смену представления (дробное там, где объявлено целое).
+- **Поля, оставленные по умолчанию, и поля, заданные явно.** И то и другое, отдельными входами.
+  Появляется ли поле со значением по умолчанию на проводе вообще — ровно то, чего не видит тест на
+  round-trip.
+- **Отсутствующие и неизвестные ключи.** Отсутствующие обязательные поля, отсутствующие необязательные,
+  лишние ключи и ключи, переименованные сопоставлением, которое мигрирует.
+- **Пустые и null-значения.** Пустые строки, пустые коллекции, явные null и пустой контейнер.
+- **Некорректный ввод.** Синтаксически невалидные полезные нагрузки, усечённые нагрузки, хвостовое
+  содержимое и неверная форма верхнего уровня. Наблюдаемо всё: бросает ли, что именно бросает и что
+  молча принимает.
+
+### Настройки совместимости обязаны быть показаны как несущие
+
+Миграция, восстанавливающая старое поведение конфигурацией (флаг, оставляющий умолчания на проводе;
+флаг, терпящий неизвестные ключи), добавила зависимость судьи, способную молча регрессировать: удаление
+флага по-прежнему компилируется и по-прежнему проходит каждый тест, который под него никогда не
+писался. Проверять каждую такую настройку, **удаляя её отдельно и подтверждая, что зонд краснеет**, по
+одной за раз, и записывать, какой случай защищает каждая. Настройка, чьё удаление ничего не меняет,
+либо декоративна, либо ненаблюдаема, и оба прочтения являются находками.
+
+Расхождения, которые вскрывает корпус, — вход решения о соответствии, а не автоматически дефекты к
+закрытию: часть из них баги старой реализации, и сохранять их или нет — продуктовый вопрос по правилу
+выше, а не разрешение править baseline.
+
+## Оценка покрытия судьи
+
+Выход 4 фазы 0. Вопрос узкий и обращён внутрь: **какую долю кода, которого касается эта миграция, судья
+реально наблюдает?** Это не наряд на работу и не просьба кому-то написать тесты: тот артефакт — отчёт о
+передаче пробела покрытия в `[[safety-net]]`, другая вещь с другой аудиторией. Термины
+взаимозаменяемыми не считать.
+
+Оценка принимает одну из двух форм, и какая применима — решается по поверхности до всякого измерения, а
+не по числу после того, как его увидели. **Инструментальное измерение** применимо, когда режимы отказа
+миграции это то, что строка или ветка либо исполняет, либо нет: места вызова, пути ошибок, условная
+обработка. **Поведенческий чеклист** применим, когда это не так, — случаи перечислены в §Поведенческий
+чеклист там, где покрытие строк бессмысленно. Два следствия, которые путают в противоположных
+направлениях: отсутствие инструмента покрытия в стеке не является разрешением оценить процент на глаз —
+либо подключить инструмент, либо установить, что применима форма чеклиста и процент никогда не был
+результатом; а инструмент, который *установлен*, но выдаёт бессмысленное для этой миграции число,
+цитируется максимум как контекст, а настоящим выходом остаётся чеклист. Форму решает поверхность, а не
+установленный инструмент.
+
+Там, где оценка инструментальная, число что-то значит благодаря трём свойствам.
+
+**Измерено собственным инструментом стека.** Покрытие строк и веток тем, что стек уже гоняет, — отчёт
+покрытия, а не оценка по чтению каталога тестов. Неизмеренное «тесты выглядят приличными» — самый
+частый способ, которым миграция обзаводится воображаемым судьёй.
+
+**Ограничено миграцией.** Покрытие по всему репозиторию здесь шум. Знаменатель — множество файлов и
+символов, которых миграция коснётся, определённое чтением целевого кода в фазе 0, породившим выходы
+1–3. Это намеренно не очередь работ из `[[depmap-and-queue]]` и не инвентарь пробелов: оба артефакты
+фазы 1 и ещё не существуют, поэтому выход, ждущий их, невозможно было бы произвести. Фаза 1 уточняет
+множество; уточнение, существенно его сдвинувшее, — повод перепрогнать эту оценку, а не повод было её
+откладывать. Репозиторий на 70% может быть на 15% ровно в том пакете, который заменяют, и число по
+репозиторию это прячет.
+
+**Измерено на старом коде, до начала миграции.** Число обязано описывать то, что судья наблюдал *до*
+того, как что-то сдвинулось. Прогнанное постфактум, оно измеряет мигрированный код плюс те тесты,
+которые подкрутили, чтобы он остался зелёным, — то есть то, что находится под подозрением,
+использованное как доказательство о самом себе. Сохранить отчёт как артефакт фазы 0.
+
+### Исполнено — не значит утверждено
+
+Инструменты покрытия сообщают об исполнении, а не о суждении. Строка, отработавшая внутри теста, чьи
+утверждения её эффекта не касаются, покрыта и не судима. Поэтому число это верхняя граница того, что
+видит судья, и никогда не нижняя: 80% покрытия строк означают, что наблюдается не более 80%. Там, где
+разрыв между исполненным и утверждённым выглядит большим (smoke-подобные тесты, которые много
+конструируют и мало утверждают), сказать это в оценке, а не цитировать процент голым.
+
+### Поведенческий чеклист там, где покрытие строк бессмысленно
+
+Часть поверхностей миграции даёт число покрытия, которое истинно и бесполезно. Заменить его явным
+чеклистом наблюдаемых поведений и пометить каждое как наблюдаемое или ненаблюдаемое, поимённо:
+
+- **Графы обвязки и внедрения.** Регистрация привязки исполняет строку регистрации; что разрешение
+  вернёт правильный экземпляр с правильным временем жизни, не утверждает ничто. Покрытие с радостью
+  отрапортует 100% на неверном графе.
+- **Декларативный UI.** Исполнить composable или билдер view — не значит наблюдать, что он рисует.
+- **Побайтовая сериализация.** Код кодировщика исполняется в каждом тесте, гоняющем значение
+  туда-обратно; порядок полей, кодирование дискриминатора и разрядность чисел не утверждены, пока
+  что-то не осмотрит байты. Побайтовая совместимость — отдельный критерий приёмки (`[[scope]]`,
+  §Сериализация).
+- **Сгенерированный код.** Покрытие сгенерированных исходников измеряет объём выхода генератора, а не
+  тот контракт, который вам важен; судить контракт надо в местах его вызова.
+- **Конкурентность и диспетчеризация.** Замена корутин или очереди исполняет те же строки; изменились
+  порядок, потоки и отмена, а строки их не фиксируют.
+
+Выход чеклиста — список, по строке на поведение, каждая либо «наблюдается через X», либо «не
+наблюдается». Ненаблюдаемые строки — вход решения по страховочной сетке (выход 9 фазы 0). На таких
+поверхностях чеклист **заменяет** процент в качестве этого выхода, а не сопровождает его как более
+мягкую версию того же утверждения: показ обоих провоцирует прочтение числа как вердикта, которого оно
+не выдерживает.
+
+## Инвентарь связанности тестов
+
+Выход 5 фазы 0. Классифицировать тесты, покрывающие поверхность миграции, по тому, к чему они приварены.
+Именно это говорит, переживёт ли сьют миграцию или является частью её стоимости.
+
+**Нейтральный** — тест утверждает о наблюдаемом поведении и компилировался бы и проходил против любой
+реализации: на таком-то входе разобранный объект имеет такие-то значения; на такое-то действие экран
+показывает такой-то текст. Нейтральные тесты мигрируют бесплатно и являются тем судьёй, которого вы
+хотите.
+
+**Приваренный** — тест называет уходящую технологию в подготовке, в утверждениях или в ожидаемых
+значениях: он строит типы старой библиотеки, мокает старый интерфейс, лезет во внутренности, которые
+есть только у старой реализации, либо фиксирует выход, являющийся артефактом старой реализации, который
+новая воспроизводить не обязана. Приваренный тест не переживает миграцию нетронутым и — вот та часть,
+которую пропускают — **судить миграцию тоже не может**, потому что заставить его компилироваться против
+нового кода значит править те самые утверждения, стабильность которых и была всем смыслом.
+
+**Привязанный к контракту** — нейтральный тест, чьё ожидаемое значение *и есть* контракт, который
+миграция обязана сохранить: точные байты на проводе, форма полезной нагрузки, запись на диске,
+наблюдаемый обмен по протоколу, отрисованный текст экрана. Старая реализация просто произвела это
+значение первой; значение не является её собственностью. Именно этот случай чаще всего ошибочно относят
+к двум ярлыкам выше, потому что такой тест действительно фиксирует литерал, который выпустила уходящая
+библиотека, — и тем не менее он сильнейший судья в дереве, встроенный golden master, который миграции
+сериализации или протокола иначе пришлось бы писать с нуля.
+
+**Различитель: спросить, что произойдёт с ожидаемым значением, если миграция верна.** Привязано к
+сохраняемому контракту → оно остаётся побайтово тем же, и любое его изменение по определению дефект;
+тест и есть судья. Приварено к уходящей технологии → оно законно меняется, потому что зафиксирована
+была деталь удаляемой библиотеки. Этот вопрос — единственный решающий. «Оно всё ещё компилируется
+против нового кода» — это фильтр, а не ответ: он исключает связанность по типам (импорты, моки,
+внутренности) и ничего не говорит про зафиксированное значение, потому что тест, фиксирующий артефакт
+старой реализации, компилируется прекрасно и просто падает. Пройти фильтр — значит купить право задать
+вопрос, а не получить вердикт. Две миграции могут фиксировать один и тот же литерал и оказаться по
+разные стороны: классификация это свойство контракта, а не строки.
+
+Инвентарь — по строке на тестовый файл или класс: имя; нейтральный (с пометкой привязанных к контракту,
+потому что они кандидаты в судьи ещё до рассмотрения любого другого источника) либо приваренный; для
+приваренных — к чему именно. Посчитать приваренные строки до выбора судьи: у поверхности, покрытой
+приваренными тестами на 100%, для целей миграции судьи нет вообще.
+
+Каждая приваренная строка получает ровно одно из трёх средств, решаемое в фазе 0, а не по ходу цикла:
+
+1. **Переписать на нейтральном уровне.** Выразить то же намерение на уровень наружу: утверждать о
+   значении, которое возвращает парсер, а не о его внутренних вызовах; об отрисованном тексте, а не о
+   типе view. Верно, когда проверяемое поведение реально, а к старой технологии было привязано лишь
+   его выражение. Цена — работа авторства, передаваемая `test-authoring-role`. Это дефолт, когда тест
+   стережёт поведение, которое обязано работать и после миграции.
+2. **Заменить на golden master.** Выбросить набор утверждений и вместо него снять текущий выход
+   baseline (источник 2 выше). Верно, когда поведение широкое, механическое или утомительное для
+   ручного переизложения — выход сериализатора, большое отображение ответа, отрисованные деревья — и
+   когда старый код ещё можно прогнать, чтобы это записать. Дешевле переписывания и обычно сильнее,
+   поскольку захватывает поля, о которых никто не додумался утверждать.
+3. **Принять как одноразовый и вывести из обращения.** Тест существует только чтобы зафиксировать
+   идиому уходящей технологии и после её исчезновения смысла не имеет. Верно, когда у утверждения не
+   останется читателя после миграции. Пометить его в инвентаре как назначенный к удалению, чтобы его не
+   приняли за покрытие, пока выбирается судья, и удалить в собственном коммите миграции, а не оставлять
+   навсегда отключённый тест.
+
+Правило выбора между ними: переписывать, когда поведение важно и узко; снимать, когда поведение важно и
+широко; выводить из обращения, когда важна была только старая идиома. Судьба baseline-тестов,
+написанных во время миграции, — другой вопрос, решаемый после неё, см. `[[safety-net]]`.
+
+## Legacy-профиль: тестов нет
+
+Кодовая база без пригодного тестового сьюта — это **полноправный профиль миграции со своим судьёй**, а
+не чрезвычайная ситуация и не повод отказаться от работы. Структурированное ручное соответствие
+сценариев плюс golden master является валидным судьёй. Миграции ровно такого рода — старый код,
+покрытия нет, технология под ним при смерти — из числа самых ценных, какие бывают, и скилл, работающий
+только на хорошо покрытом коде, отклонял бы большую часть работы, которую надо делать.
+
+Как профиль выглядит, когда фаза 0 его обнаруживает (выход 7): автоматического покрытия поверхности
+миграции нет; либо сьют существует, но никогда не запускается; либо сьют запускается, но его покрытие
+этой поверхности целиком приварено к уходящей технологии (выход 5, §Инвентарь связанности выше); либо
+перед релизом нет регрессионного прогона. Третья форма — та, что прячется: тесты зелены сегодня и
+исчезнут завтра, поэтому профиль про отсутствие судьи, а не про отсутствие тестовых файлов.
+
+У судьи для этого профиля две половины, и обе обязательны:
+
+**Структурированное ручное соответствие сценариев.** Написанное до миграции, из старого кода и от того,
+кто знает продукт: упорядоченный список сценариев, покрывающих мигрируемую поверхность, у каждого свои
+входы и наблюдение, решающее pass или fail. «Написанное» здесь несущее слово: артефакт обязан быть
+перепрогоняемым другим человеком на послемиграционной сборке с тем же вердиктом. Прогнать его один раз
+против старой сборки сначала: этот прогон и есть baseline, а заодно способ узнать, что сценарий был
+неоднозначен, пока это ещё дёшево починить. Исполнение принадлежит `scenario-judge-role`.
+
+**Golden master по всему, что старый код можно заставить испустить.** Всё, что legacy-система уже
+производит как данные, снимается без написания тестов вокруг её внутренностей: сериализованные файлы,
+строки базы, полезные нагрузки запросов, вывод логов, отрисованный выход. Предпочитать съём на самой
+внешней достижимой границе — это та граница, которая с наименьшей вероятностью сдвинется во время
+миграции. Эта половина часто сильнее первой, потому что ей вообще не нужно знание продукта.
+
+### Полуавтоматизация ручной половины
+
+Ручное соответствие сценариев не обязано оставаться ручным. Там, где платформа отдаёт структурное
+описание того, что на экране (дерево доступности или UI, сериализуемая иерархия view), снять это дерево
+на каждом шаге сценария на старой сборке и сравнить с новой. Так человеческое суждение («экран выглядит
+так же») превращается в механическое сравнение с записанным артефактом, а список сценариев — в golden
+master. Привязать эту возможность к `scenario-judge-role`: это та же роль, лучше оснащённая, а не новая.
+
+То, что съёму не поддаётся — анимация, тайминги, ощущение, — остаётся человеческим и остаётся в списке.
+Явная пометка этого и держит полуавтоматический прогон честным в том, чего он не проверил.
+
+### Остаточный риск, названный вслух
+
+Этот судья слабее хорошего тестового сьюта, и план должен сказать это вслух, а не подразумевать
+равенство. Он наблюдает те сценарии, которые кто-то придумал, на тех границах, которые кто-то смог
+снять. Сопоставить поверхность миграции со списком сценариев и назвать части, до которых не достаёт ни
+один сценарий; эти ненаблюдаемые части — вход решения по страховочной сетке, а если они несут реальный
+риск — повод остановиться и сначала построить покрытие (`[[safety-net]]`, §Три входные ветки).
