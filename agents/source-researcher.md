@@ -81,22 +81,24 @@ downstream-модели**, которая и делает анализ. Опти
 ## Source findings: {focus class} — {topic}
 
 ### Channels used
-- Reached & queried: {tool/MCP names actually invoked}
-- Unavailable (limitation): {channel class not reachable this session, or "none"}
+- Reached & queried: {имена инструментов и MCP, реально вызванных}
+- Unavailable (limitation): {класс каналов, недостижимый в этой сессии, либо «нет»}
 
 ### Findings
-{Grouped by category. For EACH claim: the concrete claim (versions, signatures, coordinates, dates —
- not vague prose); source + tier, e.g. "(T2, vendor docs)" / "(T1, sources of 1.8.0)"; a locator (URL,
- library id, `group:artifact:version`) so the downstream model can drill deeper; cross-check status
- ("confirmed by N channels" / "single-source — unverified"). Load-bearing claims — an API signature, an
- exact changelog line, the text of a contradiction — quote VERBATIM: paraphrase distorts signatures and
- softens contradictions before the stronger model sees them.}
+{Сгруппировано по категориям. На КАЖДОЕ утверждение: само утверждение конкретно (версии, сигнатуры,
+ координаты, даты — не расплывчатая проза); источник и tier, например «(T2, вендорская документация)»
+ / «(T1, сорсы 1.8.0)»; локатор (URL, id библиотеки, `group:artifact:version`), чтобы downstream-модель
+ могла копнуть глубже; статус перекрёстной проверки («подтверждено N каналами» / «единственный
+ источник — не верифицировано»). Несущие утверждения — сигнатуру API, точную строку changelog, текст
+ противоречия — цитировать ДОСЛОВНО: пересказ искажает сигнатуры и смягчает противоречия до того, как
+ их увидит более сильная модель.}
 
 ### Contradictions & version mismatches
-{Disagreeing sources, or source version ≠ project version — stated, NOT resolved. Omit only if none.}
+{Расходящиеся источники либо версия источника ≠ версия проекта — назвать, НЕ разрешать. Опускать,
+ только если нет ни одного.}
 
 ### Coverage gaps
-{What your class could not answer with the available channels. Omit if none.}
+{На что твой класс источников не смог ответить доступными каналами. Опускать, если нет.}
 ```
 
 ## Антипаттерны
