@@ -1,169 +1,168 @@
-# Verification matrix
+# Матрица верификации
 
-Every migration makes one claim: **externally observable behavior did not change.** The matrix is
-how that claim is priced. It names six levels of evidence, defined here in migration terms, and a
-procedure for picking the lowest level that can actually tell a correct port from a broken one.
+Любая миграция делает ровно одно утверждение: **внешне наблюдаемое поведение не изменилось.** Матрица —
+способ оценить, чего это утверждение стоит. Она называет шесть уровней доказательства, определённых
+здесь в терминах миграции, и процедуру выбора самого низкого уровня, который реально отличает верный
+порт от сломанного.
 
-The levels below are defined in this file and nowhere else. They are not a general testing ladder
-borrowed from elsewhere: each level is stated as *what it proves about behavior preservation*,
-which is a narrower and more useful question than "how good is this test".
+Уровни ниже определены в этом файле и больше нигде. Это не общая тестовая лестница, заимствованная
+откуда-то: каждый уровень сформулирован как *что он доказывает про сохранение поведения*, а это вопрос
+уже и полезнее, чем «насколько хорош этот тест».
 
-Related, not repeated here: the taxonomy that classifies a migration is in `scope.md`; how a judge
-is chosen and where its evidence comes from is in `judge.md`; topology and dependency-graph
-specifics are in `cross-cutting.md`.
+Смежное, здесь не повторяется: таксономия, классифицирующая миграцию, — в `scope.md`; как выбирается
+судья и откуда берётся его доказательство — в `judge.md`; топология и специфика графа зависимостей — в
+`cross-cutting.md`.
 
 ## L0
 
-**Proves:** the ported code is well-formed — it compiles, links, and passes the static gates the
-project already enforces. Green build is L0.
+**Доказывает:** портированный код корректно оформлен — компилируется, линкуется и проходит статические
+гейты, которые проект уже требует. Зелёная сборка это L0.
 
-**Says nothing about:** behavior. A migration that compiles has cleared the lowest bar available;
-for most migrations L0 is a precondition for evidence, not evidence.
+**Не говорит ничего про:** поведение. Миграция, которая компилируется, взяла самую низкую доступную
+планку; для большинства миграций L0 это предусловие доказательства, а не доказательство.
 
-**Cost:** whatever a build already costs. Always run it; never report it as parity.
+**Цена:** та, во что сборка уже обходится. Гонять всегда; никогда не выдавать за соответствие поведения.
 
 ## L1
 
-**Proves:** the port has the shape the RULEBOOK says it should have. Structural evidence obtained
-without executing anything: no occurrences of the outgoing API remain, signatures and nullability
-match the mapping, no port marker is left unaccounted for, public surface diff is empty or
-explained, lint rules specific to the target technology pass.
+**Доказывает:** порт имеет ту форму, которую предписывает RULEBOOK. Структурное доказательство,
+полученное без исполнения чего-либо: не осталось вхождений уходящего API, сигнатуры и нullability
+соответствуют сопоставлению, не осталось неучтённых port-маркеров, дифф публичной поверхности пуст либо
+объяснён, специфичные для целевой технологии правила линтера проходят.
 
-**Says nothing about:** whether the mapped constructs mean the same thing at runtime. L1 catches a
-rule applied inconsistently; it cannot catch a rule that is wrong.
+**Не говорит ничего про:** означают ли сопоставленные конструкции то же самое в рантайме. L1 ловит
+правило, применённое непоследовательно, но не может поймать правило, которое неверно.
 
-**Cost:** cheap and scriptable. This is the level that scales across thousands of sites, and the
-level where "the rules are the artifact" pays off — an L1 failure is almost always a rulebook
-defect, not a file defect.
+**Цена:** дёшево и скриптуемо. Именно этот уровень масштабируется на тысячи мест, и именно на нём
+окупается принцип «артефакт это правила»: отказ на L1 почти всегда дефект RULEBOOK, а не дефект файла.
 
 ## L2
 
-**Proves:** behavior is preserved *to the exact extent the existing test suite was watching it*.
-The pre-existing tests, unmodified, still pass against the ported code.
+**Доказывает:** поведение сохранено *ровно в той мере, в какой за ним следил существующий тестовый
+сьют*. Предсуществующие тесты, не изменённые, по-прежнему проходят против портированного кода.
 
-**The caveat that makes or breaks this level:** the suite's reach is not assumed, it is measured —
-the judge coverage assessment in `judge.md` establishes how much of the migrated surface the suite
-observes, and the test coupling inventory establishes how much of the suite is welded to the
-outgoing technology. A suite that had to be rewritten to compile against the new API is no longer
-an independent referee at L2; it has become part of the change under test.
+**Оговорка, которая делает или ломает этот уровень:** охват сьюта не предполагается, а измеряется —
+оценка покрытия судьи в `judge.md` устанавливает, какую долю мигрируемой поверхности сьют наблюдает, а
+инвентарь связанности тестов устанавливает, какая доля сьюта приварена к уходящей технологии. Сьют,
+который пришлось переписать, чтобы он компилировался против нового API, независимым арбитром на L2 уже
+не является: он стал частью изменения, находящегося под проверкой.
 
-**Cost:** near zero when the suite exists and is agnostic. This is the most common minimum valid
-level for localized migrations, and the most commonly overstated one.
+**Цена:** почти нулевая, когда сьют существует и технологически нейтрален. Это самый частый минимальный
+валидный уровень для локализованных миграций и самый часто переоцениваемый.
 
 ## L3
 
-**Proves:** parity on an observable surface that the existing suite did not cover, using evidence
-built for this migration. Three usual forms:
+**Доказывает:** соответствие на наблюдаемой поверхности, которую существующий сьют не покрывал, с
+помощью доказательства, построенного специально для этой миграции. Три обычные формы:
 
-- characterization tests captured against the old implementation before the port;
-- golden master — outputs recorded from the old code and compared byte-for-byte or field-by-field
-  against the new;
-- differential execution — old and new implementations run against the same inputs and their
-  outputs compared directly.
+- характеризационные тесты, снятые со старой реализации до порта;
+- golden master — выходы, записанные со старого кода и сравниваемые побайтово или по полям с новым;
+- дифференциальное исполнение — старая и новая реализации прогоняются на одних входах, и их выходы
+  сравниваются напрямую.
 
-**Says nothing about:** composition. L3 exercises units and formats, not the assembled system.
+**Не говорит ничего про:** композицию. L3 нагружает единицы и форматы, но не собранную систему.
 
-**Cost:** authoring effort, paid before the migration starts. When it is needed and the coverage
-does not exist, the migration pauses to build it — the branches and the handoff are in
-`safety-net.md`.
+**Цена:** усилия авторства, оплаченные до начала миграции. Когда он нужен, а покрытия нет, миграция
+приостанавливается, чтобы его построить, — ветки и передача описаны в `safety-net.md`.
 
 ## L4
 
-**Proves:** the assembled system still behaves. The application or service actually starts with its
-real wiring, the main paths execute, screens render, requests are served, and the observed results
-match the pre-migration behavior on the same inputs.
+**Доказывает:** собранная система по-прежнему ведёт себя так же. Приложение или сервис реально
+стартует со своей настоящей обвязкой, основные пути исполняются, экраны рисуются, запросы
+обслуживаются, а наблюдаемые результаты совпадают с домиграционным поведением на тех же входах.
 
-**This is the first level at which whole classes of migration defect become visible at all:**
-dependency graphs that resolve to the wrong instance, lifetime and singleton semantics that
-silently changed, reflection and resource lookup that fail only when reached, ordering and threading
-differences, format negotiation between two components that were ported separately. Every one of
-these compiles cleanly and can pass unit tests.
+**Это первый уровень, на котором целые классы дефектов миграции вообще становятся видимы:** графы
+зависимостей, разрешающиеся в неверный экземпляр; молча изменившаяся семантика времени жизни и
+синглтонов; рефлексия и поиск ресурсов, падающие только при достижении; различия порядка и потоков;
+согласование форматов между двумя компонентами, портированными по отдельности. Каждое из этого
+компилируется чисто и способно пройти юнит-тесты.
 
-**Cost:** an environment, fixtures, and time. Non-negotiable when the migration touches composition
-rather than leaves.
+**Цена:** окружение, фикстуры и время. Не обсуждается, когда миграция трогает композицию, а не листья.
 
 ## L5
 
-**Proves:** parity on the real input distribution — evidence from production or a production-like
-population: staged exposure, comparison of error and performance signals against a pre-migration
-baseline, or shadow traffic where both implementations run and their outputs are compared.
+**Доказывает:** соответствие на реальном распределении входов — доказательство из продакшена или
+продакшен-подобной популяции: поэтапная раскатка, сравнение сигналов ошибок и производительности с
+домиграционным baseline либо теневой трафик, где работают обе реализации и их выходы сравниваются.
 
-**Its honest status:** L5 is the only level that sees inputs nobody thought to write down, and the
-only level that detects failures *after* users do. It compensates for missing lower-level evidence;
-it does not replace it, and a migration plan that names L5 as its judge is naming a monitoring plan.
-The compensation view is developed in `safety-net.md`.
+**Его честный статус:** L5 — единственный уровень, который видит входы, которые никто не додумался
+записать, и единственный, который обнаруживает отказы *после* пользователей. Он компенсирует
+недостающие доказательства нижних уровней, но не заменяет их, и план миграции, называющий L5 своим
+судьёй, называет план мониторинга. Взгляд на компенсацию развит в `safety-net.md`.
 
-**Cost:** release machinery plus exposure to real failure. Justified when the population itself is
-the specification.
+**Цена:** релизная машинерия плюс подверженность реальному отказу. Оправдан, когда сама популяция и
+есть спецификация.
 
-## The compiler is a referee only for some migrations
+## Компилятор — арбитр не для всех миграций
 
-There is no fixed answer to "does the type system catch this". The compiler's power as a referee is
-a property of the *migration*, not of the language:
+Единого ответа на вопрос «ловит ли это система типов» нет. Сила компилятора как арбитра — свойство
+*миграции*, а не языка:
 
-- It is a strong referee when the mapping is expressed in types the compiler checks and every
-  incorrect mapping is ill-typed — a renamed API, a utility library swap, a data class moved between
-  packages. Here L0 plus L1 genuinely discharges most of the claim.
-- It is a weak referee when the new technology accepts a wider set of programs than the old one: the
-  broken version is still well-typed, so nothing fails until execution. Runtime-resolved dependency
-  graphs are the standard example — a container swap with a missing or mis-scoped binding compiles
-  perfectly and fails at resolution time.
-- It is blind by construction when the contract is a value, not a type: byte-level formats, wire
-  payloads, string keys, generated identifiers, ordering, timing. The types are unchanged; the
-  bytes are not.
+- Он сильный арбитр, когда сопоставление выражено в типах, которые компилятор проверяет, и любое
+  неверное сопоставление плохо типизировано: переименованный API, замена утилитарной библиотеки,
+  data-класс, переехавший между пакетами. Здесь L0 плюс L1 действительно закрывают почти всё
+  утверждение.
+- Он слабый арбитр, когда новая технология принимает более широкое множество программ, чем старая:
+  сломанная версия по-прежнему хорошо типизирована, поэтому до исполнения ничего не падает. Стандартный
+  пример — графы зависимостей, разрешаемые в рантайме: замена контейнера с отсутствующей или неверно
+  ограниченной привязкой компилируется идеально и падает в момент разрешения.
+- Он слеп по построению, когда контракт это значение, а не тип: побайтовые форматы, полезная нагрузка
+  на проводе, строковые ключи, сгенерированные идентификаторы, порядок, тайминги. Типы не изменились,
+  байты изменились.
 
-Practical consequence: decide what the compiler can and cannot see **before** choosing the level,
-and write that decision down. "The build is green" is a claim about L0 that gets quoted as if it
-were a claim about behavior, and that substitution is the single most common way a migration ships
-a regression.
+Практическое следствие: решить, что компилятор видит, а что нет, **до** выбора уровня и записать это
+решение. «Сборка зелёная» — утверждение об L0, которое цитируют так, будто это утверждение о поведении,
+и именно эта подмена чаще всего приводит к тому, что миграция отгружает регрессию.
 
-## Choosing the minimum valid level
+## Выбор минимального валидного уровня
 
-Pick the **lowest level that can distinguish a correct port from an incorrect one for this specific
-migration**. Not the highest reachable, not the cheapest available — the lowest that is *valid*.
-Higher is waste; lower is an unfalsifiable claim.
+Брать **самый низкий уровень, способный отличить верный порт от неверного именно для этой миграции**.
+Не самый высокий достижимый и не самый дешёвый доступный, а самый низкий *валидный*. Выше — трата;
+ниже — нефальсифицируемое утверждение.
 
-Procedure, per migration (or per distinct group of sites, when one migration contains several):
+Процедура, по миграции или по каждой отдельной группе мест, когда одна миграция содержит несколько:
 
-1. **Name the failure modes.** What could this technology swap plausibly break? Be concrete:
-   wrong overload, lost null-handling, changed default, altered lifetime, reordered output,
-   different encoding, dropped side effect.
-2. **Ask of each: at what level does this become visible?** Walk L0 upward and stop at the first
-   level that would surface it. A failure mode nothing surfaces is a coverage gap, not a level.
-3. **Take the maximum over the failure modes.** The migration's level is the highest of the per-mode
-   levels — one runtime-only failure mode pulls the whole group to L4 regardless of how much L2
-   evidence exists elsewhere.
-4. **Check reachability.** Can that level actually be run here today? If not, either build the
-   evidence (`safety-net.md`) or, if no branch produces a valid judge at any level, this is a NO-GO
-   and the migration does not start (`scope.md`).
-5. **Record it as an acceptance criterion, per criterion.** Some criteria do not follow from the
-   others and must be stated separately — byte-for-byte format compatibility is the recurring one.
-   "Tests are green" never implies "the format is unchanged".
-6. **Re-run the procedure when the port changes shape.** A migration that grows from leaves into
-   composition has changed its topology, and topology drives the level.
+1. **Назвать режимы отказа.** Что эта замена технологии правдоподобно может сломать? Конкретно:
+   неверная перегрузка, потерянная обработка null, изменившееся умолчание, изменившееся время жизни,
+   переупорядоченный вывод, другая кодировка, потерянный побочный эффект.
+2. **По каждому спросить: на каком уровне это становится видимым?** Идти от L0 вверх и останавливаться
+   на первом уровне, который это вскроет. Режим отказа, который не вскрывает ничто, — это пробел
+   покрытия, а не уровень.
+3. **Взять максимум по режимам отказа.** Уровень миграции — наивысший из уровней по режимам: один
+   режим, видимый только в рантайме, тянет всю группу на L4 независимо от того, сколько доказательств
+   уровня L2 есть в других местах.
+4. **Проверить достижимость.** Можно ли этот уровень реально прогнать здесь сегодня? Нет — либо
+   построить доказательство (`safety-net.md`), либо, если ни одна ветка не даёт валидного судьи ни на
+   одном уровне, это NO-GO и миграция не начинается (`scope.md`).
+5. **Записать это критерием приёмки, по критерию на каждый.** Некоторые критерии не следуют из других
+   и должны быть заявлены отдельно; побайтовая совместимость формата — самый повторяющийся. «Тесты
+   зелёные» никогда не влечёт «формат не изменился».
+6. **Перепрогнать процедуру, когда порт сменил форму.** Миграция, выросшая из листьев в композицию,
+   сменила топологию, а уровень определяет именно топология.
 
-Two anti-patterns worth naming, because both look like diligence:
+Два антипаттерна, которые стоит назвать, потому что оба выглядят как усердие:
 
-- **Level inflation** — demanding L4 for a rename, which spends the migration's budget on ceremony
-  and starves the parts that need it.
-- **Level laundering** — declaring L2 because a suite exists, without measuring what it covers or
-  whether it survived the port unmodified. See the coupling inventory in `judge.md`.
+- **Инфляция уровня** — требовать L4 для переименования: так бюджет миграции тратится на церемонию, а
+  части, которым он нужен, голодают.
+- **Отмывание уровня** — объявить L2 на основании того, что сьют существует, не измерив, что он
+  покрывает и пережил ли он порт неизменным. См. инвентарь связанности в `judge.md`.
 
-## Example matrix
+## Пример матрицы
 
-Rows are illustrative shapes, not an exhaustive list. Read them as worked applications of the
-procedure above.
+Строки — иллюстративные формы, а не исчерпывающий список. Читать их как разобранные применения
+процедуры выше.
 
-| Migration | Caught by compilation | Existing tests sufficient | Runtime needed | Minimum valid judge |
+| Миграция | Ловится компиляцией | Существующих тестов достаточно | Нужен рантайм | Минимальный валидный судья |
 |---|---|---|---|---|
-| Utility library swap with a like-for-like API (pure functions, no reflection) | Yes — every incorrect mapping is ill-typed | Yes, if they are agnostic to the outgoing library | No | L1: build plus a static sweep that no outgoing symbol remains |
-| Serialization library swap (annotation-driven model to a different engine) | Partially — signatures only; field names, defaults, and encoding are values, not types | No — suites usually assert on objects, never on the emitted payload | No, but a harness must produce output | L3: golden-master byte-for-byte comparison of payloads produced by the old code |
-| Runtime dependency-injection container swap | No — a missing or mis-scoped binding is well-typed; the compiler does not catch a broken graph | No — unit tests construct their own objects and never touch the real graph | Yes — resolution happens at startup | L4: real startup with the production wiring, plus explicit lifetime and scope assertions; see `cross-cutting.md` |
-| HTTP client swap in a service, `requests` to `httpx` | No — a dynamically typed client swap is invisible to static checks | Rarely — tests usually stub the client itself and are welded to its shape | Yes — timeouts, redirects, connection reuse, and error mapping only appear when a request is made | L3 rising to L4: recorded request/response pairs replayed against a stub server, then one end-to-end call per integration |
-| Imperative UI to a declarative UI paradigm | Partially — the widget tree type-checks while rendering the wrong thing | No — view-layer assertions are the most coupled category there is | Yes — layout and state are runtime products | L4: rendered-output comparison plus interaction parity on the migrated surface |
-| Callback or thread-based concurrency to a structured async model | Barely — signature changes are checked; ordering, cancellation, and thread affinity are not | No — timing and ordering are exactly what unit tests are written to avoid depending on | Yes | L4: parity on ordering, cancellation, and error propagation under a realistic execution schedule |
-| Reactive stream library to a fine-grained reactivity primitive, RxJS to signals | No — subscription lifetime and glitch behavior are not type-level properties | No — stream tests assert emission sequences of the outgoing library and are single-use | Yes — scheduling differences are observable only when running | L4: emission and update-order parity, plus a leak check that disposals still happen |
+| Замена утилитарной библиотеки на эквивалентный API (чистые функции, без рефлексии) | да — любое неверное сопоставление плохо типизировано | да, если они нейтральны к уходящей библиотеке | нет | L1: сборка плюс статический проход, что не осталось ни одного уходящего символа |
+| Замена библиотеки сериализации (модель на аннотациях на другой движок) | частично — только сигнатуры; имена полей, умолчания и кодировка это значения, а не типы | нет — сьюты обычно утверждают об объектах и никогда о выпущенной полезной нагрузке | нет, но harness должен производить выход | L3: побайтовое сравнение golden master полезной нагрузки, произведённой старым кодом |
+| Замена DI-контейнера, разрешаемого в рантайме | нет — отсутствующая или неверно ограниченная привязка хорошо типизирована; сломанный граф компилятор не ловит | нет — юнит-тесты конструируют свои объекты и настоящего графа не касаются | да — разрешение происходит при старте | L4: реальный старт с продакшен-обвязкой плюс явные утверждения о времени жизни и области; см. `cross-cutting.md` |
+| Замена HTTP-клиента в сервисе | нет — замена клиента в динамически типизированном коде статическим проверкам невидима | редко — тесты обычно подменяют сам клиент и приварены к его форме | да — таймауты, редиректы, переиспользование соединений и маппинг ошибок проявляются только при реальном запросе | L3, растущий до L4: записанные пары запрос-ответ, переигранные против stub-сервера, затем по одному сквозному вызову на интеграцию |
+| Императивный UI на декларативную парадигму | частично — дерево виджетов типизируется, отрисовывая при этом не то | нет — утверждения слоя представления самая связанная категория из всех | да — раскладка и состояние это продукты рантайма | L4: сравнение отрисованного вывода плюс соответствие взаимодействий на мигрированной поверхности |
+| Конкурентность на колбэках или потоках на структурную асинхронную модель | едва — изменения сигнатур проверяются, а порядок, отмена и привязка к потоку нет | нет — тайминг и порядок это ровно то, от чего юнит-тесты писались не зависеть | да | L4: соответствие по порядку, отмене и распространению ошибок при реалистичном расписании исполнения |
+| Библиотека реактивных потоков на мелкогранулярный примитив реактивности | нет — время жизни подписки и поведение при глитчах не свойства уровня типов | нет — тесты потоков утверждают о последовательностях эмиссий уходящей библиотеки и одноразовы | да — различия планирования наблюдаемы только при исполнении | L4: соответствие по эмиссиям и порядку обновлений плюс проверка на утечки, что освобождения по-прежнему происходят |
 
-Reading the table: the first row is the only one where compilation is the referee, and it is the
-only row that stays at L1. Every other row moves up for a different reason — values the type system
-does not see, wiring resolved at runtime, or ordering that no static check models.
+Как читать таблицу: первая строка — единственная, где арбитром выступает компиляция, и единственная,
+которая остаётся на L1. Каждая следующая поднимается по своей причине: значения, которых не видит
+система типов; обвязка, разрешаемая в рантайме; порядок, который не моделирует ни одна статическая
+проверка.

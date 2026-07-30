@@ -1,136 +1,136 @@
-# Scope
+# Область
 
-This file owns the IN/OUT taxonomy, the localized-vs-cross-cutting distinction, and the content of
-the two STOP conditions. `SKILL.md` only reflects them; this file is the source.
+Этот файл владеет таксономией IN/OUT, различением локализованного и сквозного, а также содержанием двух
+условий STOP. `SKILL.md` их только отражает; источник здесь.
 
-The boundary in one sentence: if the logical module boundaries and the externally observable
-behavior survive the change, the migration is IN; if the boundary itself is the thing being erased or
-replaced, it is OUT.
+Граница одним предложением: если логические границы модулей и внешне наблюдаемое поведение переживают
+изменение — миграция IN; если стирается или заменяется сама граница — OUT.
 
 ## IN
 
-Core types, each a swap of technology underneath a boundary that itself does not move:
+Основные типы, каждый из которых меняет технологию под границей, которая сама не двигается:
 
-- **Library to library** — same responsibility, different dependency (e.g. Gson to
-  kotlinx.serialization, OkHttp to Ktor client).
-- **Approach to approach** — same outcome, different mechanism within the same platform (e.g.
-  callbacks to coroutines, manual DI to a container).
-- **UI paradigm** — same screen, different rendering model (e.g. View to Compose, UIKit to
-  SwiftUI).
-- **Module type** — same code, different packaging or target (e.g. Android module to Kotlin
-  Multiplatform module).
+- **Библиотека на библиотеку** — та же ответственность, другая зависимость (Gson на
+  kotlinx.serialization, OkHttp на Ktor client).
+- **Подход на подход** — тот же исход, другой механизм внутри той же платформы (колбэки на корутины,
+  ручной DI на контейнер).
+- **UI-парадигма** — тот же экран, другая модель отрисовки (View на Compose, UIKit на SwiftUI).
+- **Тип модуля** — тот же код, другая упаковка или таргет (Android-модуль на модуль Kotlin
+  Multiplatform).
 
-## Borderline
+## Пограничные случаи
 
-- **Major version bump with breaking API** — IN if the migration is confined to adapting call
-  sites to the new API surface; the moment the bump also changes the runtime contract (a schema, a
-  wire format) it inherits the OUT classification for that part.
-- **Language-within-platform** — IN only when the three-condition test below holds in full.
-- **Localized pattern replacement** — replacing one recurring idiom (a singleton pattern, a
-  callback wrapper) across a codebase is IN; it is a localized migration by volume even though it
-  touches many files, because each site is independent and none crosses a topology boundary (see
-  `## Localized vs cross-cutting`).
+- **Мажорный бамп с ломающим API** — IN, пока миграция сводится к адаптации мест вызова к новой
+  поверхности API; в момент, когда бамп меняет ещё и рантайм-контракт (схему, формат передачи), эта
+  часть наследует классификацию OUT.
+- **Смена языка внутри платформы** — IN только когда полностью выполняется тест из трёх условий ниже.
+- **Локализованная замена паттерна** — замена одной повторяющейся идиомы (паттерн синглтона, обёртка
+  колбэка) по всей кодовой базе это IN: по объёму это локализованная миграция, даже если она трогает
+  много файлов, потому что каждое место независимо и ни одно не пересекает границу топологии
+  (см. §Локализованное против сквозного).
 
-### Language-within-platform
+### Смена языка внутри платформы
 
-A migration that changes the implementation language while staying on the same platform (e.g. Java
-to Kotlin, Objective-C to Swift) is IN only when all three conditions hold. Any one missing moves it
-to OUT — it has become a platform or runtime port, not an in-project code migration.
+Миграция, меняющая язык реализации, но остающаяся на той же платформе (Java на Kotlin, Objective-C на
+Swift), это IN только когда выполняются все три условия. Отсутствие любого переводит её в OUT: она
+стала портом платформы или рантайма, а не миграцией кода внутри проекта.
 
-1. **Same runtime/target.** The migrated code still executes on the same runtime or compilation
-   target as before (the same JVM, the same Apple runtime); the language changes, the execution
-   substrate does not.
-2. **Bidirectional interop.** Code in the old language can call code in the new language and vice
-   versa without a translation layer, for the whole duration of the migration.
-3. **Per-file coexistence.** Individual files can be converted one at a time and the build stays
-   green in between; the migration does not require an atomic whole-module cutover.
+1. **Тот же рантайм и таргет.** Мигрированный код по-прежнему исполняется на том же рантайме или
+   таргете компиляции, что и раньше (та же JVM, тот же рантайм Apple): меняется язык, но не подложка
+   исполнения.
+2. **Двусторонний interop.** Код на старом языке может звать код на новом и наоборот без слоя
+   трансляции, и так на всём протяжении миграции.
+3. **Сосуществование по файлам.** Отдельные файлы можно конвертировать по одному, и сборка между этим
+   остаётся зелёной; миграция не требует атомарного переключения модуля целиком.
 
 ## OUT
 
-Each OUT type is out because the boundary itself, not the technology inside it, changes:
+Каждый тип OUT находится снаружи потому, что меняется сама граница, а не технология внутри неё:
 
-- **Full language or framework port of an entire application** — the whole system is rewritten,
-  there is no surviving reference to hold behavior parity against at the module level.
-- **Platform migration** — moving the deployment target (e.g. mobile to web) changes the
-  observable surface itself; there is no "externally observable behavior" left constant to defend.
-- **Protocol migration** — the wire contract with external parties changes; correctness is defined
-  by an external spec this skill has no authority over.
-- **Schema migration** — the same reasoning as protocol: a persisted data contract change is a
-  data-migration problem, not a behavior-preserving code migration.
-- **Build/config-only work** — Groovy to Kotlin DSL, CI pipeline changes, toolchain bumps touch no
-  runtime behavior at all, so there is nothing for a judge to verify.
+- **Полный порт языка или фреймворка целого приложения** — переписывается вся система, и на уровне
+  модуля не остаётся уцелевшего эталона, против которого держать соответствие поведения.
+- **Миграция платформы** — смена цели развёртывания (мобильное на веб) меняет саму наблюдаемую
+  поверхность; «внешне наблюдаемого поведения», которое остаётся постоянным и которое надо защищать,
+  просто не остаётся.
+- **Миграция протокола** — меняется контракт передачи с внешними сторонами; корректность определяется
+  внешней спецификацией, над которой у этого скилла нет власти.
+- **Миграция схемы** — то же рассуждение, что и с протоколом: смена контракта сохранённых данных это
+  задача миграции данных, а не миграции кода с сохранением поведения.
+- **Работа только по сборке и конфигурации** — Groovy на Kotlin DSL, изменения CI-пайплайна, бампы
+  toolchain не трогают рантайм-поведение вообще, поэтому судье нечего проверять.
 
-Build changes that **accompany** a code migration remain IN: a version-catalog edit needed because a
-library swap changed its coordinates, or a source-set reorganization needed because a module became
-multiplatform, is scoped to the code migration that requires it, not a migration in its own right.
+Изменения сборки, **сопровождающие** миграцию кода, остаются IN: правка version catalog, понадобившаяся
+потому, что замена библиотеки сменила координаты, или реорганизация source set, понадобившаяся потому,
+что модуль стал мультиплатформенным, относятся к той миграции кода, которая их требует, а не являются
+миграцией сами по себе.
 
-## Localized vs cross-cutting
+## Локализованное против сквозного
 
-The unit of work, not the file count, decides which topology a migration has.
+Топологию решает единица работы, а не количество файлов.
 
-**Localized** — each site can be translated and verified independently of every other site. A
-thousand call sites of a deprecated string-formatting utility are still localized: swapping one does
-not change what any other site observes.
+**Локализованная** — каждое место транслируется и проверяется независимо от всех остальных. Тысяча мест
+вызова устаревшей утилиты форматирования строк — всё ещё локализованная миграция: замена одного не
+меняет того, что наблюдает любое другое место.
 
-**Cross-cutting** — the unit of work is an aspect of the dependency graph or a shared layer, not a
-file. Signals that a migration is cross-cutting rather than large-but-localized:
+**Сквозная** — единица работы это аспект графа зависимостей или общий слой, а не файл. Признаки того,
+что миграция сквозная, а не просто большая локализованная:
 
-- Two implementations of the aspect must **coexist** during the migration (two DI containers, two
-  logging backends), and their coexistence changes resolution or ordering semantics that neither
-  implementation has on its own.
-- A site's correctness depends on **which graph or layer configuration is active**, not just on its
-  own contents — a callback's behavior changes depending on which threading model wraps it.
-- The compiler is blind to the failure mode: a broken injection graph, a broken dispatcher swap, or
-  a broken logging pipeline compiles cleanly and fails only at runtime.
-- Verification requires observing an aspect end to end (a full resolution graph, a full trace), not
-  a single translated file.
+- Две реализации аспекта обязаны **сосуществовать** во время миграции (два DI-контейнера, два бэкенда
+  логирования), и их сосуществование меняет семантику разрешения или порядка, которой нет ни у одной
+  реализации по отдельности.
+- Корректность места зависит от того, **какая конфигурация графа или слоя активна**, а не только от
+  его собственного содержимого: поведение колбэка меняется в зависимости от того, какая модель
+  потоков его оборачивает.
+- Компилятор к режиму отказа слеп: сломанный граф внедрения, сломанная замена диспетчера или сломанный
+  конвейер логирования компилируются чисто и падают только в рантайме.
+- Верификация требует наблюдения аспекта от начала до конца (полный граф разрешения, полная трасса), а
+  не одного транслированного файла.
 
-Misclassifying a cross-cutting migration as localized is the most expensive mistake available: it
-silently invalidates the judge, because a per-file check cannot see a graph-level regression.
-Cross-cutting mechanics, the interop-bridge pattern, and the DI worked example live in
-`[[cross-cutting]]`.
+Классифицировать сквозную миграцию как локализованную — самая дорогая доступная ошибка: она молча
+обесценивает судью, потому что пофайловая проверка не видит регрессию уровня графа. Механика сквозных
+миграций, паттерн interop-моста и разобранный пример с DI — в `[[cross-cutting]]`.
 
-## STOP conditions
+## Условия STOP
 
-Two conditions, both normative here; `SKILL.md` § Red Flags / STOP reflects them without
-redefining them.
+Два условия, оба нормативны здесь; §Красные флаги и STOP в `SKILL.md` их отражает, не переопределяя.
 
-1. **No valid judge is reachable at any level of the verification matrix, and no safety net can be
-   built.** INV-3 does not assume a judge always exists. If every level in
-   `[[verification-matrix]]` fails to distinguish correct from incorrect for this migration, and
-   none of the three safety-net entry branches in `[[safety-net]]` produces one, the migration does
-   not start. Proceeding anyway would produce an unfalsifiable "behavior preserved" claim, which
-   is worse than not migrating: it ships a defect under a certificate of correctness. This is a
-   NO-GO to report, not an obstacle to engineer around.
+1. **Валидный судья недостижим ни на одном уровне матрицы верификации, и страховочную сетку построить
+   нельзя.** Инвариант «нет судьи — нет миграции» не предполагает, что судья есть всегда. Если каждый
+   уровень в `[[verification-matrix]]` не отличает для этой миграции корректное от некорректного, и ни
+   одна из трёх входных веток в `[[safety-net]]` судью не производит, — миграция не начинается.
+   Продолжать всё равно значит произвести нефальсифицируемое утверждение «поведение сохранено», а это
+   хуже, чем не мигрировать: так дефект отгружается с сертификатом корректности. Это NO-GO, о котором
+   надо доложить, а не препятствие, которое надо обойти инженерно.
 
-2. **Interruption mid-migration is a normal outcome, not a failure.** A partially migrated tree is
-   a legitimate resting state, not damage, because the work queue is resumable by reconstruction,
-   port markers record what is unfinished, and an interop bridge (where one is in use) leaves both
-   implementations live and working. The condition on "normal": **stopping is only legitimate on a
-   green build.** A partially migrated tree that compiles and passes its existing tests may be left
-   as-is between sessions; a partially migrated tree that does not build is not a resting state, it
-   is breakage, and work does not stop there.
+2. **Прерывание посреди миграции — нормальный исход, а не провал.** Частично мигрированное дерево это
+   легитимное состояние покоя, а не ущерб, потому что очередь работ возобновляема через реконструкцию,
+   port-маркеры фиксируют незаконченное, а interop-мост, где он используется, оставляет живыми и
+   рабочими обе реализации. Условие «нормальности»: **останавливаться легитимно только на зелёной
+   сборке.** Частично мигрированное дерево, которое компилируется и проходит существующие тесты, можно
+   оставить между сессиями как есть; то, которое не собирается, состоянием покоя не является — это
+   поломка, и работа на ней не останавливается.
 
-## Coverage authoring: automated vs manual
+## Авторство покрытия: автоматически или вручную
 
-**Coverage assessment: IN. Test code authoring: OUT.** Evaluating what the judge can see, ranking
-coverage gaps by risk, and stating what a test must prove belong to this skill's Phase 0 output.
-Writing the test bodies themselves does not — it is handed off to `test-authoring-role` as a
-coverage-gap handoff report (schema in `[[safety-net]]`).
+**Оценка покрытия — IN. Написание тестового кода — OUT.** Оценить, что видит судья, ранжировать
+пробелы покрытия по риску и сформулировать, что тест обязан доказать, — часть выходов фазы 0 этого
+скилла. Писать сами тела тестов — нет: это передаётся роли `test-authoring-role` отчётом о пробеле
+покрытия (схема в `[[safety-net]]`).
 
-The runtime boundary of that handoff is not uniform across stacks. Where `test-authoring-role` is
-filled by an automated tool (Kotlin, Swift are the stacks with one available today, e.g. a
-characterization-mode test-writing skill), authoring can be delegated and run unattended. Outside
-those stacks (TypeScript, Python, Go, and others) the role is filled **manually** — a human writes
-the test bodies from the handoff report. This is a degraded mode, not an unsupported one: the
-report's `baseline` field exists specifically so a manual author has a description of the behavior
-to capture rather than a bare target with no specification.
+Рантайм-граница этой передачи одинакова не на всех стеках. Там, где `test-authoring-role` закрывает
+инструмент (в этом окружении — `/cover-with-tests`, у которого есть и режим характеризации), авторство
+делегируется и идёт без присмотра; на стеке без профильного инженерного агента тот же инструмент всё
+равно работает, просто пишет проверки в оркестрирующей сессии, а не делегирует. **Вручную** роль
+закрывается тогда, когда авторству нужно знание, которого в репозитории нет, — недокументированный
+внешний контракт, поведение, которое может рассудить только владелец продукта. Это ухудшенный, но
+поддерживаемый режим, и поле `baseline` в отчёте существует ровно для него: ручному автору нужно
+описание поведения, которое надо зафиксировать, а не голая цель без спецификации.
 
-## Serialization
+## Сериализация
 
-Byte-for-byte format compatibility, when the migration touches a serialization boundary, is a
-**separate acceptance criterion** from "the existing tests are green." Existing tests were written
-against the outgoing serializer and typically assert on decoded values, not on the wire bytes; they
-can pass while the produced bytes differ (field order, discriminator encoding, numeric width). A
-migration that changes a persisted or transmitted format must state and check byte-for-byte
-compatibility explicitly in Phase 6, not infer it from green tests.
+Побайтовая совместимость формата, когда миграция трогает границу сериализации, — это **отдельный
+критерий приёмки**, а не следствие того, что существующие тесты зелёные. Существующие тесты писались
+против уходящего сериализатора и обычно утверждают о декодированных значениях, а не о байтах на
+проводе; они могут проходить, пока производимые байты различаются (порядок полей, кодирование
+дискриминатора, разрядность чисел). Миграция, меняющая сохраняемый или передаваемый формат, обязана
+заявить и проверить побайтовую совместимость явно в фазе 6, а не выводить её из зелёных тестов.
