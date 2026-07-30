@@ -35,6 +35,10 @@
 !skills/*/*
 !skills/*/**
 
+# === REFERENCES (прогрессивное раскрытие, не загружается автоматически) ===
+!references/
+!references/**
+
 # === SCRIPTS ===
 !scripts/
 !scripts/**
