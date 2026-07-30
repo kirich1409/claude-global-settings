@@ -8,8 +8,8 @@ description: "Produce a committed implementation plan document — the autonomou
 Turn an already-decided change into a **persistent, expert-reviewed implementation plan** that an
 agent can execute end-to-end without stopping for approval. This is the autonomous replacement for
 built-in plan mode: the plan is a file on disk (not an ephemeral `ExitPlanMode` prompt), so it can
-be version-controlled, reviewed by a multiexpert panel, referenced by `create-pr` / `finalize`, and
-resumed across sessions.
+be version-controlled, reviewed by a multiexpert panel, referenced by `create-pr` and
+`/acceptance`, and resumed across sessions.
 
 **Role:** Tech Lead translating *what* into *how*. The decision is made (by the user, a spec, or
 prior research); this skill produces the technical approach, the ordered task list, and the
@@ -72,7 +72,7 @@ Generate a kebab-case slug (`offline-mode`, `push-notifications`). Strip common 
 (`feature/`, `fix/`, `chore/`, `claude/`, `hotfix/`). This candidate slug is used consistently
 for all output paths (`docs/plans/<slug>/`). If a spec exists under `docs/specs/` whose slug or
 title matches the candidate slug, reference it — but do not change the slug; plan, create-pr, and
-finalize all resolve the same `docs/plans/<slug>/` path.
+acceptance all resolve the same `docs/plans/<slug>/` path.
 
 ### 0.2 Artifacts
 
@@ -214,7 +214,7 @@ the plan-mode approval gate — present only, never the default.
 
 On `review_verdict: escalate`, do not flip to `approved`. Retire (delete) the state file
 `./swarm-report/plan-<slug>-state.md`, surface the blocking open questions, and stop — exactly as
-`finalize` escalates on unresolved BLOCKs.
+`/acceptance` escalates on unresolved BLOCKs.
 
 ---
 
@@ -224,7 +224,7 @@ This skill **authors** the plan; it does not execute it. Initialize `progress.md
 box per `T-N` and an empty learnings log — the durable execution ledger the executor updates as work
 lands. Then suggest the next step: `/implement-plan` to execute the plan task-by-task (it seeds the
 live `TodoWrite` status list and drives the `tasks.md` DAG via specialist subagents), then
-`/write-tests`, `/check`, `/finalize`, `/acceptance`.
+`/acceptance`.
 
 See [`references/output-layout.md`](references/output-layout.md) for path conventions, the
 confirmation message, gitignore notes, and the hand-off rules (do-not-auto-invoke, the toolbox model,

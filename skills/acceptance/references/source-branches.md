@@ -13,11 +13,10 @@ description, GitHub/Linear issue. Read all provided sources.
 
 **Read the spec frontmatter.** If present, load `platform`, `surfaces`, `risk_areas`,
 `non_functional`, `acceptance_criteria_ids`, `design.figma`. These drive the conditional
-triggers in Step 3 plus two invariant guards on the base plan:
+triggers in Step 4 plus two invariant guards on the plan:
 
-- `surfaces` contains `ui` forces `manual-tester` into the fan-out when a scenario source
-  exists, even if Step 0 detected a non-UI project (hybrid products with both UI and
-  non-UI surfaces).
+- `surfaces` contains `ui` forces the device block to run when a scenario source exists, even
+  if Step 0 detected a non-UI project (hybrid products with both UI and non-UI surfaces).
 - `surfaces` is set but does not contain `ui` on a UI-detected project means the spec
   explicitly excludes UI — skip `manual-tester` even if `has_ui_surface` is true, and note
   this in the Check Plan section of the receipt.

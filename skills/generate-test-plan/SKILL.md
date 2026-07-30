@@ -101,7 +101,7 @@ markdown), the phase-segmentation worked example, and the rules for when each va
 
 ### Type
 
-Every test case declares an explicit `Type` plus a one-line `Type rationale` (see `references/format-templates.md`). Downstream consumers (`finalize` Phase D coverage audit, `multiexpert-review` test-plan profile, engineer agents writing the actual tests) read this field — it is not optional.
+Every test case declares an explicit `Type` plus a one-line `Type rationale` (see `references/format-templates.md`). Downstream consumers (the `/acceptance` coverage audit, `multiexpert-review` test-plan profile, engineer agents writing the actual tests) read this field — it is not optional.
 
 | Type | Scope | Pick when |
 |------|-------|-----------|

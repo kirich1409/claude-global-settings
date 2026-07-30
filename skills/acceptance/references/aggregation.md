@@ -1,4 +1,4 @@
-Referenced from: `~/.claude/skills/acceptance/SKILL.md` (§Step 4: Aggregate and Write Receipt).
+Referenced from: `~/.claude/skills/acceptance/SKILL.md` (§Step 6: Aggregate and Write Receipt).
 
 # Acceptance — Aggregation, Receipt Format, and Routing
 
@@ -6,9 +6,10 @@ Read frontmatter of each `swarm-report/<slug>-acceptance-<check>.md` first (verd
 severity + confidence + domain_relevance + blocked_on). Read the body only if
 `verdict != PASS`. Do not inline artifact bodies — link them.
 
-**Missing per-check artifact.** Step 2.5 writes a stub for skipped `code-reviewer`; Step 3.3
-writes an artifact even on build-smoke failure. If a planned per-check artifact is
-nonetheless missing at aggregation time, treat the check as `verdict: FAIL` with
+**Missing per-check artifact.** Every check writes its artifact, including on failure — the
+mechanical block writes one even when the build is red, and a skipped check writes one with
+`verdict: SKIPPED`. If a planned artifact is nonetheless missing at aggregation time, treat the
+check as `verdict: FAIL` with
 `blocked_on: per-check artifact missing` — do not silently drop it. `blocked_on` is the
 canonical field for surfacing unresolved conditions per the per-check schema; no separate
 `error:` field exists.
@@ -58,7 +59,8 @@ Save to `swarm-report/<slug>-acceptance.md`. Legacy fields preserved; new sectio
 **Spec source:** [what was used]
 **Test plan:** [resolved permanent path / generated on-the-fly / none]
 **test_plan_source:** receipt | mounted | on-the-fly | absent
-**Context artifacts:** [paths to upstream artifacts used as input — e.g. research.md, debug.md, write-tests.md, quality.md]
+**Context artifacts:** [paths to upstream artifacts used as input — e.g. research.md, debug.md, write-tests.md, coverage-audit.md]
+**Arguments:** [the argument string verbatim, with the caller's reason for each narrowing flag — or `none`]
 
 ## Idempotency Hashes
 - `diff_hash`: <sha256 of `git diff <base>...HEAD`>

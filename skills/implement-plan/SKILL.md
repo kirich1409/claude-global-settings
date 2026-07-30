@@ -161,8 +161,8 @@ surface, leaving `progress.md` truthful so `--resume` restarts exactly here.
 
 Per-task checks prove each task; they do not prove the whole change is coherent. After the last task,
 run the plan's **Verification & Sources** contract — the pyramid levels L0–L5 it declares
-([[qa-and-testing]]). Delegate this (invoke `/check`, or a verifier/general-purpose subagent in the
-background for a long build) — never run it in the main session. L5 (working-app) is mandatory for
+([[qa-and-testing]]). Delegate this — a verifier or general-purpose subagent, in the background
+when the build is long — never run it in the main session. L5 (working-app) is mandatory for
 library bumps, migrations, and infra-layer changes; if the plan marked a mandatory level and it's
 skipped, name it and the tracked exception rather than passing silently.
 
@@ -172,9 +172,8 @@ skipped, name it and the tracked exception rather than passing silently.
 
 Retire any operational state file. Confirm completion in one sentence (plan path, tasks done, the
 verification verdict). Then suggest the toolbox next steps — do **not** auto-chain them:
-`/write-tests` (if coverage gaps remain) → `/finalize` (code-quality pass) → `/acceptance`
-(working-app proof) → `/create-pr` → `/drive-to-merge`. The implementer commits plan + code together
-so the PR shows the plan that produced the change.
+`/acceptance` (working-app proof) → `/create-pr` → `/drive-to-merge`. The implementer commits plan +
+code together so the PR shows the plan that produced the change.
 
 ---
 

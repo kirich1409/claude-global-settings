@@ -44,7 +44,8 @@ frontmatter via the profile's `receipt`.
 The profile selects 2–3 reviewers by tech-match from the plan content (do not pad the panel; do not
 drop a genuinely-triggered reviewer). `--quick` permits a single reviewer.
 
-**Loop** — 3 review cycles total: 1 initial review + up to 2 re-reviews (same cap as `finalize`):
+**Loop** — 3 review cycles total: 1 initial review + up to 2 re-reviews (same cap as the
+`/acceptance` round budget):
 
 | Verdict | Action |
 |---|---|

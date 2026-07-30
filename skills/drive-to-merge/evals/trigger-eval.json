@@ -13,7 +13,7 @@
   {"query": "create a PR from the current branch — write the description and open it as draft", "should_trigger": false},
   {"query": "open a draft PR for this branch — I'll drive it myself later", "should_trigger": false},
   {"query": "review this PR and tell me what's wrong with it — I'm not ready to fix yet", "should_trigger": false},
-  {"query": "finalize the code quality — simplify, run code-reviewer, fix findings", "should_trigger": false},
+  {"query": "run the code-quality pass — code-reviewer, fix findings", "should_trigger": false},
   {"query": "implement the feature from the spec — write the code, no PR yet", "should_trigger": false},
   {"query": "debug this failing test — find the root cause, don't push anything", "should_trigger": false},
   {"query": "run acceptance testing on the feature — check it matches the spec", "should_trigger": false},

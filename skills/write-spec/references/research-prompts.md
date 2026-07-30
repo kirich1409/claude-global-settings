@@ -62,7 +62,7 @@ integration, or unfamiliar domain.
 
 Run on the **`source-researcher`** agent (`focus: web`) — it discovers the tools/MCP actually
 reachable at runtime and queries every relevant channel, per the single method in
-`rules/external-sources.md` § *Tool discovery & multi-channel use* (inherited by the agent, not
+`rules/external-sources.md` § *Что здесь есть кроме web* (inherited by the agent, not
 restated here). Model/effort pinned in the agent (`sonnet` / `medium`). It gathers and reports
 without synthesizing — the spec author merges.
 

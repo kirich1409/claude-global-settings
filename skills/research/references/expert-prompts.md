@@ -17,8 +17,8 @@ All prompts must include this line: *"Respond in the same language as the resear
 
 The method for discovering reachable tools/MCP, querying **all** relevant channels of a class,
 and cross-checking by trust tier is **not duplicated here**. It lives in one place:
-`rules/external-sources.md` § *Tool discovery & multi-channel use* (+ § *Verify library API
-before code* for stack composition, § *Trust assessment* for tiers). That rule is unconditional
+`rules/external-sources.md` § *Что здесь есть кроме web* (+ `rules/verify-library-api.md`
+for stack composition, § *Оценка доверия* for tiers). That rule is unconditional
 and is inherited by every subagent, so the `source-researcher` agent and the Explore /
 architecture tracks all apply the same discipline without restating it.
 
@@ -56,7 +56,7 @@ Track → focus mapping:
 | Web | `web` | industry practice, trade-offs, pitfalls, ≤12-mo developments, consensus — from articles and discussion (the *discourse* about an approach, not the code) |
 | Docs | `library-docs` | API reference, guides, changelogs, migration/compat, version-specific behavior |
 | Dependencies | `dependency-intelligence` | current vs latest versions, CVEs, KMP/AGP compat, health, breaking changes, alternatives |
-| OSS Examples | `oss-examples` | real usages in open-source code, feasibility evidence ("does a working example exist?"), current wiring/integration patterns — pointers to repo/file/version, not embedded code. Channel catalog: `rules/external-sources.md` § *Каналы поиска по open-source коду* |
+| OSS Examples | `oss-examples` | real usages in open-source code, feasibility evidence ("does a working example exist?"), current wiring/integration patterns — pointers to repo/file/version, not embedded code. Channel catalog: `rules/external-sources.md` § *Что здесь есть кроме web* |
 
 The detailed per-class angles that used to live here now live in the agent's system prompt
 (`agents/source-researcher.md`) and in `external-sources.md` — single source, no restating.

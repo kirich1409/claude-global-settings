@@ -92,7 +92,7 @@ On failure (e.g. GitHub repo has auto-merge disabled):
 ## After merge
 
 1. Mark state file `Status: merged`, timestamp the `Rounds` final entry.
-2. **Board sync (best-effort).** If the PR references an issue (`Closes #N` / `Fixes #N` / `Resolves #N`) and the repo has a Projects v2 board, move the card: `$HOME/.claude/scripts/gh/transition_status.sh <N> done`. No linked issue or no board → skip silently, the script already degrades gracefully. See `rules/github-ops.md` § Доска.
+2. **Board sync (best-effort).** If the PR references an issue (`Closes #N` / `Fixes #N` / `Resolves #N`) and the repo has a Projects v2 board, move the card: `$HOME/.claude/scripts/gh/transition_status.sh <N> done`. No linked issue or no board → skip silently, the script already degrades gracefully.
 3. Report the merged URL + commit sha to the user.
 4. Stop. No further polling.
 

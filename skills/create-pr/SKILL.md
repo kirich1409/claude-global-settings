@@ -6,7 +6,7 @@ description: >
   `--refresh` updates the body of an existing PR without touching its status, `--promote`
   refreshes body and marks a draft PR ready for review, and default (no flag) creates a new PR
   with a draft-or-ready prompt. Composes description from available swarm-report artifacts
-  (research, plan, test-plan, finalize, acceptance) and falls back to git log + diff. Invoke
+  (research, plan, test-plan, acceptance) and falls back to git log + diff. Invoke
   when the user says "create PR", "open draft PR", "refresh PR description", "promote to ready",
   "mark PR ready for review", "update the PR", "switch the PR to ready".
 ---
@@ -22,8 +22,8 @@ Manage a pull request (GitHub) or merge request (GitLab) across its lifecycle �
 | Mode | When | What it does | Fails if |
 |---|---|---|---|
 | `--draft` | After the first commit on a feature branch | Creates draft PR if none exists; refreshes body if a draft already exists | PR exists and is already ready for review |
-| `--refresh` | After meaningful progress (finalize round complete, acceptance passed) | Updates body of existing PR (draft or ready) — no status change | No PR exists |
-| `--promote` | After all local quality passes (finalize + acceptance) | Refreshes body with final summary, then marks draft PR as ready for review | No PR exists, or PR is already ready |
+| `--refresh` | After meaningful progress (a batch of tasks landed, acceptance passed) | Updates body of existing PR (draft or ready) — no status change | No PR exists |
+| `--promote` | After all local quality passes (acceptance) | Refreshes body with final summary, then marks draft PR as ready for review | No PR exists, or PR is already ready |
 | default | Direct invocation | Asks draft-or-ready if unclear, then creates | PR already exists |
 
 Mode is passed via arguments: `/create-pr --draft`, `/create-pr --refresh`, `/create-pr --promote`, or `/create-pr` for default.
@@ -109,9 +109,8 @@ Look for artifacts in `./swarm-report/` that match the current branch/task slug.
 | plan | `docs/plans/<slug>/plan.md` (written by `write-plan`; falls back to legacy `swarm-report/<slug>-plan.md`) | Reference as "Plan"; task acceptance from `docs/plans/<slug>/tasks.md` feeds "How to test" |
 | debug | `swarm-report/<slug>-debug.md` | Root cause + reproduction steps — primary context for bug-fix PRs |
 | test plan | `swarm-report/<slug>-test-plan.md` | Reference; test cases become checklist in "How to test" |
-| quality | `swarm-report/<slug>-quality.md` | Gate pass/fail summary for status table |
-| finalize | `swarm-report/<slug>-finalize.md` | Round-by-round summary for status table |
-| acceptance | `swarm-report/<slug>-acceptance.md` | Pass/fail + verified scenarios for "Verification" section |
+| coverage audit | `swarm-report/<slug>-coverage-audit.md` | Gaps found and closed — feeds the status table |
+| acceptance | `swarm-report/<slug>-acceptance.md` | Pass/fail + verified scenarios for "Verification" section; the per-check artifacts it links are the detail |
 
 Slug resolution:
 1. Prefer slug if the caller passed it as an argument.
@@ -251,7 +250,7 @@ glab mr update --description "<body>"
 Output:
 > Draft PR created: `<url>`
 
-**Board sync (best-effort).** If the body references an issue (`Closes #N` / `Fixes #N` / `Resolves #N`) and the repo has a Projects v2 board, move the card: `$HOME/.claude/scripts/gh/transition_status.sh <N> in-progress`. No linked issue or no board → skip silently, the script already degrades gracefully. See `rules/github-ops.md` § Доска.
+**Board sync (best-effort).** If the body references an issue (`Closes #N` / `Fixes #N` / `Resolves #N`) and the repo has a Projects v2 board, move the card: `$HOME/.claude/scripts/gh/transition_status.sh <N> in-progress`. No linked issue or no board → skip silently, the script already degrades gracefully.
 
 ### 9b. Mode `--refresh`
 
@@ -307,7 +306,7 @@ Ask draft-or-ready if not inferable from conversation, then create with full bod
 
 **Draft (`--draft` or default → draft):**
 > Draft PR created: `<url>`
-> Next: complete implementation → `/finalize` → `/acceptance` → `/create-pr --promote` to mark ready.
+> Next: complete implementation → `/acceptance` → `/create-pr --promote` to mark ready.
 
 **Refreshed (`--refresh`):**
 > PR body refreshed: `<url>`
@@ -325,7 +324,7 @@ Ask draft-or-ready if not inferable from conversation, then create with full bod
 ## Scope rules
 
 - **In scope:** PR create/edit/ready status transitions; body composition; labels and reviewers on create/promote; title generation on create.
-- **Out of scope:** editing code, running tests, running `/check`, managing commits (caller pushes beforehand), merging.
+- **Out of scope:** editing code, running tests or any verification level, managing commits (caller pushes beforehand), merging.
 - **Do not** force-push or rewrite history. If push fails — report and let caller resolve.
 - **Do not** remove labels or reviewers set by humans. Only add missing ones on `--promote`.
 - **Do not** strip manually-added content when refreshing — respect `<!-- user-edit-start/end -->` markers and Screenshots section.

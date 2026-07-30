@@ -51,12 +51,11 @@ Available sections (include only those that apply):
 -->
 
 ## Status
-<!-- Table: Implement / Finalize / Acceptance stages, pass/fail/pending from artifacts -->
+<!-- Table: Implement / Acceptance stages, pass/fail/pending from artifacts -->
 | Stage | Result | Notes |
 |---|---|---|
 | Implement | ✅ PASS | all gates green |
-| Finalize  | ⏳ in progress | round 2/3 |
-| Acceptance | ⏸ pending | waits for finalize |
+| Acceptance | ⏸ pending | waits for implement |
 
 ## Screenshots / demo
 <!-- For visual changes; prompt user -->

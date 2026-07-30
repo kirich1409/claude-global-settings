@@ -37,8 +37,7 @@ before flipping to `approved`.
 ## Hand-off rules
 
 - Do **not** auto-invoke downstream skills. Suggest the next step (implement the tasks; then
-  `/write-tests`, `/check`, `/finalize`, `/acceptance`) and let the user/agent drive — toolbox
-  model. (The mandatory Phase 3 inline `multiexpert-review` call and the Phase 3.5 adversarial
+  `/acceptance`) and let the user/agent drive — toolbox model. (The mandatory Phase 3 inline `multiexpert-review` call and the Phase 3.5 adversarial
   red-team Agent call are the review gate built into this skill, not downstream chains — these are
   the sanctioned in-skill invocations.)
 - `progress.md` is the durable committed ledger: as each `T-N` lands, check its box and append a
@@ -46,5 +45,5 @@ before flipping to `approved`.
   `TodoWrite` status list from `tasks.md` and drives the tasks — this skill only initializes the
   file. The implementer commits plan + code together so the PR shows the plan that produced the
   change.
-- `create-pr` discovers `docs/plans/<slug>/plan.md` and references it in the PR body; `finalize`
+- `create-pr` discovers `docs/plans/<slug>/plan.md` and references it in the PR body; `/acceptance`
   anchors its `code-reviewer` pass on the same plan. No extra wiring needed beyond writing the file.

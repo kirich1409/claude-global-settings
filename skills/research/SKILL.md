@@ -134,9 +134,9 @@ the exact launch prompts):
 
 The four external tracks do **not** carry a hardcoded toolset: `source-researcher` discovers
 the tools/MCP actually reachable at runtime and queries every relevant channel of its class,
-per the single method in `rules/external-sources.md` § *Tool discovery & multi-channel use*
+per the single method in `rules/external-sources.md` § *Что здесь есть кроме web*
 (inherited by the agent — not restated in the prompt). The `oss-examples` track additionally
-draws its channel catalog from `rules/external-sources.md` § *Каналы поиска по open-source коду*.
+draws its channel catalog from `rules/external-sources.md` § *Что здесь есть кроме web*.
 Keeping the four as **separate** instances preserves the synthesis-bias invariant — never merge
 them into one `source-researcher` call. The codebase-bound tracks keep their verbatim prompts (Explore and architecture-expert have
 different jobs and toolchains).
