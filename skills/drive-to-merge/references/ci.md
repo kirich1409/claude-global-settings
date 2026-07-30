@@ -1,15 +1,16 @@
-# drive-to-merge — Phase 2.2 CI Handling
+# drive-to-merge — обработка CI в фазе 2.2
 
-Investigate failing checks, classify, retry infra flakes, and hand off code-fix rows to Phase 3 delegation.
+Разобраться в упавших проверках, классифицировать, перезапустить инфраструктурные флейки и передать
+строки с правками кода в делегирование фазы 3.
 
-## Resolve the failing workflow run id (GitHub)
+## Разрешить id упавшего workflow-прогона (GitHub)
 
-`statusCheckRollup` nodes expose `detailsUrl` of the form
-`https://<host>/<owner>/<repo>/actions/runs/<RUN_ID>/job/<JOB_ID>` for GitHub
-Actions checks. Parse it directly:
+Узлы `statusCheckRollup` отдают `detailsUrl` вида
+`https://<host>/<owner>/<repo>/actions/runs/<RUN_ID>/job/<JOB_ID>` для проверок GitHub Actions.
+Разбирать его напрямую:
 
 ```bash
-# Pick the first failed check from statusCheckRollup
+# Взять первую упавшую проверку из statusCheckRollup
 FAILED_CHECK=$(jq -r '
   .statusCheckRollup[]
   | select(.conclusion=="FAILURE" or .conclusion=="CANCELLED" or .conclusion=="TIMED_OUT")
@@ -19,48 +20,52 @@ FAILED_CHECK=$(jq -r '
 DETAILS_URL=$(jq -r '.detailsUrl // empty' <<<"$FAILED_CHECK")
 RUN_ID=$(echo "$DETAILS_URL" | sed -E 's#.*/runs/([0-9]+).*#\1#')
 
-# Fallback when detailsUrl does not match the /actions/runs/ pattern
-# (third-party checks via Checks API, or a check whose detailsUrl points elsewhere):
+# Откат, когда detailsUrl не подходит под шаблон /actions/runs/
+# (сторонние проверки через Checks API либо проверка, чей detailsUrl ведёт в другое место):
 if ! [[ "$RUN_ID" =~ ^[0-9]+$ ]]; then
   RUN_ID=$(gh run list --branch "$HEAD" --limit 20 \
     --json databaseId,headSha,conclusion \
     --jq '[.[] | select(.headSha=="'"$(git rev-parse HEAD)"'") | select(.conclusion=="failure" or .conclusion=="cancelled" or .conclusion=="timed_out")][0].databaseId // empty')
 fi
 
-# If still empty — this is a non-Actions check (external status). Surface to the user
-# as a blocker; this skill cannot download logs for arbitrary external check providers.
+# Всё ещё пусто — это проверка не из Actions (внешний статус). Вынести пользователю
+# блокером: скачивать логи произвольных внешних провайдеров скилл не умеет.
 ```
 
-For GitLab: `glab ci view` on the pipeline id from `MR_INFO.head_pipeline.id`, or
-`glab api "/projects/$PROJECT/pipelines/<pipeline_id>/jobs"` to enumerate jobs and
-`glab api "/projects/$PROJECT/jobs/<job_id>/trace"` to pull a specific job log.
+Для GitLab: `glab ci view` по id пайплайна из `MR_INFO.head_pipeline.id`, либо
+`glab api "/projects/$PROJECT/pipelines/<pipeline_id>/jobs"` для перечисления джобов и
+`glab api "/projects/$PROJECT/jobs/<job_id>/trace"` для вытягивания лога конкретного джоба.
 
-## Per-check flow
+## Поток по каждой проверке
 
-For each failed check (once `RUN_ID` is resolved):
+Для каждой упавшей проверки, когда `RUN_ID` разрешён:
 
-1. Download the job log:
+1. Скачать лог джоба:
    - GitHub: `gh run view --log-failed "$RUN_ID"`
-   - GitLab: `glab ci trace` on the specific job id
-2. Classify the failure:
-   - Test failure → symptom + failing test path.
-   - Build failure → file + error.
-   - Lint / format → specific rule.
-   - Infra / runner / network error → retryable without code change.
-3. Render a **CI failure table** in session:
+   - GitLab: `glab ci trace` по id конкретного джоба.
+2. Классифицировать падение:
+   - падение теста → симптом плюс путь упавшего теста;
+   - падение сборки → файл плюс ошибка;
+   - линт или форматирование → конкретное правило;
+   - инфраструктура, раннер, сеть → перезапускаемо без изменения кода.
+3. Нарисовать в сессии **таблицу падений CI**:
 
    ```
    | Check | Failure | Likely cause | Proposed action | Delegate |
    |-------|---------|--------------|-----------------|----------|
-   | build | unresolved reference: Foo | renamed class, import stale | update import at <file:line> | implement |
-   | test  | ExpectedFooTest.bar assert | behaviour change in diff | review diff vs test expectation | debug |
-   | lint  | ktlint wrapping            | auto-fixable               | run `ktlint --format` | implement |
-   | e2e   | network timeout            | flake                      | retry once                | — |
+   | build | unresolved reference: Foo | переименован класс, импорт устарел | обновить импорт в <file:line> | implement |
+   | test  | ExpectedFooTest.bar assert | изменение поведения в диффе | сверить дифф с ожиданием теста | debug |
+   | lint  | ktlint wrapping            | автопочинимо                | прогнать `ktlint --format` | implement |
+   | e2e   | network timeout            | флейк                       | перезапустить один раз     | — |
    ```
-4. Retry infra flakes once automatically (`gh run rerun "$RUN_ID" --failed`). Do not retry actual failures.
-5. For code-fix rows — delegate per the **Delegation protocol** (see `references/delegation.md`, § Phase 3).
-6. After fixes land: push, re-enter Phase 2.1.
 
-## Failure-loop guard
+4. Инфраструктурные флейки перезапускать один раз автоматически
+   (`gh run rerun "$RUN_ID" --failed`). Настоящие падения не перезапускать.
+5. Строки с правками кода — делегировать по протоколу из [`delegation.md`](delegation.md), §Фаза 3.
+6. Когда фиксы сели: запушить и войти в фазу 2.1.
 
-If the same check name fails 3 rounds in a row with no new commit diagnosis (same error signature), stop and surface as a blocker. Record it in state file's `Blockers raised` and ask the user what to do.
+## Защита от петли падений
+
+Если одна и та же проверка падает три раунда подряд без новой диагностики по коммиту (та же сигнатура
+ошибки) — остановиться и вынести блокером. Записать в `Blockers raised` файла состояния и спросить
+пользователя, что делать.

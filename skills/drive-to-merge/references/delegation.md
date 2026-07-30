@@ -1,58 +1,82 @@
-# drive-to-merge — Phase 3 Execute Approved Rows
+# drive-to-merge — исполнение одобренных строк в фазе 3
 
-Execute strictly in table order. Record each row's outcome inline in the session as it runs.
+Исполнять строго в порядке таблицы. Исход каждой строки записывать в сессии по ходу.
 
-## 3.1 Edit rows
+## 3.1 Строки-правки
 
-Apply the snippet directly via Edit tool (one file at a time). After all edit rows: run `check` skill (build + lint + tests). If `check` fails, roll the loop to Phase 2.2 with the new errors — do not push broken code.
+Применить сниппет напрямую через Edit, по одному файлу за раз. После всех строк-правок прогнать
+проверки проекта (сборка, линт, тесты). Проверки упали — вернуть цикл в фазу 2.2 с новыми ошибками;
+сломанный код не пушить.
 
-## 3.2 Delegate rows
+## 3.2 Строки-делегирования
 
-For each delegate row: invoke the named engineer agent (`kotlin-engineer`, `compose-developer`, `swift-engineer`, `swiftui-developer`) via the Task tool. Prompt includes:
+По каждой такой строке вызвать названного инженерного агента. Промпт содержит:
 
-- The reviewer comment quote.
-- The proposed approach from the decision table.
-- The files to touch.
-- Scope guard: "Touch only the listed files. No new tests, no CI / workflow / build-config edits, no doc rewrites, no dependency changes, no refactors outside the listed files. Report back with a diff summary."
+- цитату комментария рецензента;
+- предложенный подход из таблицы решений;
+- файлы, которые надо тронуть;
+- защиту scope: «Трогать только перечисленные файлы. Никаких новых тестов, никаких правок CI,
+  workflow и конфигурации сборки, никаких переписываний документации, никаких изменений
+  зависимостей, никаких рефакторингов за пределами перечисленных файлов. Вернуть сводку диффа.»
 
-Delegates run sequentially, not in parallel, so their edits don't stomp each other. After each delegate returns — spot-check the diff; if it touched anything outside the listed files (including `.github/`, tests directories not mentioned, `package.json` / `build.gradle`, docs), revert and surface as a blocker.
+Делегаты идут последовательно, а не параллельно, чтобы их правки не топтали друг друга. После
+возврата каждого выборочно проверить дифф: тронул что-то вне перечисленных файлов (включая
+`.github/`, неупомянутые каталоги тестов, `package.json`, `build.gradle`, документацию) — откатить и
+вынести блокером.
 
-## 3.3 Ask-in-thread rows (NEEDS_CLARIFICATION)
+## 3.3 Строки-вопросы в тред (NEEDS_CLARIFICATION)
 
-Post the verbatim question as a reply in the thread. Do not resolve. Record in state file `Commitments` with `replied: true, resolved: false`.
+Запостить вопрос дословно ответом в треде. Тред не закрывать. Записать в `Commitments` файла
+состояния с `replied: true, resolved: false`.
 
-## 3.4 Dismiss rows (terminal verdicts)
+## 3.4 Строки-отклонения (терминальные вердикты)
 
-For PRAISE / OUT_OF_SCOPE / NO_ACTION / NIT+NO_ACTION:
+Для PRAISE / OUT_OF_SCOPE / NO_ACTION / NIT+NO_ACTION:
 
-1. Post reply using the canned template + sanitized 1-sentence slot.
-2. Resolve the thread.
-3. Record in state file `Commitments` with `replied: true, resolved: true`.
+1. Запостить ответ по шаблону с санитизированной вставкой в одно предложение.
+2. Закрыть тред.
+3. Записать в `Commitments` файла состояния с `replied: true, resolved: true`.
 
-### Reply delivery — safety rules
+### Доставка ответов — правила безопасности
 
-- Body always piped through `jq -n --arg b ... --argjson r ...` into `gh api --input -`. Never `-f body="$TEXT"`.
-- Rate-limit handling: on `403` / `429`, inspect `x-ratelimit-remaining`, `x-ratelimit-reset`, and `retry-after`. **Primary rate limit** (`x-ratelimit-remaining: 0`) — schedule a `ScheduleWakeup` at `x-ratelimit-reset` (UTC epoch) and exit the round. **Secondary rate limit / abuse detection** (`retry-after: N`) — sleep `N + 5` seconds locally and retry once; if it fails again, surface as a blocker. Never burn the round in a tight retry loop.
-- Sanitize slot: NFKC normalize → strip BiDi + format chars → strip HTML → strip shell metacharacters (`` ` ``, `$(`, `${`) → collapse newlines → neutralize `@mention` (remove `@`) and cross-refs (`#123` → `issue-123`) → clamp to 120 chars. Empty after sanitize → drop the slot, use template without it.
-- Cap total reply body at 280 chars.
-- Pre-POST thread-ownership verify: GraphQL node query → `pullRequest.number` matches + `repository.id` matches header `Repository node id` from state file. Mismatch → skip this row, log `integrity_mismatch`, abort the round (do not continue POSTing other rows).
-- Pre-POST race check: if the thread was resolved by someone else since Phase 2.3 fetch, skip (record `already_resolved`).
+- Тело всегда прогонять через `jq -n --arg b ... --argjson r ...` в `gh api --input -`. Никогда не
+  использовать `-f body="$TEXT"`.
+- Обработка rate-limit: на `403` и `429` смотреть `x-ratelimit-remaining`, `x-ratelimit-reset` и
+  `retry-after`. **Первичный лимит** (`x-ratelimit-remaining: 0`) — запланировать `ScheduleWakeup` на
+  `x-ratelimit-reset` (UTC epoch) и выйти из раунда. **Вторичный лимит и детект злоупотребления**
+  (`retry-after: N`) — поспать локально `N + 5` секунд и повторить один раз; снова неудача — вынести
+  блокером. Не выжигать раунд в плотном цикле повторов.
+- Санитизация вставки: нормализация NFKC → убрать BiDi и форматирующие символы → убрать HTML → убрать
+  метасимволы shell (`` ` ``, `$(`, `${`) → схлопнуть переводы строк → обезвредить `@mention` (снять
+  `@`) и кросс-ссылки (`#123` → `issue-123`) → обрезать до 120 символов. После санитизации пусто —
+  выбросить вставку и взять шаблон без неё.
+- Всё тело ответа ограничивать 280 символами.
+- Перед POST проверять владение тредом: запрос узла через GraphQL → `pullRequest.number` совпадает и
+  `repository.id` совпадает с полем `Repository node id` в шапке файла состояния. Не совпало —
+  пропустить эту строку, записать `integrity_mismatch` и прервать раунд, не продолжая POST других
+  строк.
+- Перед POST проверять гонку: если тред закрыл кто-то другой с момента выборки в фазе 2.3, пропустить
+  и записать `already_resolved`.
 
-## 3.5 Commit + push
+## 3.5 Коммит и push
 
-After code-change rows (edit + delegate): one commit per logical group of reviewer items. Commit message: `Address review: <short summary>`. Push: plain `git push` for fast-forward additions; `git push --force-with-lease` only when history was rewritten (rebase, amend, fixup squash). Plain `--force` is forbidden.
+После строк с изменением кода (правки и делегирования): по одному коммиту на логическую группу
+пунктов рецензента. Сообщение коммита — `Address review: <короткая сводка>`. Push: обычный `git push`
+для fast-forward; `git push --force-with-lease` только когда история переписана (rebase, amend,
+squash fixup). Обычный `--force` запрещён.
 
-## 3.6 Re-request review after code changes
+## 3.6 Перезапрос ревью после изменений кода
 
-If any BLOCKING / IMPORTANT row actually changed code — re-request review from all reviewers whose `state` was `CHANGES_REQUESTED` in the current round snapshot.
+Если хоть одна строка BLOCKING или IMPORTANT реально изменила код — перезапросить ревью у всех
+рецензентов, чей `state` в снимке текущего раунда был `CHANGES_REQUESTED`.
 
 ```bash
-# GitHub: request a re-review from a specific user
+# GitHub: запросить повторное ревью у конкретного пользователя
 gh api "repos/$OWNER/$REPO_NAME/pulls/$PR_NUMBER/requested_reviewers" \
   -X POST -F "reviewers[]=<login>"
 
-# Copilot bot — the login is "copilot-pull-request-reviewer[bot]".
-# Resolve its node id from the PR's suggestedReviewers / past reviewer pool:
+# Бот Copilot — его login "copilot-pull-request-reviewer[bot]".
+# Разрешить его node id из suggestedReviewers PR либо из пула прошлых рецензентов:
 COPILOT_NODE_ID=$(gh api graphql -f query='
   query($owner:String!,$repo:String!,$pr:Int!){
     repository(owner:$owner,name:$repo){
@@ -66,7 +90,7 @@ COPILOT_NODE_ID=$(gh api graphql -f query='
             .data.repository.pullRequest.reviews.nodes[].author]
            | map(select(.login=="copilot-pull-request-reviewer"))[0].id // empty')
 
-# Best-effort. If empty — Copilot is not part of this repo's review pool, skip silently.
+# По возможности. Пусто — Copilot не входит в пул ревью этого репозитория, молча пропустить.
 if [ -n "$COPILOT_NODE_ID" ]; then
   MUTATION_OUT=$(gh api graphql -f query='
     mutation($pr:ID!,$user:ID!){
@@ -74,16 +98,20 @@ if [ -n "$COPILOT_NODE_ID" ]; then
         pullRequest { id }
       }
     }' -f pr="$PR_NODE_ID" -f user="$COPILOT_NODE_ID" 2>&1)
-  # Explicit error check — a bot no longer in the review pool returns an `errors` array,
-  # not a non-zero exit code. Without this check the failure is silent.
+  # Явная проверка ошибки: бот, выбывший из пула ревью, возвращает массив `errors`,
+  # а не ненулевой код возврата. Без этой проверки отказ будет молчаливым.
   if jq -e '.errors // empty' <<<"$MUTATION_OUT" >/dev/null 2>&1 || [ -z "$MUTATION_OUT" ]; then
-    # Record once, stop trying for the rest of this PR's lifetime.
-    # Downgrade state-file header field `Copilot node id:` to the sentinel `unavailable`.
+    # Записать один раз и больше не пытаться до конца жизни этого PR.
+    # Поле шапки файла состояния `Copilot node id:` перевести в сентинел `unavailable`.
     COPILOT_NODE_ID=""
   fi
 fi
 ```
 
-Cache `$COPILOT_NODE_ID` in the state file header once resolved (avoid re-querying every round). If the lookup returned empty or the mutation returned `errors` — write the sentinel `Copilot node id: unavailable` into the header (the single schema-defined way to flag this; do NOT invent a separate `copilot_unavailable` field) and stop trying for the rest of this PR's lifetime.
+Разрешённый `$COPILOT_NODE_ID` закэшировать в шапке файла состояния, чтобы не запрашивать его каждый
+раунд. Если lookup вернул пусто либо мутация вернула `errors` — записать в шапку сентинел
+`Copilot node id: unavailable` (единственный предусмотренный схемой способ это пометить; отдельное
+поле вроде `copilot_unavailable` не выдумывать) и больше не пытаться до конца жизни этого PR.
 
-GitLab: `glab mr update $MR_IID --reviewer <user>` for humans; GitLab has no first-class bot equivalent of Copilot review — skip.
+GitLab: `glab mr update $MR_IID --reviewer <user>` для людей; полноценного ботового аналога ревью
+Copilot в GitLab нет — пропустить.

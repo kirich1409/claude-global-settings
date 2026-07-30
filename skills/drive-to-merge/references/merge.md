@@ -1,63 +1,72 @@
-# drive-to-merge — Phase 5 Merge
+# drive-to-merge — слияние в фазе 5
 
-Entered when: CI all green + `reviewDecision == APPROVED` + no unresolved threads owned by this skill + `mergeable == MERGEABLE` + `mergeStateStatus == CLEAN`.
+Вход сюда: CI полностью зелёный, `reviewDecision == APPROVED`, нет незакрытых тредов, которыми владеет
+этот скилл, `mergeable == MERGEABLE`, `mergeStateStatus == CLEAN`.
 
-## Draft promotion (pre-phase)
+## Промоция черновика (предфаза)
 
-If `isDraft == true` when Phase 5 conditions are otherwise met:
+Если `isDraft == true`, а прочие условия фазы 5 выполнены:
 
-- **`--auto` mode** — promote automatically and continue:
+- **Режим `--auto`** — промотировать автоматически и продолжать:
+
   ```bash
   # GitHub
   gh pr ready "$PR_NUMBER"
   # GitLab
   glab mr update "$MR_IID" --remove-draft
   ```
-  Show one notification line ("Promoting PR from draft to ready") and proceed to pre-merge checks.
 
-- **default mode** — stop and surface: "PR is still a draft. Promote to ready with `gh pr ready` or type `stop`."
+  Показать одну строку уведомления («Перевожу PR из черновика в ready») и идти к предслиянию.
 
-## Pre-merge checks
+- **Режим по умолчанию** — остановиться и сказать: «PR всё ещё черновик. Переведи в ready через
+  `gh pr ready` либо напиши `stop`.»
 
-1. Re-verify the state file's `Commitments` section — every row with `delegated_to` must have non-empty `fix_commit_sha` and `replied: true`.
-2. Re-pull PR state (reviewers may have changed their decision since last round).
-3. Confirm the branch has not diverged from origin. If `git status -sb` shows the local branch behind / ahead of `origin/$HEAD` unexpectedly — skip merge, log the delta, return to Phase 2.1 for one more round.
+## Проверки перед слиянием
 
-## Merge summary message
+1. Перепроверить раздел `Commitments` в файле состояния: у каждой строки с `delegated_to` обязаны быть
+   непустой `fix_commit_sha` и `replied: true`.
+2. Перезапросить состояние PR — рецензенты могли изменить решение с прошлого раунда.
+3. Убедиться, что ветка не разошлась с origin. Если `git status -sb` неожиданно показывает локальную
+   ветку позади или впереди `origin/$HEAD` — слияние пропустить, записать расхождение и вернуться в
+   фазу 2.1 ещё на один раунд.
 
-Always show (regardless of mode):
+## Сводное сообщение перед слиянием
+
+Показывается всегда, независимо от режима:
 
 ```
-PR ready to merge.
+PR готов к слиянию.
 
-URL:     <PR URL>
-Branch:  <head> → <base>
-Commits: <N since branch point>
-Final CI: ✔ all checks passing
-Review:  ✔ approved by <reviewers>
-Threads: <T> resolved, 0 unresolved
+URL:      <URL PR>
+Ветка:    <head> → <base>
+Коммитов: <N с точки ответвления>
+Финальный CI: ✔ все проверки проходят
+Ревью:    ✔ апрув от <рецензенты>
+Треды:    <T> закрыто, 0 открыто
 
-Proposed merge method: squash | merge | rebase   (pick per repo convention)
-Proposed commit message:
-  <subject>
+Предлагаемый метод слияния: squash | merge | rebase   (по конвенции репозитория)
+Предлагаемое сообщение коммита:
+  <заголовок>
 
-  <body>
+  <тело>
 ```
 
-**default mode** — append "Reply "merge" to execute, or supply a different method / message." and block until the user replies.
+**Режим по умолчанию** — дописать «Ответь `merge`, чтобы исполнить, либо укажи другой метод или
+сообщение» и заблокироваться до ответа пользователя.
 
-**`--auto` mode** — append "Merging automatically (--auto mode)." and proceed immediately without waiting.
+**Режим `--auto`** — дописать «Мержу автоматически (режим --auto)» и продолжать сразу, без ожидания.
 
-## Final re-check and execution
+## Финальная перепроверка и исполнение
 
-Before invoking the merge API, re-verify state one last time — between the summary and the API call, CI may have failed or approval may have been dismissed:
+Перед вызовом API слияния перепроверить состояние ещё раз: между сводкой и вызовом CI мог упасть, а
+апрув — быть снят.
 
 ```bash
 FINAL=$(gh pr view --json statusCheckRollup,reviewDecision,mergeable,mergeStateStatus)
-# Abort merge if anything regressed; loop back to Phase 2.1.
+# Прервать слияние, если что-то откатилось; вернуться в фазу 2.1.
 ```
 
-If the re-check is still green:
+Перепроверка всё ещё зелёная:
 
 ```bash
 gh pr merge "$PR_NUMBER" --<method> --subject "<subject>" --body "<body>" --delete-branch
@@ -65,46 +74,58 @@ gh pr merge "$PR_NUMBER" --<method> --subject "<subject>" --body "<body>" --dele
 glab mr merge "$MR_IID" --<method-flag> --delete-source-branch
 ```
 
-## Native auto-merge path (CI still running, `--auto` mode)
+## Нативный auto-merge (CI ещё идёт, режим `--auto`)
 
-When Phase 2.5 would enter Phase 4 polling because CI is still in progress AND mode is `--auto`:
-
-Instead of scheduling repeated polls, delegate the wait to the platform:
+Когда фаза 2.5 ушла бы в опрос фазы 4, потому что CI ещё в процессе, И режим `--auto`, — отдать
+ожидание платформе вместо повторных опросов:
 
 ```bash
-# GitHub — requires repo auto-merge enabled + branch protection rules
+# GitHub — требует включённого auto-merge в репозитории плюс правил branch protection
 gh pr merge "$PR_NUMBER" --auto --squash
 ```
 
-For GitLab, use `--when-pipeline-succeeds` **only** when `Merge policy` in the state file is `auto` (personal repo). For `team-strict` repos skip native auto-merge and fall through to normal polling (avoids blocking merge trains or queues without consent):
+Для GitLab использовать `--when-pipeline-succeeds` **только** когда `Merge policy` в файле состояния
+равна `auto` (личный репозиторий). Для репозиториев с `team-strict` нативный auto-merge пропустить и
+провалиться в обычный опрос — так не блокируются merge train и очереди без согласия:
 
 ```bash
-# GitLab — personal / auto policy only
+# GitLab — только личный репозиторий, политика auto
 glab mr merge "$MR_IID" --when-pipeline-succeeds
 ```
 
-On success: mark state file `Status: waiting-native-auto-merge`, show "Native auto-merge set — platform will merge when checks pass. Exiting loop.", and stop.
+Удалось — пометить файл состояния `Status: waiting-native-auto-merge`, показать «Нативный auto-merge
+установлен: платформа смержит, когда проверки пройдут. Выхожу из цикла» и остановиться.
 
-On failure (e.g. GitHub repo has auto-merge disabled):
-- Show "Native auto-merge unavailable (repo setting disabled) — falling back to polling."
-- Continue to Phase 4 normally.
+Не удалось (например, в репозитории GitHub auto-merge выключен):
 
-## After merge
+- показать «Нативный auto-merge недоступен (выключен настройкой репозитория) — возвращаюсь к опросу»;
+- продолжить в фазу 4 обычным порядком.
 
-1. Mark state file `Status: merged`, timestamp the `Rounds` final entry.
-2. **Board sync (best-effort).** If the PR references an issue (`Closes #N` / `Fixes #N` / `Resolves #N`) and the repo has a Projects v2 board, move the card: `$HOME/.claude/scripts/gh/transition_status.sh <N> done`. No linked issue or no board → skip silently, the script already degrades gracefully.
-3. Report the merged URL + commit sha to the user.
-4. Stop. No further polling.
+## После слияния
 
-## Rebase when base has advanced (Phase 2.6 companion)
+1. Пометить файл состояния `Status: merged`, поставить отметку времени в последней записи `Rounds`.
+2. **Синхронизация доски (по возможности).** Если PR ссылается на issue (`Closes #N` / `Fixes #N` /
+   `Resolves #N`) и у репозитория есть доска Projects v2, передвинуть карточку:
+   `$HOME/.claude/scripts/gh/transition_status.sh <N> done`. Нет связанного issue или доски — молча
+   пропустить, скрипт деградирует сам.
+3. Сообщить пользователю URL смерженного PR и sha коммита.
+4. Остановиться. Дальнейшего опроса нет.
 
-When `mergeStateStatus` is `BEHIND` / `OUT_OF_DATE`:
+## Rebase, когда база ушла вперёд (спутник фазы 2.6)
+
+Когда `mergeStateStatus` равен `BEHIND` или `OUT_OF_DATE`:
 
 ```bash
 git fetch origin
 git rebase "origin/$BASE"
 ```
 
-On clean rebase: run local `check` skill (build + lint + tests); on success push with `--force-with-lease`. On conflict: resolve only truly mechanical conflicts (import reshuffle, unrelated whitespace); otherwise surface as a blocker — do not guess merge resolutions that involve logic.
+Rebase прошёл чисто — прогнать локальные проверки проекта (сборка, линт, тесты) и при успехе запушить
+с `--force-with-lease`. Конфликт — разрешать только по-настоящему механическое (перетасовка импортов,
+несвязанные пробелы); всё остальное выносить блокером, а разрешения, затрагивающие логику, не гадать.
 
-**Expected side effect.** After a `--force-with-lease` push, some repos reset `reviewDecision` from `APPROVED` back to `REVIEW_REQUIRED` (branch-protection "Dismiss stale approvals" setting). Do not treat this as a regression — re-request review per Phase 3.6 and keep looping. Tracking commit sha in `Commitments.fix_commit_sha` identifies which fixes have already been through review versus which are new since the rebase.
+**Ожидаемый побочный эффект.** После push с `--force-with-lease` часть репозиториев сбрасывает
+`reviewDecision` с `APPROVED` обратно в `REVIEW_REQUIRED` — это настройка branch protection «сбрасывать
+устаревшие апрувы». Регрессией это не считать: перезапросить ревью по фазе 3 и продолжать цикл.
+Отслеживание sha коммита в `Commitments.fix_commit_sha` показывает, какие фиксы ревью уже прошли, а
+какие появились после rebase.

@@ -1,10 +1,12 @@
-# drive-to-merge — Phase 1 Setup
+# drive-to-merge — подготовка в фазе 1
 
-Platform detection, metadata fetch, preconditions, and state file schema. Loaded on demand by SKILL.md.
+Определение платформы, получение метаданных, предусловия и схема файла состояния. Грузится SKILL.md по
+требованию.
 
-## 1.1 Detect platform
+## 1.1 Определить платформу
 
-Extract hostname from the remote URL and probe the matching CLI — do not regex for `github.com` / `gitlab` literals, which miss GitHub Enterprise Server and self-hosted GitLab.
+Извлечь хост из URL remote и прощупать соответствующий CLI. Не искать regex'ом литералы `github.com` и
+`gitlab`: так теряются GitHub Enterprise Server и self-hosted GitLab.
 
 ```bash
 REMOTE_URL=$(git remote get-url origin)
@@ -20,7 +22,7 @@ else
 fi
 ```
 
-## 1.2 Fetch PR/MR metadata
+## 1.2 Получить метаданные PR/MR
 
 ```bash
 # GitHub
@@ -31,14 +33,14 @@ PR_URL=$(jq -r .url <<<"$PR_INFO")
 IS_DRAFT=$(jq -r .isDraft <<<"$PR_INFO")
 BASE=$(jq -r .baseRefName <<<"$PR_INFO")
 HEAD=$(jq -r .headRefName <<<"$PR_INFO")
-PR_NODE_ID=$(jq -r .id <<<"$PR_INFO")     # graphql node id from the same call — no extra round-trip
+PR_NODE_ID=$(jq -r .id <<<"$PR_INFO")     # graphql node id из того же вызова — без лишнего похода
 REPO=$(gh repo view --json nameWithOwner -q .nameWithOwner)
 OWNER=${REPO%/*}; REPO_NAME=${REPO#*/}
 
-# Repository node id — needed for thread-ownership re-verify before every POST.
+# Node id репозитория — нужен для перепроверки владения тредом перед каждым POST.
 REPO_NODE_ID=$(gh api graphql -f query='query($o:String!,$n:String!){repository(owner:$o,name:$n){id}}' \
   -F o="$OWNER" -F n="$REPO_NAME" --jq '.data.repository.id')
-# COPILOT_NODE_ID is resolved lazily in Phase 3.6 and cached in the state file header.
+# COPILOT_NODE_ID разрешается лениво в фазе 3.6 и кэшируется в шапке файла состояния.
 
 # GitLab
 MR_INFO=$(glab mr view --output json)
@@ -49,84 +51,110 @@ BASE=$(jq -r .target_branch <<<"$MR_INFO")
 PROJECT=$(glab repo view --output json | jq -r '.path_with_namespace | @uri')
 ```
 
-If the PR/MR is already merged or closed — stop and report the final state.
+PR/MR уже смержен или закрыт — остановиться и сообщить финальное состояние.
 
-### Merge policy detection
+### Определение политики слияния
 
-After fetching repo metadata, derive the merge policy for this run. Record in the state file as `Merge policy:`.
+После получения метаданных репозитория вывести политику слияния для этого прогона. Записать в файл
+состояния как `Merge policy:`.
 
-1. **Explicit config in CLAUDE.md** — scan the repo's `CLAUDE.md` (if present) for a line matching:
+1. **Явная конфигурация в `CLAUDE.md`** — просканировать `CLAUDE.md` репозитория, если он есть, на
+   строку вида:
+
    ```
    Merge policy: auto
    Merge policy: team-strict
    ```
-   Use the first match.
 
-2. **Explicit config in `.claude/settings.json`** — check key `driveToMerge.mergePolicy`; values `"auto"` or `"team-strict"`.
+   Брать первое совпадение.
 
-3. **Fallback: org vs personal heuristic** (GitHub only):
+2. **Явная конфигурация в `.claude/settings.json`** — ключ `driveToMerge.mergePolicy`, значения
+   `"auto"` либо `"team-strict"`.
+
+3. **Откат: эвристика «организация или личный репозиторий»** (только GitHub):
+
    ```bash
    IS_ORG=$(gh repo view --json isInOrganization -q .isInOrganization)
    # true → team-strict; false → auto
    ```
-   For GitLab, default to `team-strict` when the project namespace is a group, `auto` when it is a personal namespace.
 
-Policy semantics:
-- `auto` — `--auto` mode skips the merge gate and may use native platform auto-merge.
-- `team-strict` — merge gate always asks in any mode; GitLab `--when-pipeline-succeeds` disabled unless the user explicitly passes `--native-auto-merge` on invocation.
+   Для GitLab по умолчанию `team-strict`, когда namespace проекта групповой, и `auto`, когда личный.
 
-## 1.3 Preconditions
+Семантика политик:
 
-Abort with a clear message if any of these fail:
+- `auto` — режим `--auto` снимает гейт слияния и может пользоваться нативным auto-merge платформы.
+- `team-strict` — гейт слияния спрашивает всегда, в любом режиме; `--when-pipeline-succeeds` в GitLab
+  выключен, пока пользователь явно не передал `--native-auto-merge` при вызове.
 
-- Current branch matches the PR head branch. If not — abort with `checkout <head> first; this skill does not auto-switch branches`.
-- Local branch is fetched and not behind the remote head (`git fetch origin && git status -sb`).
-- `gh auth status` / `glab auth status` — token valid.
-- The base branch still exists on the remote.
+## 1.3 Предусловия
 
-## 1.4 State file
+Прерваться с внятным сообщением, если нарушено любое:
 
-`swarm-report/<slug>-drive-state.md`. Slug = `<branch-with-prefix-stripped>-pr<PR_NUMBER>` (e.g. `fix/login` on PR 42 → `login-pr42`). The PR number disambiguates parallel branches that would otherwise produce the same slug (e.g. `feature/login` and `fix/login`, or two re-openings of the same branch).
+- текущая ветка совпадает с head-веткой PR; иначе прервать словами «сначала переключись на `<head>`;
+  этот скилл ветки сам не переключает»;
+- локальная ветка получена из remote и не отстаёт от его head (`git fetch origin && git status -sb`);
+- `gh auth status` либо `glab auth status` — токен валиден;
+- базовая ветка всё ещё существует в remote.
 
-Verify `swarm-report/` is gitignored by running `git check-ignore -q swarm-report/`; exit 0 = ignored, non-zero = not ignored. On non-zero — abort with `swarm-report/ is not ignored by git; add swarm-report/ to .gitignore and rerun`. Do not auto-modify `.gitignore`: that creates an unrelated diff inside a PR-driving loop and surprises the user.
+## 1.4 Файл состояния
 
-### Schema (markdown, machine-parseable on resume)
+`swarm-report/<slug>-drive-state.md`. Слаг — `<ветка-без-префикса>-pr<PR_NUMBER>` (ветка `fix/login` в
+PR 42 → `login-pr42`). Номер PR разводит параллельные ветки, которые иначе дали бы один и тот же слаг
+(`feature/login` и `fix/login`, либо два переоткрытия одной ветки).
+
+Проверить, что `swarm-report/` игнорируется git, запустив `git check-ignore -q swarm-report/`: код 0 —
+игнорируется, ненулевой — нет. При ненулевом прервать со словами «`swarm-report/` не игнорируется git;
+добавь `swarm-report/` в `.gitignore` и запусти снова». `.gitignore` автоматически не править: это
+создаёт посторонний дифф внутри цикла ведения PR и удивляет пользователя.
+
+### Схема (markdown, разбираемая машиной при возобновлении)
 
 ```markdown
-# Drive to Merge — <PR title>
+# Drive to Merge — <заголовок PR>
 
-URL: <PR URL>
+URL: <URL PR>
 Platform: github | gitlab
 Mode: default | auto | dry-run
 Merge policy: auto | team-strict
 Principal: <@actor>            # gh api user --jq .login
-Repository node id: <graphql node id of the repository>
-PR node id: <graphql node id of the pull request>
-Copilot node id: <graphql node id of copilot-pull-request-reviewer or `unavailable`>
+Repository node id: <graphql node id репозитория>
+PR node id: <graphql node id пул-реквеста>
+Copilot node id: <graphql node id copilot-pull-request-reviewer либо `unavailable`>
 Started: <ISO8601>
 Status: running | waiting-for-user | waiting-native-auto-merge | merged | blocked
 
 ## Branch change model
-analyzed_through_sha: <abbreviated sha the model is current as of, or empty before first build>
+analyzed_through_sha: <сокращённый sha, по состоянию на который модель актуальна, либо пусто до первой сборки>
 
-<compact prose summary of what the branch does: areas/files touched, key behaviors, invariants, and contracts introduced — a few lines, refreshed by delta each round>
+<компактное прозаическое описание того, что делает ветка: затронутые области и файлы, ключевые
+поведения, инварианты и введённые контракты — несколько строк, обновляемых дельтой каждый раунд>
 
 ## Rounds
 | # | Started | Trigger | CI | New comments | Actions | Outcome |
 |---|---------|---------|----|--------------|---------|---------|
 
-## Commitments (open threads this skill owns)
+## Commitments (открытые треды, которыми владеет этот скилл)
 | thread_id | category | delegated_to | fix_commit_sha | replied | resolved |
 |-----------|----------|--------------|----------------|---------|----------|
 
-`fix_commit_sha` holds the abbreviated sha of the commit that addressed the thread (empty string if the thread is dismiss-only, no code change).
+`fix_commit_sha` держит сокращённый sha коммита, закрывшего тред (пустая строка, если тред только
+отклонён и код не менялся).
 
 ## Blockers raised
-<empty | list of items the skill surfaced to the user>
+<пусто | список того, что скилл вынес пользователю>
 ```
 
-On every resume (new session after context compaction) — re-read this file first; do not re-run analysis that already lives in a "Commitments" row unless the reviewer posted new activity. Reuse the stored `Branch change model` rather than rebuilding it from the full diff: re-read only the delta since `analyzed_through_sha` — but only if `analyzed_through_sha` is non-empty **and** `git merge-base --is-ancestor "<analyzed_through_sha>" HEAD` succeeds (i.e. the sha is still an ancestor after any rebase). If the sha is empty or the ancestry check fails, rebuild from the full diff (`git diff "origin/$BASE"...HEAD`) and reset `analyzed_through_sha` to the current `HEAD`.
+При каждом возобновлении (новая сессия после сжатия контекста) — сначала перечитать этот файл; не
+переделывать анализ, который уже лежит строкой в `Commitments`, пока рецензент не запостил новую
+активность. Переиспользовать сохранённую `Branch change model`, а не пересобирать её из полного диффа:
+перечитывать только дельту с `analyzed_through_sha` — но только если `analyzed_through_sha` непуст
+**и** `git merge-base --is-ancestor "<analyzed_through_sha>" HEAD` завершается успешно, то есть sha
+остался предком после возможного rebase. Если sha пуст либо проверка предка не прошла — пересобрать из
+полного диффа (`git diff "origin/$BASE"...HEAD`) и выставить `analyzed_through_sha` в текущий `HEAD`.
 
-### Mode precedence on resume
+### Приоритет режима при возобновлении
 
-The state file `Mode` is the authoritative source. A fresh invocation without a flag inherits the stored mode; a fresh invocation with an explicit flag **overrides** the stored mode and rewrites it. This lets the user downgrade an `auto` run to `default` by re-invoking the skill, but does not silently demote an autonomous run just because the wake-up prompt was edited.
+`Mode` в файле состояния — авторитетный источник. Свежий вызов без флага наследует сохранённый режим;
+свежий вызов с явным флагом **перекрывает** его и переписывает. Так пользователь может понизить прогон
+с `auto` до обычного, просто вызвав скилл заново, но автономный прогон не понижается молча только
+из-за того, что кто-то отредактировал промпт пробуждения.
