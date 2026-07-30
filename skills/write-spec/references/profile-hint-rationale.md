@@ -1,18 +1,17 @@
-Referenced from: `~/.claude/skills/write-spec/SKILL.md` (§Phase 4.3 Run multiexpert-review).
+Ссылается из: `~/.claude/skills/write-spec/SKILL.md` (§4.3, прогон multiexpert-review).
 
-# Multiexpert-Review `spec` Profile Hint — Rationale
+# Подсказка профиля `spec` для multiexpert-review — обоснование
 
-Why the hint (defense-in-depth, not a single-cause fix): the `spec` profile's detector
-declares `frontmatter_type: [spec]` and `path_globs: ["docs/specs/**"]`. Either path would
-normally classify a draft that carries `type: spec` frontmatter and lives under `docs/specs/`.
-The explicit hint exists because:
+Почему подсказка нужна, и почему это защита в глубину, а не фикс одной причины: детектор профиля
+`spec` объявляет `frontmatter_type: [spec]` и `path_globs: ["docs/specs/**"]`. Любой из этих путей в
+обычной ситуации классифицирует черновик, который несёт frontmatter `type: spec` и лежит в
+`docs/specs/`. Явная подсказка существует потому, что:
 
-1. **Invocation-path robustness** — in some callsites the draft is passed as inline args
-   without the frontmatter block; the engine sees only body prose and can't rely on
-   frontmatter detection.
-2. **Cheapest deterministic route** — Step 1 hint-match short-circuits detection before
-   any YAML parse or path-glob evaluation; cost is a single-line prefix.
-3. **Detector-independence** — removes the orchestrator's dependency on detector internals.
-   Future detector refactors (reordering, different fallback) cannot silently re-open the
-   historical spec → implementation-plan misclassification drift that this profile exists
-   to close.
+1. **Устойчивость к способу вызова** — в части точек вызова черновик передаётся инлайновыми
+   аргументами без блока frontmatter; движок видит только прозу тела и на определение по frontmatter
+   опереться не может.
+2. **Самый дешёвый детерминированный маршрут** — совпадение подсказки на шаге 1 замыкает определение
+   до всякого разбора YAML и вычисления path-glob; цена — однострочный префикс.
+3. **Независимость от детектора** — снимает зависимость оркестратора от внутренностей детектора.
+   Будущие его перестройки (смена порядка, другой откат) не смогут молча вернуть исторический дрейф
+   классификации spec → implementation-plan, ради закрытия которого этот профиль и появился.

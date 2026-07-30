@@ -1,20 +1,23 @@
-Referenced from: `~/.claude/skills/write-spec/SKILL.md` (§Phase 1.1 Launch research consortium).
+Ссылается из: `~/.claude/skills/write-spec/SKILL.md` (§1.1, запуск консорциума).
 
-> **Intentional overlap with the `research` skill.** The Codebase / Architecture prompts below
-> are an enriched **superset** of the ones in `../../research/references/expert-prompts.md` (here
-> they add integration-points and test-infra, plus the spec-only Business Analyst / Critical
-> Evaluation / Dependency Chain tracks). The two files are kept separate **on purpose** — each
-> skill stays self-contained per the toolbox model — so do not collapse them into one shared
-> file. This mirrors the `acceptance` ↔ `multiexpert-review` "same protocol, duplicated with a
-> note" idiom. **Web Research is the exception**: both skills route it through the shared
-> `source-researcher` agent + `rules/external-sources.md`, so that method is genuinely shared,
-> not duplicated. (Note: the spec-only **Dependency Chain** track maps infrastructure
-> prerequisites — APIs, permissions, console setup — and is *not* the research skill's
-> version/CVE "Dependencies" track; it stays on general-purpose.)
+> **Пересечение со скиллом `research` намеренное.** Промпты Codebase и Architecture ниже —
+> обогащённое **надмножество** тех, что лежат в `../../research/references/expert-prompts.md`: здесь
+> добавлены точки интеграции и тестовая инфраструктура, плюс треки, которые есть только у спеки
+> (бизнес-аналитик, критическая оценка, цепочка зависимостей). Файлы держатся раздельно
+> **специально** — каждый скилл самодостаточен по модели «ящик с инструментами», — так что сливать их
+> в один общий не надо. Это то же самое, что идиома «тот же протокол, продублирован с пометкой» у
+> пары `acceptance` ↔ `multiexpert-review`. **Исключение — веб-исследование:** оба скилла
+> маршрутизируют его через одного и того же агента `source-researcher` плюс
+> `rules/external-sources.md`, поэтому метод там действительно общий, а не продублированный.
+> Отдельно: трек **цепочки зависимостей**, который есть только у спеки, размечает инфраструктурные
+> предусловия — API, разрешения, настройку в консолях — и это *не* трек «Dependencies» из скилла
+> research про версии и CVE; он остаётся на general-purpose.
 
-# Research-Agent Prompt Templates
+Тела промптов остаются английскими — они уходят агентам дословно.
 
-## Codebase Expert (Explore subagent) — always include
+# Шаблоны промптов исследовательских агентов
+
+## Codebase Expert (субагент Explore) — включать всегда
 
 ```
 Investigate the codebase for everything related to: {feature goal}
@@ -35,10 +38,10 @@ Report: overview paragraph, then findings grouped by category with file paths an
 class/function names.
 ```
 
-## Architecture Expert (architecture-expert agent)
+## Architecture Expert (агент architecture-expert)
 
-Include when: feature adds a new module, changes dependency direction, introduces new
-abstractions, or crosses more than one architectural layer.
+Включать, когда фича добавляет новый модуль, меняет направление зависимостей, вводит новые абстракции
+либо пересекает более одного архитектурного слоя.
 
 ```
 Evaluate the architectural implications of: {feature goal}
@@ -55,21 +58,21 @@ Analyze:
 Read the relevant module structure and build files before making judgments.
 ```
 
-## Web Research — via the `source-researcher` agent
+## Веб-исследование — через агента `source-researcher`
 
-Include when: feature involves external protocols, non-trivial algorithms, third-party
-integration, or unfamiliar domain.
+Включать, когда фича затрагивает внешние протоколы, нетривиальные алгоритмы, интеграцию со сторонним
+либо незнакомый домен.
 
-Run on the **`source-researcher`** agent (`focus: web`) — it discovers the tools/MCP actually
-reachable at runtime and queries every relevant channel, per the single method in
-`rules/external-sources.md` § *Что здесь есть кроме web* (inherited by the agent, not
-restated here). Model/effort pinned in the agent (`sonnet` / `medium`). It gathers and reports
-without synthesizing — the spec author merges.
+Запускать на агенте **`source-researcher`** (`focus: web`): он обнаруживает инструменты и MCP,
+реально доступные в рантайме, и опрашивает каждый релевантный канал по единому методу из
+`rules/external-sources.md`, § *Что здесь есть кроме web* — правило агент наследует, здесь оно не
+пересказывается. Модель и effort закреплены в агенте (`sonnet` / `medium`). Он собирает и
+отчитывается без синтеза; сводит автор спеки.
 
 ```
 focus: web
 topic: {feature goal}
-constraints: {platform — Android/iOS/KMP — and any known boundaries}
+constraints: {platform and any known boundaries}
 
 Investigate best practices and implementation approaches for this feature: common approaches
 with trade-offs, known pitfalls, relevant libraries/standards, real-world open-source examples,
@@ -78,9 +81,10 @@ query all relevant → cross-check by tier → report without synthesizing. Resp
 language as the feature description.
 ```
 
-## Business Analyst (business-analyst agent)
+## Business Analyst (агент business-analyst)
 
-Include when: feature has user-facing impact, unclear scope, or comes from a vague idea.
+Включать, когда у фичи есть влияние на пользователя, непонятный объём либо она выросла из
+расплывчатой идеи.
 
 ```
 Analyze the scope and requirements of: {feature goal}
@@ -96,10 +100,10 @@ Assess:
 Be concrete — list specific scenarios, not abstract concerns.
 ```
 
-## Critical Evaluation (general-purpose subagent)
+## Критическая оценка (субагент general-purpose)
 
-Include when: the user proposed a specific technical approach, OR the codebase has
-established patterns in this area that may be outdated or problematic.
+Включать, когда пользователь предложил конкретный технический подход либо когда в кодовой базе есть
+устоявшиеся паттерны в этой области, которые могли устареть или быть проблемными.
 
 ```
 Critically evaluate the approach for: {feature goal}
@@ -120,10 +124,10 @@ Do NOT recommend blindly following project patterns if they are outdated or prob
 Flag bad patterns explicitly — the user should know before committing to them.
 ```
 
-## Dependency Chain (general-purpose subagent)
+## Цепочка зависимостей (субагент general-purpose)
 
-Include when: feature integrates with external services, requires OS-level capabilities,
-touches infrastructure, or the user's request implies a setup phase.
+Включать, когда фича интегрируется с внешними сервисами, требует возможностей уровня ОС, трогает
+инфраструктуру либо запрос пользователя подразумевает фазу настройки.
 
 ```
 Map the full dependency chain for: {feature goal}

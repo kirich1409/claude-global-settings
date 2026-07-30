@@ -1,6 +1,10 @@
-Referenced from: `~/.claude/skills/write-spec/SKILL.md` (§Phase 3 Write Spec Draft).
+Ссылается из: `~/.claude/skills/write-spec/SKILL.md` (§Фаза 3, черновик спеки).
 
-# Spec Draft Template
+# Шаблон черновика спеки
+
+Ключи frontmatter и заголовки разделов остаются английскими: это контракт, который читают `acceptance`
+и профили `multiexpert-review`. По-русски здесь только пояснения и плейсхолдеры — их читает тот, кто
+заполняет спеку.
 
 ```markdown
 ---
@@ -8,21 +12,21 @@ type: spec
 slug: {slug}
 date: {YYYY-MM-DD}
 status: draft
-# Optional fields — leave blank when not applicable. Consumed by `acceptance`
-# (choreography) and by the `write-plan` test-plan phase (platform-aware coverage).
-platform: []                     # Canonical values: [android], [ios], [web], [desktop], [backend-jvm], [backend-node], [cli], [library], [generic]. May be multi-value for cross-platform features.
-surfaces: []                     # e.g. [ui], [api], [cli], [background-job]. Drives which acceptance checks run.
-risk_areas: []                   # e.g. [auth], [payment], [pii], [data-migration], [perf-critical]. Each entry triggers a conditional expert in acceptance.
-non_functional:                  # Optional block. Each present entry triggers an expert check.
-  sla:                           # e.g. p99 < 150ms. Triggers performance-expert.
-  a11y:                          # e.g. wcag-aa. Triggers ux-expert a11y mode.
-acceptance_criteria_ids: []      # e.g. [AC-1, AC-2, AC-3]. Each AC in the list MUST appear as a bullet in §Acceptance Criteria.
-design:                          # Optional.
-  figma:                         # e.g. https://www.figma.com/file/XXX. Triggers ux-expert design-review.
-  design_system:                 # Optional reference to a design system doc.
+# Необязательные поля — оставлять пустыми, когда неприменимы. Потребляются приёмкой
+# (хореография) и фазой тест-плана в `write-plan` (покрытие с учётом платформы).
+platform: []                     # Канонические значения: [android], [ios], [web], [desktop], [backend-jvm], [backend-node], [cli], [library], [generic]. Может быть многозначным для кроссплатформенных фич.
+surfaces: []                     # Например [ui], [api], [cli], [background-job]. Определяет, какие проверки приёмки запускаются.
+risk_areas: []                   # Например [auth], [payment], [pii], [data-migration], [perf-critical]. Каждая запись включает условного эксперта в приёмке.
+non_functional:                  # Необязательный блок. Каждая присутствующая запись включает свою экспертную проверку.
+  sla:                           # Например p99 < 150ms. Включает performance-expert.
+  a11y:                          # Например wcag-aa. Включает режим a11y у ux-expert.
+acceptance_criteria_ids: []      # Например [AC-1, AC-2, AC-3]. Каждый AC из списка ОБЯЗАН присутствовать пунктом в §Acceptance Criteria.
+design:                          # Необязательно.
+  figma:                         # Например https://www.figma.com/file/XXX. Включает design-review у ux-expert.
+  design_system:                 # Необязательная ссылка на документ дизайн-системы.
 ---
 
-# Spec: {Feature Name}
+# Spec: {название фичи}
 
 Date: {YYYY-MM-DD}
 Status: draft
@@ -32,101 +36,101 @@ Slug: {slug}
 
 ## Context and Motivation
 
-{2-4 sentences: what this feature does, who benefits, why now.
-Write the "why" that will still make sense in 6 months.}
+{2–4 предложения: что делает фича, кому это выгодно, почему сейчас.
+Писать такое «зачем», которое будет иметь смысл и через полгода.}
 
 ## Acceptance Criteria
 
-The feature is complete when ALL of the following are true. Each criterion is assigned a
-stable `AC-N` id. The frontmatter `acceptance_criteria_ids` list is **optional** for
-back-compat, but when it is provided, it MUST include every `AC-N` id listed here and nothing
-else; that is what `acceptance` uses to drive AC-coverage checks via `business-analyst`.
-Leaving `acceptance_criteria_ids` empty disables the business-analyst conditional.
+Фича завершена, когда истинно ВСЁ перечисленное. Каждому критерию присвоен стабильный
+идентификатор `AC-N`. Список `acceptance_criteria_ids` во frontmatter **необязателен** ради
+обратной совместимости, но если он задан, то ОБЯЗАН включать каждый `AC-N` отсюда и ничего
+сверх того: именно по нему приёмка гоняет проверку покрытия AC через `business-analyst`.
+Пустой `acceptance_criteria_ids` отключает этого условного эксперта.
 
-- [ ] **AC-1** — {Concrete, observable behavior — not internal state}
-- [ ] **AC-2** — {Another criterion}
-- [ ] **AC-3** — {Error / edge case criterion}
-- [ ] **AC-4** — {Performance criterion with specific numbers, if relevant}
-- [ ] **AC-5** — {Compatibility criterion, if relevant}
+- [ ] **AC-1** — {конкретное наблюдаемое поведение, а не внутреннее состояние}
+- [ ] **AC-2** — {ещё критерий}
+- [ ] **AC-3** — {критерий на ошибку или граничный случай}
+- [ ] **AC-4** — {критерий производительности с конкретными числами, если уместен}
+- [ ] **AC-5** — {критерий совместимости, если уместен}
 
-**Authoritative definition of done.** The implementing agent validates against this
-list before marking any task complete.
+**Авторитетное определение готовности.** Агент-реализатор сверяется с этим списком до того,
+как пометить любую задачу выполненной.
 
 ## Prerequisites
 
-Steps that must be completed BEFORE implementation begins. Each item is either
-already done, or is an explicit task for the implementing agent or a human.
+Шаги, которые должны быть завершены ДО начала реализации. Каждый пункт либо уже сделан, либо
+является явной задачей для агента-реализатора или человека.
 
 | Prerequisite | Status | Owner | Notes |
-|--------------|--------|-------|-------|
-| {e.g., Create FCM project in Firebase console} | ⬜ Todo / ✅ Done | Human / Agent | {how to do it} |
-| {e.g., Add notification entitlement to app} | ⬜ Todo | Agent | {file to modify} |
+|---|---|---|---|
+| {например, создать проект FCM в консоли Firebase} | ⬜ Todo / ✅ Done | Human / Agent | {как это сделать} |
+| {например, добавить entitlement уведомлений в приложение} | ⬜ Todo | Agent | {какой файл править} |
 
-*(Remove this section if there are no prerequisites outside of code changes.)*
+*(Убрать раздел, если предусловий вне изменений кода нет.)*
 
 ## Affected Modules and Files
 
 | Module / File | Change type | Notes |
-|---------------|-------------|-------|
-| {path or module name} | New / Modified / Deleted | {what changes and why} |
+|---|---|---|
+| {путь или имя модуля} | New / Modified / Deleted | {что меняется и почему} |
 
-Key integration points:
-- {Interface or class that new code must implement or call}
-- {Existing service or repository that will be extended}
+Ключевые точки интеграции:
+- {интерфейс или класс, который новый код обязан реализовать или вызвать}
+- {существующий сервис или репозиторий, который будет расширен}
 
 ## Technical Approach
 
-{High-level description of HOW the feature will be implemented — not code, but enough
-to guide architecture:
-- Which pattern to follow (existing or new)
-- Data flow: source → transformation → destination
-- Key new abstractions (classes, interfaces, modules)
-- Error handling strategy
-- State management approach (if UI-relevant)}
+{Верхнеуровневое описание того, КАК фича будет реализована — не код, но достаточно, чтобы
+задать архитектуру:
+- какому паттерну следовать, существующему или новому;
+- поток данных: источник → преобразование → приёмник;
+- ключевые новые абстракции (классы, интерфейсы, модули);
+- стратегия обработки ошибок;
+- подход к управлению состоянием, если это касается UI.}
 
 ## Technical Constraints
 
-Rules the implementing agent must follow without deviation:
+Правила, от которых агент-реализатор не отклоняется:
 
-- {Must use X library — already in project}
-- {Must NOT add new dependencies without approval}
-- {Must follow Y pattern used elsewhere}
-- {Must support API level Z+}
-- {Must be KMP-compatible / Android-only}
-- {No blocking operations on the main thread}
+- {обязательно использовать библиотеку X — она уже в проекте}
+- {НЕ добавлять новые зависимости без одобрения}
+- {следовать паттерну Y, применяемому в других местах}
+- {поддерживать версию платформы Z и выше}
+- {должно быть кроссплатформенным / только для одной платформы}
+- {никаких блокирующих операций в главном потоке}
 
 ## Decisions Made
 
-Choices locked in during spec. The implementing agent does NOT revisit these.
+Выборы, зафиксированные на этапе спеки. Агент-реализатор их НЕ пересматривает.
 
 | Decision | Choice | Rationale |
-|----------|--------|-----------|
-| {What was decided} | {The choice} | {Why this over alternatives} |
+|---|---|---|
+| {что решали} | {что выбрали} | {почему это, а не альтернативы} |
 
 ## Out of Scope
 
-Will NOT be implemented as part of this spec:
+НЕ будет реализовано в рамках этой спеки:
 
-- {Behavior or feature explicitly excluded}
-- {Edge case deferred to a future spec} *(owner: {team/person}, target: {Phase N / separate spec})*
-- {Migration or compatibility concern left out}
+- {поведение или возможность, исключённые явно}
+- {граничный случай, отложенный в будущую спеку} *(владелец: {команда или человек}, цель: {фаза N или отдельная спека})*
+- {оставленный за скобками вопрос миграции или совместимости}
 
 ## Open Questions
 
-Unresolved questions the implementing agent must handle or escalate:
+Нерешённые вопросы, которые агент-реализатор обязан закрыть или эскалировать:
 
-- [ ] {Question} — *blocking / non-blocking*
-  - Options: {A}, {B}
-  - Recommendation: {preferred}
+- [ ] {вопрос} — *blocking / non-blocking*
+  - Варианты: {A}, {B}
+  - Рекомендация: {предпочтительный}
 
-If none: write "None — spec is complete." and remove this section.
+Если таких нет — написать «None — spec is complete.» и убрать раздел.
 
 ## Future Phases
 
-*(Only when feature was split into phases)*
+*(Только когда фича разбита на фазы)*
 
-**Phase 2 — {name}:** {brief description, why deferred}
-**Phase 3 — {name}:** {brief description}
+**Phase 2 — {название}:** {краткое описание, почему отложено}
+**Phase 3 — {название}:** {краткое описание}
 
-Specced separately after Phase 1 is implemented and validated in production.
+Специфицируются отдельно после того, как фаза 1 реализована и проверена в бою.
 ```

@@ -1,70 +1,68 @@
-Referenced from: `~/.claude/skills/write-spec/SKILL.md` (§Phase 5 Save).
+Ссылается из: `~/.claude/skills/write-spec/SKILL.md` (§Фаза 5, сохранить).
 
-# Output Location and Artifact Layout
+# Расположение выхода и раскладка артефактов
 
-Where the spec and the operational state file live, how they are named, and
-when they are retired.
-
----
-
-## Target Layout
-
-| Artifact | Path | Lifetime |
-|----------|------|----------|
-| Spec | `docs/specs/YYYY-MM-DD-<slug>.md` | Permanent — version controlled |
-| State file | `./swarm-report/spec-<slug>-state.md` | Temporary — delete after save |
+Где живут спека и операционный файл состояния, как они называются и когда выводятся из обращения.
 
 ---
 
-## Path Conventions
+## Целевая раскладка
 
-- **Spec filename**: `YYYY-MM-DD-<slug>.md` at the project root under
-  `docs/specs/`. The date prefix is the day the spec was created (not merged,
-  not approved). The `<slug>` is the same kebab-case slug generated in Phase 0.
-- **State filename**: `spec-<slug>-state.md` under `./swarm-report/`. The
-  state file is operational — it tracks round numbers, research progress, and
-  open gaps. It is not committed; `swarm-report/` must be in the project's
-  `.gitignore`.
+| Артефакт | Путь | Время жизни |
+|---|---|---|
+| Спека | `docs/specs/YYYY-MM-DD-<slug>.md` | постоянно, версионируется |
+| Файл состояния | `./swarm-report/spec-<slug>-state.md` | временно, удалить после сохранения |
 
-Example: feature goal *"push notifications"* on 2026-04-20 →
+---
+
+## Конвенции путей
+
+- **Имя файла спеки:** `YYYY-MM-DD-<slug>.md` в `docs/specs/` от корня проекта. Префикс даты — день
+  создания спеки, не слияния и не утверждения. `<slug>` — тот же kebab-case слаг, что сгенерирован в
+  фазе 0.
+- **Имя файла состояния:** `spec-<slug>-state.md` в `./swarm-report/`. Файл операционный: он
+  отслеживает номера раундов, прогресс исследования и открытые пробелы. Он не коммитится, поэтому
+  `swarm-report/` обязан быть в `.gitignore` проекта.
+
+Пример: цель фичи *«пуш-уведомления»* 2026-04-20 →
+
 - `docs/specs/2026-04-20-push-notifications.md`
 - `./swarm-report/spec-push-notifications-state.md`
 
 ---
 
-## Save Procedure
+## Процедура сохранения
 
-### 1. Ensure `docs/specs/` exists
+### 1. Убедиться, что `docs/specs/` существует
 
-Check if `docs/specs/` exists at the project root. Create it if not.
+Проверить наличие `docs/specs/` в корне проекта. Нет — создать.
 
-### 2. Save the spec
+### 2. Сохранить спеку
 
-Write the approved draft to `docs/specs/YYYY-MM-DD-<slug>.md`. Update its
-frontmatter `status:` from `draft` to `approved` before writing.
+Записать утверждённый черновик в `docs/specs/YYYY-MM-DD-<slug>.md`, перед записью переведя
+frontmatter `status:` из `draft` в `approved`.
 
-### 3. Retire the state file
+### 3. Вывести из обращения файл состояния
 
-Update state file status to `done`. The file may be deleted at the discretion
-of the caller — it is no longer needed once the spec is saved.
+Перевести статус файла состояния в `done`. Дальше вызывающий может удалить его на своё усмотрение —
+после сохранения спеки он не нужен.
 
-### 4. Confirm to the user
+### 4. Подтвердить пользователю
 
 ```
-Spec saved: docs/specs/{filename}
+Спека сохранена: docs/specs/{имя файла}
 
-This document is self-sufficient for implementation. When you're ready,
-plan mode (or any structured implementation pass) can pick it up.
+Документ самодостаточен для реализации. Когда будешь готов, его подхватит
+режим планирования или любой структурированный проход реализации.
 ```
 
-Do not auto-invoke any other skill. The spec is the deliverable. The user
-decides when and how to proceed.
+Никакой другой скилл автоматически не вызывать. Спека и есть результат. Когда и как двигаться дальше,
+решает пользователь.
 
 ---
 
-## Hand-off
+## Передача дальше
 
-The saved spec is the sole deliverable of `write-spec`. It is designed to be
-picked up by plan-mode implementation or any downstream tooling at any future
-point, producing a complete implementation with user involvement only at
-genuine critical blockers.
+Сохранённая спека — единственный результат `write-spec`. Она сделана так, чтобы её мог подхватить
+режим планирования или любой инструмент ниже по потоку в любой момент в будущем и произвести полную
+реализацию, привлекая пользователя только на настоящих критических блокерах.

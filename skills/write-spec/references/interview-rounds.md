@@ -1,143 +1,139 @@
-Referenced from: `~/.claude/skills/write-spec/SKILL.md` (§Phase 2 Interview).
+Ссылается из: `~/.claude/skills/write-spec/SKILL.md` (§Фаза 2, интервью).
 
-# Interview Rounds — Question Bank, Round Structure, and Per-Round Prompts
+# Раунды интервью — банк вопросов, структура раунда и промпты
 
-Full Phase 2 playbook. SKILL.md holds only the round-loop contract and exit
-criteria. Everything a round actually *says* to the user lives here.
-
----
-
-## Feature Checklist (run before formulating questions)
-
-After research completes, sweep the checklist. Any item that applies and is
-unanswered becomes a question or a spec entry.
-
-- [ ] **OS permissions** — does this feature need to request permissions
-      (notifications, camera, location, contacts, storage)? What happens if denied?
-- [ ] **Platform-specific behavior** — does this work differently on different OS/devices?
-- [ ] **Prerequisites** — are there external setup steps (console config, service
-      accounts, API keys, entitlements) that can't be automated in code?
-- [ ] **Error states** — what can fail? What does the user see when it fails?
-- [ ] **Security** — does this expose sensitive data, require auth, or touch user
-      credentials?
-- [ ] **Performance** — any risk of blocking the main thread, excessive memory, or
-      battery drain?
-- [ ] **Backward compatibility** — does this change existing behavior anyone depends on?
-- [ ] **Pattern quality** — did Critical Evaluation flag any existing pattern as
-      problematic?
+Полный сценарий фазы 2. В SKILL.md остаётся только контракт цикла раундов и критерии выхода; всё, что
+раунд реально *говорит* пользователю, лежит здесь.
 
 ---
 
-## Round 1: Present Approach Options (when Critical Evaluation ran)
+## Чеклист фичи (пройти до формулирования вопросов)
 
-If Critical Evaluation produced 3 approach options, present them **before** asking
-other questions. This is the most important decision — it shapes everything else.
+Когда исследование закончено, пройти чеклист. Любой применимый и неотвеченный пункт становится
+вопросом или записью в спеке.
+
+- [ ] **Разрешения ОС** — нужно ли фиче запрашивать разрешения (уведомления, камера, геопозиция,
+      контакты, хранилище)? Что происходит при отказе?
+- [ ] **Платформенное поведение** — работает ли это по-разному на разных ОС и устройствах?
+- [ ] **Предусловия** — есть ли внешние шаги настройки (конфигурация в консоли, сервисные аккаунты,
+      ключи API, entitlements), которые нельзя автоматизировать кодом?
+- [ ] **Состояния ошибок** — что может сломаться? Что видит пользователь, когда ломается?
+- [ ] **Безопасность** — раскрывает ли это чувствительные данные, требует ли аутентификации, трогает
+      ли учётные данные пользователя?
+- [ ] **Производительность** — есть ли риск заблокировать главный поток, съесть память, посадить
+      батарею?
+- [ ] **Обратная совместимость** — меняет ли это существующее поведение, на которое кто-то опирается?
+- [ ] **Качество паттернов** — пометила ли критическая оценка какой-нибудь существующий паттерн как
+      проблемный?
+
+---
+
+## Раунд 1: показать варианты подхода (когда отработала критическая оценка)
+
+Если критическая оценка выдала три варианта подхода, показать их **до** остальных вопросов. Это
+важнейшее решение: оно формирует всё остальное.
 
 ```
-Based on research, here are the implementation approaches:
+По итогам исследования вот подходы к реализации:
 
-**Option A — Radical:** {name}
-{2-3 sentences describing the approach}
-Trade-offs: {pros} / {cons}
-Best when: {context where this wins}
+**Вариант A — радикальный:** {название}
+{2–3 предложения с описанием}
+Компромиссы: {плюсы} / {минусы}
+Лучше всего, когда: {контекст, где он выигрывает}
 
-**Option B — Classic:** {name}
-{2-3 sentences describing the approach}
-Trade-offs: {pros} / {cons}
-Best when: {context where this wins}
+**Вариант B — классический:** {название}
+{2–3 предложения с описанием}
+Компромиссы: {плюсы} / {минусы}
+Лучше всего, когда: {контекст, где он выигрывает}
 
-**Option C — Conservative:** {name}
-{2-3 sentences describing the approach}
-Trade-offs: {pros} / {cons}
-Best when: {context where this wins}
+**Вариант C — консервативный:** {название}
+{2–3 предложения с описанием}
+Компромиссы: {плюсы} / {минусы}
+Лучше всего, когда: {контекст, где он выигрывает}
 
-Recommended: Option {X} — {one sentence rationale}
-Or describe a custom approach: ___
+Рекомендую: вариант {X} — {обоснование одним предложением}
+Либо опиши свой подход: ___
 ```
 
-Wait for the user to choose before proceeding. The chosen approach becomes the
-baseline for all subsequent questions.
+Дождаться выбора пользователя до продолжения. Выбранный подход становится базой для всех последующих
+вопросов.
 
 ---
 
-## Synthesize Gaps
+## Синтезировать пробелы
 
-After the approach is chosen, sort remaining findings into three buckets:
+После выбора подхода разложить оставшиеся находки по трём корзинам:
 
-- **Already known** — research gave a clear answer, no need to ask.
-- **Proposed defaults** — research suggests a direction; propose it for confirmation.
-- **Genuine gaps** — requires user input to resolve.
+- **Уже известно** — исследование дало чёткий ответ, спрашивать незачем.
+- **Предлагаемые дефолты** — исследование подсказывает направление; предложить его на подтверждение.
+- **Настоящие пробелы** — без ввода пользователя не закрываются.
 
-Only ask about genuine gaps. Present proposed defaults as recommendations the
-user confirms or overrides.
-
----
-
-## Question Format
-
-Each question in a round:
-
-```
-**Q: {question}**
-→ Recommended: {answer} — {brief rationale}
-→ Alternative: {different option}
-→ Alternative: {another option, if relevant}
-→ Or describe your preference: ___
-```
-
-Skip questions where the recommendation is overwhelmingly obvious and the answer
-doesn't meaningfully change the architecture. Save those decisions for the
-"Decisions Made" section in the spec.
+Спрашивать только про настоящие пробелы. Предлагаемые дефолты показывать рекомендациями, которые
+пользователь подтверждает или переопределяет.
 
 ---
 
-## Round Structure
+## Формат вопроса
 
-Each round:
+Каждый вопрос в раунде:
 
-1. Present what's already understood (brief — gives user context).
-2. Ask all current open questions with recommended answers.
-3. Wait for responses.
-4. Record answers in the state file.
-5. Check whether any new gaps opened from the answers.
-6. If gaps remain → another round. If complete → proceed to drafting.
+```
+**Q: {вопрос}**
+→ Рекомендую: {ответ} — {короткое обоснование}
+→ Альтернатива: {другой вариант}
+→ Альтернатива: {ещё вариант, если уместен}
+→ Либо опиши свой: ___
+```
 
-**Cap: maximum 100 interview rounds.** If the 100th round completes and gaps
-remain, record them as open questions in the spec (non-blocking where possible)
-and proceed to drafting. Surface any remaining blockers to the user in the
-review phase.
+Пропускать вопросы, где рекомендация подавляюще очевидна, а ответ не меняет архитектуру осмысленно.
+Такие решения уходят в раздел спеки «Decisions Made».
 
 ---
 
-## Large-Feature Phasing
+## Структура раунда
 
-If the feature spans multiple independent development phases, offer a phased
-approach:
+Каждый раунд:
 
-```
-This feature is substantial. Suggested phases:
+1. Показать, что уже понятно, — коротко, это даёт пользователю контекст.
+2. Задать все текущие открытые вопросы с рекомендованными ответами.
+3. Дождаться ответов.
+4. Записать ответы в файл состояния.
+5. Проверить, не открылись ли новые пробелы из ответов.
+6. Пробелы остались → следующий раунд. Всё закрыто → к написанию черновика.
 
-**Phase 1 — {name}:** {what it delivers and why first}
-**Phase 2 — {name}:** {what it adds, depends on Phase 1}
-**Phase 3 — {name}:** {what it adds}
-
-Recommendation: spec and fully implement Phase 1 before speccing Phase 2.
-Real feedback from Phase 1 will inform Phase 2 design.
-
-Proceed phased, or spec the full feature at once?
-```
-
-If phased: spec covers Phase 1 only. Include a "Future Phases" section for
-what's planned but not yet specced.
+**Предел: не более 100 раундов интервью.** Если сотый раунд завершился, а пробелы остались, записать
+их открытыми вопросами в спеку (по возможности неблокирующими) и переходить к черновику. Оставшиеся
+блокеры вынести пользователю на фазе ревью.
 
 ---
 
-## Post-Review Discussion Round
+## Фазирование крупной фичи
 
-After self-review and `multiexpert-review` complete (Phase 4), if either
-surfaced issues or open questions, open one more user-facing round using the
-same question format above. This may loop back into the normal round loop to
-close remaining gaps.
+Если фича распадается на несколько независимых фаз разработки, предложить поэтапный подход:
 
-Once the user is satisfied and no issues remain, update spec status from
-`draft` to `approved` and proceed to save.
+```
+Фича крупная. Предлагаемые фазы:
+
+**Фаза 1 — {название}:** {что даёт и почему первой}
+**Фаза 2 — {название}:** {что добавляет, зависит от фазы 1}
+**Фаза 3 — {название}:** {что добавляет}
+
+Рекомендую: специфицировать и полностью реализовать фазу 1 до того, как
+специфицировать фазу 2. Реальная обратная связь с фазы 1 повлияет на дизайн фазы 2.
+
+Идём по фазам или специфицируем фичу целиком сразу?
+```
+
+Пошли по фазам — спека покрывает только фазу 1. Включить раздел «Future Phases» с тем, что
+запланировано, но ещё не специфицировано.
+
+---
+
+## Раунд обсуждения после ревью
+
+Когда самопроверка и `multiexpert-review` завершены (фаза 4), а любой из них поднял вопросы или
+проблемы, открыть ещё один раунд с пользователем в том же формате вопросов. Он может вернуть в
+обычный цикл раундов, чтобы закрыть остаток пробелов.
+
+Когда пользователь удовлетворён и проблем не осталось, перевести статус спеки из `draft` в `approved`
+и переходить к сохранению.
