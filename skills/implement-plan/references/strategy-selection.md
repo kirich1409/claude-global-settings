@@ -1,82 +1,85 @@
-# Strategy selection: DAG layering, parallelism & worktree isolation
+# Выбор стратегии: слои DAG, параллелизм и изоляция в worktree
 
-How Phase 1 turns `tasks.md` into an execution strategy. The guiding bias: **sequential is the
-default; parallelism is an optimization that must prove it is safe.** Correctness never depends on
-parallel execution — it only ever makes a safe run faster.
+Как фаза 1 превращает `tasks.md` в стратегию исполнения. Направляющее смещение: **последовательность —
+дефолт, параллелизм — оптимизация, которая обязана доказать свою безопасность.** Корректность никогда
+не зависит от параллельного исполнения: оно лишь делает безопасный прогон быстрее.
 
-## 1. Build the layers
+## 1. Построить слои
 
-Each task in `tasks.md` carries `after: <T-… | none>`. Treat these as edges and compute topological
-**layers**:
+У каждой задачи в `tasks.md` есть `after: <T-… | none>`. Считать это рёбрами и вычислить
+топологические **слои**:
 
-- **Layer 0** — every task with `after: none`.
-- **Layer N** — every task all of whose dependencies are in layers `< N`.
+- **Слой 0** — все задачи с `after: none`.
+- **Слой N** — все задачи, у которых каждая зависимость лежит в слоях `< N`.
 
-A layer is a set of tasks that are *dependency-free relative to each other*. That makes each layer the
-only place parallelism is even a candidate — tasks across layers have an ordering that must be honored.
+Слой — множество задач, *не зависящих друг от друга*. Именно поэтому слой единственное место, где
+параллелизм вообще является кандидатом: у задач из разных слоёв есть порядок, который надо соблюдать.
 
-A cycle (`after:` chain that loops) is a malformed plan: stop and report it; do not guess an order.
+Цикл в цепочке `after:` — некорректный план: остановиться и сообщить, порядок не угадывать.
 
-## 2. Decide sequential vs. parallel — per layer
+## 2. Решить, последовательно или параллельно, — по каждому слою
 
-For each layer with ≥2 tasks, parallelize **only if all** of these hold:
+Для слоя из двух и более задач параллелить **только если выполнено всё**:
 
-- **Disjoint files.** No two tasks in the layer list overlapping `files:`. Overlap → two writers on one
-  file → sequential.
-- **No shared mutable state.** Tasks don't both touch the same migration, generated file, global
-  config, or lockfile even if the listed `files:` differ. When the plan is ambiguous about this,
-  assume shared → sequential.
-- **No shared risk tag.** Neither task is flagged risky/architectural in the plan (those get a human
-  pause under `--interactive`, not a concurrent race).
+- **Непересекающиеся файлы.** Ни у каких двух задач слоя не пересекаются `files:`. Пересечение — два
+  писателя в один файл — последовательно.
+- **Нет общего изменяемого состояния.** Задачи не трогают одну и ту же миграцию, сгенерированный файл,
+  глобальный конфиг или lock-файл, даже если перечисленные `files:` различаются. План на этот счёт
+  неоднозначен — считать, что состояние общее, и идти последовательно.
+- **Нет общей метки риска.** Ни одна из задач не помечена в плане рискованной или архитектурной:
+  такие получают паузу человека при `--interactive`, а не параллельную гонку.
 
-If any condition fails, run the layer sequentially. A single layer may be *partly* parallel: split it
-into a parallel group of provably-disjoint tasks plus a sequential remainder.
+Не выполнено любое условие — слой идёт последовательно. Слой может быть параллельным *частично*:
+разделить его на параллельную группу доказуемо непересекающихся задач и последовательный остаток.
 
-`--sequential` skips this analysis entirely (everything in order). `--parallel` forces fan-out wherever
-the three conditions hold, but **cannot** override them — a collision is always resolved sequentially.
+`--sequential` пропускает этот анализ целиком (всё по порядку). `--parallel` форсирует веер везде, где
+три условия выполнены, но **отменить** их не может: столкновение всегда разрешается
+последовательностью.
 
-## 3. Worktree isolation for parallel tasks
+## 3. Изоляция параллельных задач в worktree
 
-Concurrent subagents editing the same working tree corrupt each other. So each parallel task runs in
-its **own git worktree** under `.worktrees/` (gitignored, per [[git-workflow]]), branched from the
-current working branch:
+Одновременные субагенты, правящие одно рабочее дерево, портят работу друг друга. Поэтому каждая
+параллельная задача идёт в **своём git worktree** внутри `.worktrees/` (в git не попадает,
+[[git-workflow]]), с ответвлением от текущей рабочей ветки:
 
-1. Create `.worktrees/<slug>-<T-N>` off the working branch for each parallel sibling.
-2. Dispatch one implementer subagent per worktree; each implements + runs its `check` in isolation.
-3. **Integrate one at a time.** As each sibling's `check` passes, merge/rebase its worktree back into
-   the working branch, then remove the worktree (`worktree-cleanup`). Serializing integration keeps the
-   branch history linear and surfaces conflicts one at a time.
-4. **On an integration conflict:** stop parallel integration for that layer, keep the already-integrated
-   results, and re-run the remaining siblings sequentially on the now-updated branch. A conflict means
-   the disjointness assumption was wrong — demote, don't force.
-5. **Verify the layer as a whole.** Each sibling's `check` passed in *its own* worktree — that does not
-   prove they pass *together* on the merged branch. After the whole layer is integrated, dispatch one
-   verification (build + the union of the layer's `check`s, or a quick whole-change smoke) **before**
-   starting the next layer. A green pass in isolation plus a red pass after merge is exactly the
-   cross-task breakage worktree isolation can hide. Do not proceed on isolated greens alone.
+1. Создать `.worktrees/<slug>-<T-N>` от рабочей ветки на каждого параллельного соседа.
+2. Отправить по одному субагенту-исполнителю на worktree; каждый реализует и гоняет свой `check`
+   изолированно.
+3. **Интегрировать по одному.** Как только `check` соседа прошёл, влить его worktree обратно в рабочую
+   ветку и убрать worktree (`worktree-cleanup`). Сериализация интеграции держит историю ветки линейной
+   и вскрывает конфликты по одному.
+4. **При конфликте интеграции:** остановить параллельную интеграцию этого слоя, сохранить уже влитые
+   результаты и прогнать оставшихся соседей последовательно на обновлённой ветке. Конфликт означает,
+   что предположение о непересечении было неверным: понижать, а не продавливать.
+5. **Проверить слой целиком.** `check` каждого соседа прошёл в *его собственном* worktree, и это не
+   доказывает, что они проходят *вместе* на слитой ветке. После интеграции всего слоя отправить одну
+   верификацию — сборка плюс объединение всех `check` слоя либо быстрый smoke по всему изменению —
+   **до** начала следующего слоя. Зелёное по отдельности и красное после слияния — ровно та
+   межзадачная поломка, которую изоляция в worktree и прячет. На одних изолированных зелёных дальше не
+   идти.
 
-For a purely sequential run, no worktree is needed: the implementer works the current tree directly
-(still a subagent — the main session never edits code).
+Для чисто последовательного прогона worktree не нужен: исполнитель работает прямо в текущем дереве —
+всё равно субагентом, главная сессия код не правит.
 
-## 4. Resume semantics
+## 4. Семантика возобновления
 
-`--resume` reads `progress.md` as the source of truth (never the chat or the ephemeral TodoWrite list,
-which does not survive a session — [[context-resilience]]):
+`--resume` читает `progress.md` как источник истины, а не чат и не эфемерный живой список задач,
+который сессию не переживает ([[context-resilience]]):
 
-- Every `[x]` task is treated as `completed`; its TodoWrite item is seeded `completed`.
-- Execution restarts at the first `[ ]` task, recomputing layers over the *remaining* tasks so an
-  interrupted parallel layer resumes correctly.
-- A task left `in_progress` in a prior run but unchecked in `progress.md` is **not** trusted as done —
-  it re-runs from scratch. Half-finished work is re-verified, never assumed.
+- Каждая задача с `[x]` считается выполненной; её пункт в живом списке сразу создаётся завершённым.
+- Исполнение стартует с первой задачи с `[ ]`, а слои пересчитываются по *оставшимся* задачам, чтобы
+  прерванный параллельный слой возобновился корректно.
+- Задача, оставшаяся в работе в прошлом прогоне, но не отмеченная в `progress.md`, выполненной **не**
+  считается — она прогоняется заново с нуля. Недоделанное перепроверяется, а не предполагается.
 
-## 5. `--dry-run` output
+## 5. Вывод `--dry-run`
 
-Print, and dispatch nothing:
+Напечатать и ничего не отправлять:
 
-- The resolved layers (`Layer 0: T-1 · Layer 1: T-2, T-3 · …`).
-- Per layer: sequential or parallel, and *why* (e.g. `parallel — disjoint files`, `sequential —
-  T-4/T-5 share src/db/schema.sql`).
-- Per task: the `model × effort` the dispatch would use and the `check` that will gate it.
+- Разрешённые слои (`Layer 0: T-1 · Layer 1: T-2, T-3 · …`).
+- По каждому слою: последовательно или параллельно и *почему* (`параллельно — файлы не пересекаются`,
+  `последовательно — T-4 и T-5 делят src/db/schema.sql`).
+- По каждой задаче: пара `model × effort`, с которой пойдёт отправка, и `check`, который её закроет.
 
-This is the "think through the options at launch" preview — it lets a human sanity-check the strategy
-before any code is written.
+Это предпросмотр «продумать варианты на старте»: он позволяет человеку проверить стратегию до того,
+как написана хоть строка кода.
