@@ -28,6 +28,9 @@ receipt:
 
 ## Rubric
 
+Разделы `## Rubric` и `## Prompt augmentation` остаются английскими: они уходят рецензентам дословно
+как дополнение промпта.
+
 Generic implementation-plan assessment. Each reviewer applies their expertise:
 
 - Scope of changes clearly described
@@ -68,18 +71,30 @@ look thorough — every finding must name the weakness, where it is, and why it 
 
 This rubric is what converts "a plan that passes" into "a plan that is right".
 
-## Agent pre-selection heuristic
+## Эвристика предварительного отбора агентов
 
-`reviewer_roster.primary` is intentionally empty. The engine falls back to **tech-match selection**: scan plan content for technology keywords, map to agent expertise, recommend 2–3 agents whose specialties the plan actually touches. Rules:
+`reviewer_roster.primary` намеренно пуст. Движок откатывается на **отбор по техническому
+соответствию**: просканировать содержимое плана на ключевые слова технологий, сопоставить их с
+экспертизой агентов и рекомендовать двух-трёх, чьи специальности план действительно затрагивает.
+Правила:
 
-- **Technology match** — plan must specifically mention technologies, frameworks, or layers the agent specializes in. Generic "architecture" or "security" relevance is NOT enough (e.g., `security-expert` only when plan touches auth, encryption, tokens, or user data; `architecture-expert` only when new modules, dependency direction changes, or public API modifications are involved).
-- **Problem-specific value** — would this agent catch issues that others on the panel wouldn't?
-- **Gap coverage** — does this agent cover a blind spot that other recommended agents miss?
+- **Совпадение по технологии** — план обязан конкретно упоминать технологии, фреймворки или слои, на
+  которых агент специализируется. Общей релевантности вроде «архитектура» или «безопасность НЕ
+  достаточно: `security-expert` — только когда план трогает авторизацию, шифрование, токены или
+  пользовательские данные; `architecture-expert` — только когда речь о новых модулях, смене
+  направления зависимостей или изменении публичного API.
+- **Ценность для конкретной проблемы** — поймает ли этот агент то, чего не поймают остальные в панели?
+- **Покрытие пробела** — закрывает ли он слепое пятно, которое другие рекомендованные агенты
+  пропускают?
 
-Prefer 2–3 agents, but quality over quantity — if only 1 is genuinely relevant, recommend 1 (permitted by `allow_single_reviewer: true`). `general-purpose` is a fallback only when no specialist covers a real gap.
+Предпочитать двух-трёх агентов, но качество важнее количества: если по-настоящему релевантен один,
+рекомендовать одного — это разрешено `allow_single_reviewer: true`. `general-purpose` — запасной
+вариант, только когда ни один специалист реального пробела не закрывает.
 
-## Source routing notes
+## Заметки по маршрутизации источника
 
-- **Plan Mode** — on FAIL/CONDITIONAL fix, engine calls `EnterPlanMode` with the issues list.
-- **File** — engine edits the plan file directly, adding `## Issues to Resolve` or restructuring inline.
-- **Conversation** — engine presents blockers and works through them with the user inline.
+- **Режим планирования** — при правке по FAIL и CONDITIONAL движок входит в режим планирования со
+  списком проблем.
+- **Файл** — движок правит файл плана напрямую, добавляя `## Issues to Resolve` либо перестраивая по
+  месту.
+- **Разговор** — движок показывает блокеры и разбирает их с пользователем инлайново.

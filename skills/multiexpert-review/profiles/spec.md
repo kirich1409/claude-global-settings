@@ -38,6 +38,9 @@ source_routing:
 
 ## Rubric
 
+Разделы `## Rubric` и `## Prompt augmentation` остаются английскими: они уходят рецензентам дословно
+как дополнение промпта.
+
 Reviewers evaluate the spec against these criteria. Each bullet carries the **item ID** (matches `severity_mapping.items`) in parentheses — use the ID verbatim in every Issue title stem so synthesizer aggregation and receipts stay greppable.
 
 ### Critical — spec is not implementable without these
@@ -62,18 +65,23 @@ Reviewers: evaluate the spec against the rubric above AND apply your general exp
 
 **Issue title stem format (mandatory):** `(<item_id>) <violated | partial | satisfied>: <one-line summary>`. Example: `(acceptance_criteria) violated: AC-R4 grep check unsatisfiable given AC-R6 whitelist`. This lets the engine map your issue to `severity_mapping` deterministically — unprefixed Issues fall back to reviewer-assigned severity, losing the profile's intended weighting.
 
-## Verdict policy
+## Политика вердикта
 
-Matches engine default for `[PASS, CONDITIONAL, FAIL]`:
+Совпадает с дефолтом движка для `[PASS, CONDITIONAL, FAIL]`:
 
-- **PASS** — no critical issues, no important improvements, or only minor suggestions
-- **CONDITIONAL** — no critical issues but major items from the rubric are violated (strongly recommended to fix before implementation)
-- **FAIL** — any critical rubric item violated OR any blocker from reviewer expertise
+- **PASS** — критических проблем нет, важных улучшений нет, есть только мелкие предложения.
+- **CONDITIONAL** — критических проблем нет, но нарушены major-пункты рубрики; настоятельно
+  рекомендуется починить до реализации.
+- **FAIL** — нарушен любой критический пункт рубрики ЛИБО есть блокер из экспертизы рецензента.
 
-## No receipt
+## Расписки нет
 
-Spec profile does not write a receipt. Verdict is a conversation-level output consumed by `write-spec` Phase 4 loop.
+Профиль spec расписку не пишет. Вердикт — вывод уровня разговора, который потребляет цикл фазы 4 у
+`write-spec`.
 
-## Rationale (why this profile exists)
+## Зачем этот профиль существует
 
-Before this profile, `write-spec` Phase 4.3 invoked the review engine on a spec artifact, and the detector silently classified it as an implementation-plan. The implementation-plan rubric is generic tech-review; it doesn't specifically check whether AC are falsifiable, whether Out of Scope is explicit, whether decisions have rationale, etc. Specs ended up reviewed by a rubric that didn't match their structure. This profile closes that drift.
+До него фаза 4.3 у `write-spec` вызывала движок ревью на артефакте-спеке, а детектор молча
+классифицировал её как implementation-plan. Рубрика implementation-plan — общее техническое ревью; она
+не проверяет специально, фальсифицируемы ли AC, явен ли Out of Scope, есть ли у решений обоснования.
+Спеки в итоге ревьюились рубрикой, не совпадающей с их структурой. Этот профиль закрывает тот дрейф.

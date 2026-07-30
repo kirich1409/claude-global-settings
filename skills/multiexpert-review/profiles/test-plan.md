@@ -44,6 +44,9 @@ receipt:
 
 ## Rubric
 
+Разделы `## Rubric` и `## Prompt augmentation` остаются английскими: они уходят рецензентам дословно
+как дополнение промпта.
+
 Every reviewer must evaluate the test-plan against these seven items and report the status of each one explicitly in their response. Copy the items verbatim into the review prompt so findings are comparable across agents:
 
 - **(a) AC coverage** — every Acceptance Criterion from the linked spec has ≥1 Test Case that verifies it. Missing or weak mapping is a violation.
@@ -54,15 +57,16 @@ Every reviewer must evaluate the test-plan against these seven items and report 
 - **(f) Type field present and valid** — every Test Case declares an explicit `Type` field with a value from {`unit`, `integration`, `ui-instrumentation`, `ui-scenario`, `screenshot`, `e2e`} and a non-empty one-line `Type rationale`. A missing `Type`, an unknown value, or an empty rationale violates this item. The selection heuristic in `write-plan/references/test-plan.md` §Type is the reference; reviewers do not re-classify TCs, only check that the field exists and the rationale is plausible.
 - **(g) Instrumentation declared** — when the spec / task is `user-facing` or `prod-bound`, or the feature touches an observability hot-path (network calls, payments, background jobs, auth, data migrations), the test plan ends with a `## Non-functional / Instrumentation` section that lists Log events / Metrics / Traces / Alerts / Dashboards (or sub-headings filled with concrete declarations). For internal / dev-only / pure-refactor work, an explicit `N/A: <reason>` (one line) is acceptable. A missing section, or one labelled simply `TBD` / `?` / blank, violates this item.
 
-## Verdict policy
+## Политика вердикта
 
-| Verdict | Trigger | Exit condition |
-|---------|---------|----------------|
-| **FAIL** (blocker) | Any of items **(a)**, **(b)**, **(c)**, **(f)** is violated | Plan MUST be revised. Engine drives the revise-loop up to 3 cycles. After 3 cycles still FAIL → escalate to user. Pipeline is blocked. |
-| **WARN** (non-blocking) | Items (a), (b), (c), (f) all satisfied, but **(d)**, **(e)**, or **(g)** is violated | Pipeline continues. Engine records `review_verdict: WARN` in the receipt with the explicit list of violated items. No revise-loop required. |
-| **PASS** (clean) | All seven items satisfied | Pipeline continues unconditionally. Engine records `review_verdict: PASS` in the receipt. |
+| Вердикт | Триггер | Условие выхода |
+|---|---|---|
+| **FAIL** (блокер) | нарушен любой из пунктов **(a)**, **(b)**, **(c)**, **(f)** | план ОБЯЗАН быть переработан. Движок ведёт цикл правок до трёх циклов. После третьего всё ещё FAIL → эскалация пользователю. Конвейер заблокирован. |
+| **WARN** (не блокирует) | (a), (b), (c), (f) выполнены все, но нарушен **(d)**, **(e)** либо **(g)** | конвейер продолжается. Движок записывает `review_verdict: WARN` в расписку с явным списком нарушенных пунктов. Цикл правок не требуется. |
+| **PASS** (чисто) | выполнены все семь пунктов | конвейер продолжается безусловно. Движок записывает `review_verdict: PASS` в расписку. |
 
-A single critical from any agent with medium-or-higher confidence is enough to trigger FAIL, matching the engine's aggregation rules.
+Одного critical от любого агента с confidence medium и выше достаточно, чтобы включить FAIL, — это
+совпадает с правилами агрегации движка.
 
 ## Prompt augmentation
 
@@ -82,16 +86,23 @@ Every agent reviewing a test-plan receives the following 7-item checklist verbat
 
 For every Issue you raise, use the item ID as the title stem — e.g. `(a) AC coverage: API X has no test case`. This keeps synthesizer aggregation greppable.
 
-## Receipt integration
+## Работа с распиской
 
-After Step 4 synthesis, the engine updates `swarm-report/<slug>-test-plan.md` (the receipt, not the permanent file at `docs/testplans/<slug>-test-plan.md`) with:
+После синтеза на шаге 4 движок обновляет `swarm-report/<slug>-test-plan.md` — именно расписку, а не
+постоянный файл в `docs/testplans/<slug>-test-plan.md`:
 
-- `review_verdict: PASS | WARN | FAIL`
-- On WARN: `review_warnings:` list enumerating violated items from `(d)`, `(e)`, `(g)` with one-line rationale each
-- On FAIL: `review_blockers:` list enumerating violated items from `(a)`, `(b)`, `(c)`, `(f)` with the blocking finding and suggested fix
+- `review_verdict: PASS | WARN | FAIL`;
+- на WARN — список `review_warnings:` с нарушенными пунктами из `(d)`, `(e)`, `(g)` и однострочным
+  обоснованием у каждого;
+- на FAIL — список `review_blockers:` с нарушенными пунктами из `(a)`, `(b)`, `(c)`, `(f)`,
+  блокирующей находкой и предлагаемым фиксом.
 
-The receipt format is owned by `write-plan/references/test-plan-receipt.md` — this profile only writes the three fields listed in `receipt.fields_to_update`.
+Форматом расписки владеет `write-plan/references/test-plan-receipt.md` — этот профиль пишет только три
+поля, перечисленные в `receipt.fields_to_update`.
 
-## Revise-loop (FAIL only)
+## Цикл правок (только на FAIL)
 
-Same state machine as the engine default: Verdict:FAIL → Fix Plan → Re-review, max 3 cycles. The "Fix Plan" action edits the permanent test-plan file at `docs/testplans/<slug>-test-plan.md`. Each cycle appends to `Verdict History` in the state file with the new verdict and remaining blockers.
+Тот же автомат состояний, что и дефолт движка: вердикт FAIL → починить план → перепрогнать ревью,
+максимум три цикла. Действие «починить план» правит постоянный файл тест-плана в
+`docs/testplans/<slug>-test-plan.md`. Каждый цикл дописывает в `Verdict History` файла состояния новый
+вердикт и оставшиеся блокеры.
