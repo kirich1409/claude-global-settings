@@ -1,31 +1,31 @@
-# Gap inventory
+# Инвентарь пробелов
 
-<!-- copy verbatim -->
+<!-- копировать дословно -->
 
-One row per site the RULEBOOK cannot translate mechanically. Appended to as sites surface during
-Phase 3 fan-out and review; a row is removed only once its marker is resolved and the marked code
-no longer carries it. See `rulebook.md` for what each marker means and why a marker without a row
-here is a leak.
+По строке на каждое место, которое RULEBOOK не транслирует механически. Дополняется по мере того, как
+такие места всплывают в веере фазы 3 и на ревью; строка убирается только тогда, когда её маркер снят и
+помеченный код его больше не несёт. Что означает каждый маркер и почему маркер без строки здесь
+является утечкой — в `rulebook.md`.
 
-## Columns
+## Колонки
 
-| Column | Meaning |
+| Колонка | Значение |
 |---|---|
-| `site` | File path plus line, symbol, or function that identifies the location |
-| `reason` | Why the RULEBOOK does not cover this site mechanically |
-| `marker` | One of `TODO(port)`, `BUG(port)`, `PERF(port)` |
-| `owner` | Role responsible for resolving the row |
-| `status` | `open` or `resolved` |
+| `site` | путь к файлу плюс строка, символ либо функция, идентифицирующие место |
+| `reason` | почему RULEBOOK не покрывает это место механически |
+| `marker` | один из `TODO(port)`, `BUG(port)`, `PERF(port)` |
+| `owner` | роль, отвечающая за закрытие строки |
+| `status` | `open` либо `resolved` |
 
-## Skeleton (tab-separated)
+## Скелет (через табуляцию)
 
 ```
 site	reason	marker	owner	status
 ```
 
-### Example (stack-specific)
+### Пример (зависит от стека)
 
 ```
-app/src/parser/Parser.kt:42	custom delegate has no direct kotlinx.serialization equivalent	TODO(port)	implementer-role	open
-app/src/parser/Parser.kt:88	migrated read path returns a different error type on malformed input	BUG(port)	fixer-role	open
+app/src/parser/Parser.kt:42	у кастомного делегата нет прямого эквивалента в kotlinx.serialization	TODO(port)	implementer-role	open
+app/src/parser/Parser.kt:88	мигрированный путь чтения возвращает другой тип ошибки на некорректном вводе	BUG(port)	fixer-role	open
 ```

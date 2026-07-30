@@ -1,56 +1,57 @@
 # RULEBOOK
 
-<!-- copy verbatim -->
+<!-- копировать дословно -->
 
-Single source of translation decisions for this migration. Read-only inside a batch; amendments
-land only between batches, never mid-batch. See `rulebook.md` for the discipline this document
-follows.
+Единственный источник решений о трансляции для этой миграции. Внутри пачки только для чтения; поправки
+садятся только между пачками, никогда посреди пачки. Дисциплина, которой следует этот документ, — в
+`rulebook.md`.
 
-## Scope
+## Область
 
-- Migration: `<source technology> -> <target technology>`
-- Owner: rule-author-role
-- Status: `draft` while stress-testing in Phase 2, `frozen for batch N` once fan-out starts
+- Миграция: `<исходная технология> -> <целевая технология>`
+- Владелец: rule-author-role
+- Статус: `draft`, пока идёт проверка на прочность в фазе 2; `frozen for batch N`, как только начался
+  веер
 
-## How to read a rule entry
+## Как читать запись правила
 
-Each rule states what triggers it, what it becomes, why, and what it explicitly does not cover.
-An entry with no rationale is not a rule yet.
+Каждое правило говорит, что его включает, во что это превращается, почему и что оно явно не
+покрывает. Запись без обоснования правилом ещё не является.
 
-## Rules
+## Правила
 
-### Rule 001: `<short name>`
+### Rule 001: `<короткое имя>`
 
-- Source pattern: `<what triggers this rule>`
-- Target pattern: `<what it becomes>`
-- Rationale: `<why, one line>`
-- Exceptions: `<named exceptions, or "none">`
+- Source pattern: `<что включает это правило>`
+- Target pattern: `<во что превращается>`
+- Rationale: `<почему, одной строкой>`
+- Exceptions: `<именованные исключения либо "нет">`
 
-### Rule 002: `<short name>`
+### Rule 002: `<короткое имя>`
 
-- Source pattern: `<what triggers this rule>`
-- Target pattern: `<what it becomes>`
-- Rationale: `<why, one line>`
-- Exceptions: `<named exceptions, or "none">`
+- Source pattern: `<что включает это правило>`
+- Target pattern: `<во что превращается>`
+- Rationale: `<почему, одной строкой>`
+- Exceptions: `<именованные исключения либо "нет">`
 
-### Example (stack-specific)
+### Пример (зависит от стека)
 
-Rule 003: Gson field annotation
+Rule 003: аннотация поля Gson
 
-- Source pattern: `@SerializedName("foo")` on a Kotlin data class field
-- Target pattern: `@SerialName("foo")` on the field plus `@Serializable` on the class
-- Rationale: kotlinx.serialization requires an explicit opt-in annotation on the class; Gson does
-  not, so the class-level annotation must be added the first time any field on it is touched
-- Exceptions: none
+- Source pattern: `@SerializedName("foo")` на поле Kotlin data-класса
+- Target pattern: `@SerialName("foo")` на поле плюс `@Serializable` на классе
+- Rationale: kotlinx.serialization требует явной opt-in аннотации на классе, а Gson нет, поэтому
+  аннотацию уровня класса надо добавить при первом же касании любого его поля
+- Exceptions: нет
 
-## Open questions
+## Открытые вопросы
 
-Cases the rule set does not yet decide. Parked here between batches; a batch does not start on an
-open question, it starts once the question becomes a rule.
+Случаи, которые набор правил пока не решает. Паркуются здесь между пачками; пачка не стартует на
+открытом вопросе — она стартует, когда вопрос стал правилом.
 
-## Amendment log
+## Журнал поправок
 
-One row per amendment, filled in between batches, never during one.
+По строке на поправку, заполняется между пачками, никогда во время пачки.
 
-| Batch boundary | Rule changed | Why | Sites re-run |
+| Граница пачки | Изменённое правило | Почему | Перепрогнанные места |
 |---|---|---|---|

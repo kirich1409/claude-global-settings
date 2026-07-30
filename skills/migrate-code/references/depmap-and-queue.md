@@ -1,79 +1,77 @@
-# Dependency map and work queue
+# Карта зависимостей и очередь работ
 
-Both mechanisms in this file are **patterns, not tooling**. Nothing here ships as a script; the
-agent running a migration generates a dependency map and a work queue in place, in whatever form
-fits the stack — a text list, a small table, a scratch file next to the RULEBOOK. What is fixed is
-the shape of the pattern and the guarantee it buys, not an implementation.
+Оба механизма в этом файле — **паттерны, а не инструменты**. Ничего здесь не поставляется скриптом:
+агент, ведущий миграцию, порождает карту зависимостей и очередь работ на месте, в той форме, что
+подходит стеку, — текстовым списком, небольшой таблицей, scratch-файлом рядом с RULEBOOK. Зафиксированы
+форма паттерна и гарантия, которую он покупает, но не реализация.
 
-## Dependency map (generate in place)
+## Карта зависимостей (порождается на месте)
 
-The dependency map orders translation so that a file is only translated after everything it needs
-to compile against has already been translated (or is stable enough not to matter). It is built
-once in Phase 1, from the same pass over the codebase that seeds the RULEBOOK, and it does not need
-to be exact — it needs to be a deterministic, reproducible ordering that two runs of the same
-analysis would agree on.
+Карта зависимостей упорядочивает трансляцию так, чтобы файл транслировался только после всего, против
+чего он должен компилироваться, — либо после того, что достаточно стабильно, чтобы это не имело
+значения. Строится один раз в фазе 1, тем же проходом по кодовой базе, который засевает RULEBOOK, и
+точной быть не обязана: она обязана быть детерминированным воспроизводимым порядком, с которым
+согласились бы два прогона одного и того же анализа.
 
-Building it:
+Построение:
 
-1. Enumerate the files or units in scope for the migration.
-2. For each one, list what it depends on that is also in scope (imports, references, injected
-   collaborators — whatever the stack's dependency relation is).
-3. Produce a topological order over that graph: a file appears after everything it depends on.
+1. Перечислить файлы или единицы, попадающие в область миграции.
+2. Для каждой перечислить то, от чего она зависит и что тоже в области: импорты, ссылки, внедряемые
+   соседи — что бы ни было отношением зависимости в этом стеке.
+3. Выдать топологический порядок по этому графу: файл идёт после всего, от чего зависит.
 
-**Cycles are handled as one batch, not resolved by breaking the cycle.** A cycle in the dependency
-graph means the files inside it cannot be individually ordered relative to each other without
-inventing an artificial cut that the source code does not actually have. Rather than force an
-order, treat every file in a cycle as a single unit of work: translate all of them together, verify
-them together, and let the queue mark the whole cycle done at once. Breaking a cycle by picking an
-arbitrary member to go first is a decision the RULEBOOK should own explicitly if it is ever needed
-— it is not the dependency map's job to make that call silently.
+**Циклы обрабатываются одной пачкой, а не разрываются.** Цикл в графе зависимостей означает, что файлы
+внутри него нельзя упорядочить друг относительно друга, не выдумав искусственного разреза, которого в
+исходном коде нет. Вместо того чтобы навязывать порядок, считать все файлы цикла одной единицей работы:
+транслировать их вместе, проверять вместе и позволить очереди пометить весь цикл выполненным разом.
+Разрыв цикла произвольным выбором того, кто пойдёт первым, — решение, которым RULEBOOK должен владеть
+явно, если оно вообще понадобится; принимать его молча не работа карты зависимостей.
 
-**For cross-cutting topology, the dependency map is a graph of injections, not of files.** When the
-unit of work is an aspect of the graph (a DI container, a logging backend) rather than a single
-file, the map orders the aspect's touch points — where the aspect is configured, where it is
-injected, where call sites consume it — the same way it would order files in a localized migration.
-The topology distinction and its consequences (interop bridge vs big-bang, why the compiler is not
-a referee here) belong to `cross-cutting.md`; this file only supplies the ordering mechanism that
-cross-cutting migrations reuse.
+**Для сквозной топологии карта зависимостей это граф внедрений, а не файлов.** Когда единица работы это
+аспект графа (DI-контейнер, бэкенд логирования), а не отдельный файл, карта упорядочивает точки касания
+аспекта — где он конфигурируется, где внедряется, где его потребляют места вызова — точно так же, как
+упорядочила бы файлы в локализованной миграции. Различие топологий и его последствия (interop-мост
+против big-bang, почему компилятор здесь не арбитр) принадлежат `cross-cutting.md`; этот файл даёт
+только механизм упорядочивания, который сквозные миграции переиспользуют.
 
-## Work queue (generate in place)
+## Очередь работ (порождается на месте)
 
-The work queue tracks what remains to be translated. Its state lives entirely on disk, in the
-target files the migration produces — there is no separate queue file, database, or in-memory list
-that must be kept in sync with reality.
+Очередь работ отслеживает то, что осталось транслировать. Её состояние целиком живёт на диске, в
+целевых файлах, которые производит миграция: нет ни отдельного файла очереди, ни базы, ни списка в
+памяти, который надо держать согласованным с реальностью.
 
-The rule that makes this work: `done = target file exists on disk`. A site is done when its
-migrated output exists where the RULEBOOK says it should; it is not done otherwise. There is no
-third state and no separate bookkeeping to fall out of sync with the code.
+Правило, благодаря которому это работает: `готово = целевой файл существует на диске`. Место готово,
+когда его мигрированный выход лежит там, где велит RULEBOOK; иначе не готово. Третьего состояния нет,
+как нет и отдельного учёта, который мог бы разъехаться с кодом.
 
-**The queue is rebuilt from disk at the start of every cycle, not carried forward from memory.**
-Each cycle, re-derive "what remains" by diffing the dependency map's full site list against what
-already exists on disk, honoring the topological order from the dependency map. This is why the
-mechanism is **resumable by construction**: nothing about progress is stored anywhere that an
-agent's death, a context compaction, or a session restart could lose. The queue is not resumed —
-it is recomputed, and recomputing it always produces the same answer a from-scratch run would,
-because the only source of truth is the disk state the previous cycle actually left behind. An
-external state file would need to be kept consistent with the filesystem by hand; deriving the
-queue from the filesystem removes the category of bug where the two disagree.
+**Очередь пересобирается с диска в начале каждого цикла, а не переносится из памяти.** Каждый цикл
+заново выводить «что осталось», сравнивая полный список мест из карты зависимостей с тем, что уже есть
+на диске, и соблюдая топологический порядок карты. Именно поэтому механизм **возобновляем по
+построению**: ничто о прогрессе не хранится там, где его могли бы потерять смерть агента, сжатие
+контекста или перезапуск сессии. Очередь не возобновляют — её пересчитывают, и пересчёт всегда даёт тот
+же ответ, что дал бы прогон с нуля, потому что единственный источник истины это состояние диска,
+реально оставленное предыдущим циклом. Внешний файл состояния пришлось бы держать согласованным с
+файловой системой вручную; вывод очереди из файловой системы убирает целый класс багов, где эти двое
+расходятся.
 
-This also means a batch never has to be told to "continue from where it left off" — every cycle
-already starts by asking the disk what remains, so the next cycle behaves identically whether the
-previous one finished, crashed, or was interrupted mid-batch. The `TODO(port)` / `BUG(port)` /
-`PERF(port)` markers from `rulebook.md` layer on top of this same idea: a marker in an existing
-target file means the site exists but is not actually done, so the work queue's plain
-existence check is not the *only* gate before Phase 6 — a done site with an open marker is still an
-open item for the gap inventory, even though the file is on disk.
+Отсюда же следует, что пачке никогда не нужно говорить «продолжай с того места, где остановился»:
+каждый цикл и так начинается с вопроса к диску о том, что осталось, поэтому следующий цикл ведёт себя
+одинаково независимо от того, завершился предыдущий, упал или был прерван посреди пачки. Маркеры
+`TODO(port)`, `BUG(port)` и `PERF(port)` из `rulebook.md` ложатся поверх той же идеи: маркер в
+существующем целевом файле означает, что место существует, но на деле не готово, — значит простая
+проверка существования из очереди работ **не единственный** гейт перед фазой 6: готовое место с
+открытым маркером остаётся открытым пунктом для инвентаря пробелов, хотя файл на диске и лежит.
 
-## Waiting on the queue
+## Ожидание очереди
 
-A cycle that dispatches translation, compilation, or review work must wait for that work to finish
-before rebuilding the queue for the next cycle — and that wait is a **poll on a real condition
-with a hard upper bound**, never a fixed sleep chosen to be "probably long enough." Poll for the
-actual signal the cycle depends on (a file appearing, a process exiting, a log line showing up),
-on a short interval, and stop polling and fail loudly once the upper bound is reached rather than
-continuing to wait silently. A fixed sleep either wastes time when the condition resolves early or
-produces a flaky failure when it does not resolve in time — an upper-bounded poll does neither, and
-a loud failure at the bound gives the operator something to act on instead of a migration that
-silently never progressed past a cycle. The environment this skill runs in may already provide a
-small helper for this poll-with-timeout shape (e.g. `wait-for.sh`); use it if present, otherwise
-implement the same poll-with-bound shape directly.
+Цикл, отправивший трансляцию, компиляцию или ревью, обязан дождаться завершения этой работы до
+пересборки очереди для следующего цикла — и это ожидание есть **опрос реального условия с жёсткой
+верхней границей**, а не фиксированный `sleep`, выбранный «наверное, хватит». Опрашивать тот сигнал,
+от которого цикл реально зависит (появился файл, процесс завершился, в логе возникла строка), коротким
+интервалом, а по достижении верхней границы прекращать опрос и падать громко, а не ждать молча дальше.
+Фиксированный `sleep` либо тратит время, когда условие наступило раньше, либо даёт плавающий отказ,
+когда оно не наступило вовремя; опрос с границей не делает ни того ни другого, а громкое падение на
+границе даёт оператору повод действовать вместо миграции, которая молча так и не сдвинулась дальше
+одного цикла. Окружение, в котором работает этот скилл, может уже давать небольшой хелпер под форму
+«опрос с таймаутом» (например `wait-for.sh`) — использовать его, если он есть, иначе реализовать ту же
+форму напрямую.
