@@ -1,169 +1,163 @@
-# Phase 0: Analysis
+# Фаза 0: анализ
 
-Phase 0 runs before any file is touched. It produces nine outputs, in a fixed order, and ends
-with a proposed execution mode that a human confirms or overrides. Nothing in Phase 1 onward is
-scheduled until this phase is complete.
+Фаза 0 идёт до того, как тронут хоть один файл. Она производит девять выходов в фиксированном порядке
+и заканчивается предложенным режимом исполнения, который человек подтверждает или переопределяет.
+Ничто начиная с фазы 1 не планируется, пока эта фаза не завершена.
 
-## Procedure
+## Процедура
 
-Work through the outputs in order; each later output depends on at least one earlier one.
+Идти по выходам по порядку; каждый последующий зависит хотя бы от одного предыдущего.
 
-1. Read the target code and classify the migration against the taxonomy in `scope.md` — this
-   fixes what "in scope" means for everything that follows.
-2. Map the topology: is the change contained to one module boundary (localized), or does it cross
-   a graph or a shared layer (cross-cutting)? Topology decides whether the judge can be
-   compile-time or must be a runtime one — see `cross-cutting.md` for the graph case.
-3. Build the verification matrix for this specific migration using the level definitions in
-   `verification-matrix.md`, and pick the minimum level that can actually distinguish correct
-   from incorrect here.
-4. Run the judge coverage assessment: how much of the surface the chosen judge actually watches,
-   measured on the code as it stands today. Procedure and instrumentation: `judge.md` §
-   Judge coverage assessment.
-5. Build the test coupling inventory: which existing tests are agnostic to the outgoing
-   technology and which are welded to it. This is a distinct output from the coverage assessment
-   above — one measures how much is watched, the other measures how portable the watching is.
-   Procedure: `judge.md` § Test coupling inventory.
-6. Assess risk: blast radius (how much breaks if a rule is wrong), volume (how many sites), and
-   known hazards specific to this migration (for example, a serialization format that must match
-   byte-for-byte, or a DI graph whose resolution order the compiler cannot check).
-7. Detect a legacy profile: the changed surface has no usable judge — no tests reach it, or
-   output 5 classified every test that covers it as coupled to the outgoing technology — or the
-   project has no regression pass before release. A legacy profile does not block the migration;
-   it changes which judge branch applies — see `safety-net.md`.
-8. Propose an execution mode to the human, using the risk-versus-verification-cost reasoning
-   below.
-9. Record the safety-net decision: whether a judge is already reachable, or one of the three
-   entry branches in `safety-net.md` must run first, or — in the worst case — no branch produces
-   a valid judge and the migration is a NO-GO.
+1. Прочитать целевой код и классифицировать миграцию по таксономии из `scope.md` — это фиксирует, что
+   значит «в области» для всего дальнейшего.
+2. Разметить топологию: изменение заперто внутри одной границы модуля (локализованное) либо пересекает
+   граф или общий слой (сквозное)? Топология решает, может ли судья быть компиляционным или обязан быть
+   рантаймовым, — случай графа в `cross-cutting.md`.
+3. Построить матрицу верификации для этой конкретной миграции по определениям уровней из
+   `verification-matrix.md` и выбрать минимальный уровень, реально отличающий здесь верное от неверного.
+4. Провести оценку покрытия судьи: какую долю поверхности выбранный судья действительно наблюдает,
+   измеренную на коде в его сегодняшнем виде. Процедура и инструментарий — `judge.md`, §Оценка покрытия
+   судьи.
+5. Построить инвентарь связанности тестов: какие существующие тесты нейтральны к уходящей технологии, а
+   какие к ней приварены. Это отдельный выход от оценки покрытия выше: одна измеряет, сколько
+   наблюдается, другая — насколько это наблюдение переносимо. Процедура — `judge.md`, §Инвентарь
+   связанности тестов.
+6. Оценить риск: радиус поражения (сколько сломается, если правило неверно), объём (сколько мест) и
+   известные опасности этой конкретной миграции (формат сериализации, обязанный совпасть побайтово;
+   граф DI, порядок разрешения которого компилятор проверить не может).
+7. Обнаружить legacy-профиль: у изменяемой поверхности нет пригодного судьи — тесты до неё не достают
+   либо выход 5 отнёс каждый покрывающий её тест к приваренным к уходящей технологии, — или у проекта
+   нет регрессионного прогона перед релизом. Legacy-профиль миграцию не блокирует: он меняет, какая
+   ветка судьи применима, — см. `safety-net.md`.
+8. Предложить человеку режим исполнения, опираясь на рассуждение «риск против стоимости верификации»
+   ниже.
+9. Записать решение по страховочной сетке: судья уже достижим; либо сначала должна отработать одна из
+   трёх входных веток из `safety-net.md`; либо, в худшем случае, ни одна ветка валидного судьи не даёт
+   и миграция это NO-GO.
 
-## Phase 0 outputs
+## Выходы фазы 0
 
-1. Migration type.
-2. Topology.
-3. Verification matrix.
-4. Judge coverage assessment.
-5. Test coupling inventory.
-6. Risk assessment.
-7. Legacy-profile detection.
-8. Proposed execution mode.
-9. Safety-net decision.
+1. Тип миграции.
+2. Топология.
+3. Матрица верификации.
+4. Оценка покрытия судьи.
+5. Инвентарь связанности тестов.
+6. Оценка риска.
+7. Обнаружение legacy-профиля.
+8. Предложенный режим исполнения.
+9. Решение по страховочной сетке.
 
-Outputs 4 and 5 stay separate. Coverage assessment answers "how much does the judge see"; coupling
-inventory answers "how tied to the outgoing technology are the tests that provide that coverage".
-A migration can score well on one and badly on the other — high coverage from tests that assert on
-the library being replaced is not evidence the migration is safe, it is evidence the judge will
-need rewriting mid-flight.
+Выходы 4 и 5 остаются раздельными. Оценка покрытия отвечает на вопрос «сколько видит судья», инвентарь
+связанности — «насколько привязаны к уходящей технологии те тесты, которые это покрытие дают». Миграция
+может хорошо выглядеть по одному и плохо по другому: высокое покрытие тестами, которые утверждают о
+заменяемой библиотеке, — не доказательство того, что миграция безопасна, а доказательство того, что
+судью придётся переписывать на лету.
 
-## Output details
+## Подробности выходов
 
-### Migration type and topology (outputs 1-2)
+### Тип миграции и топология (выходы 1–2)
 
-Owned by `scope.md` and `cross-cutting.md` respectively. Phase 0 applies the taxonomy; it does not
-redefine it. Misclassifying topology is the most expensive mistake available here, because it
-silently invalidates whatever judge gets picked next — a cross-cutting change judged as if it were
-localized looks green on tests that never exercised the shared graph.
+Ими владеют `scope.md` и `cross-cutting.md` соответственно. Фаза 0 применяет таксономию, но не
+переопределяет её. Неверная классификация топологии — самая дорогая доступная здесь ошибка, потому что
+она молча обесценивает любого следующего выбранного судью: сквозное изменение, судимое как
+локализованное, выглядит зелёным на тестах, которые общий граф никогда не нагружали.
 
-### Verification matrix (output 3)
+### Матрица верификации (выход 3)
 
-Owned by `verification-matrix.md`. The matrix names, for this migration specifically, whether the
-compiler is a referee, whether existing tests are sufficient, whether a runtime check is required,
-and the minimum judge level that clears the bar. Re-derive it per migration; do not reuse a matrix
-from a previous one even on the same stack.
+Ею владеет `verification-matrix.md`. Матрица называет для этой конкретной миграции, является ли
+компилятор арбитром, достаточно ли существующих тестов, требуется ли рантайм-проверка и какой
+минимальный уровень судьи берёт планку. Выводить её заново на каждую миграцию; не переиспользовать
+матрицу от предыдущей даже на том же стеке.
 
-### Judge coverage assessment and test coupling inventory (outputs 4-5)
+### Оценка покрытия судьи и инвентарь связанности тестов (выходы 4–5)
 
-Owned by `judge.md`. Both are measured on the code as it exists before any translation starts, not
-projected forward. A coverage number measured after translation has already begun tells you
-nothing about the risk you were carrying when you started.
+Ими владеет `judge.md`. Оба измеряются на коде в том виде, в каком он существует до начала любой
+трансляции, а не проецируются вперёд. Число покрытия, измеренное после того, как трансляция уже
+началась, ничего не говорит о риске, который вы несли на старте.
 
-### Risk assessment (output 6)
+### Оценка риска (выход 6)
 
-Blast radius, volume, and hazards specific to the migration. Blast radius is what a wrong RULEBOOK
-rule corrupts, not what a wrong translation in a single file corrupts — a rule error propagates to
-every site the rule touches. Volume is the size of the work queue once the dependency map exists.
-Hazards are the recurring cases where a green build understates the actual risk: a byte-level
-format that must round-trip identically, or a runtime dependency graph that compiles cleanly while
-broken.
+Радиус поражения, объём и опасности конкретной миграции. Радиус поражения — это то, что портит неверное
+правило RULEBOOK, а не то, что портит неверная трансляция в одном файле: ошибка правила
+распространяется на каждое место, которого правило касается. Объём — размер очереди работ, как только
+появилась карта зависимостей. Опасности — повторяющиеся случаи, где зелёная сборка занижает реальный
+риск: побайтовый формат, обязанный ходить туда-обратно идентично, либо граф зависимостей рантайма,
+который компилируется чисто, будучи сломанным.
 
-### Legacy-profile detection (output 7)
+### Обнаружение legacy-профиля (выход 7)
 
-A binary check with three independent triggers, each sufficient on its own: the changed surface has
-no tests reaching it, or every test that does reach it was classified coupled in output 5, or the
-project ships without a regression pass before release. Any trigger routes to `safety-net.md`
-before Phase 1 starts, because Phase 1 assumes a reachable judge exists.
+Бинарная проверка с тремя независимыми триггерами, каждый достаточен сам по себе: до изменяемой
+поверхности не достают тесты; либо каждый достающий тест классифицирован в выходе 5 как приваренный;
+либо проект отгружается без регрессионного прогона перед релизом. Любой триггер маршрутизирует в
+`safety-net.md` до начала фазы 1, потому что фаза 1 предполагает, что достижимый судья существует.
 
-The middle trigger is why output 7 reads output 5 rather than counting test files. A surface whose
-coverage is entirely coupled to the outgoing technology has, in `judge.md` § Test coupling
-inventory's words, no judge at all: the suite dies with the technology it asserts on, and rewriting
-its assertions to compile against the new code destroys exactly the stability that made it a judge.
-Tests existing is not the condition; a judge surviving the migration is. Read the trigger as "no
-usable judge on the changed surface", and a fully coupled suite satisfies it as surely as an empty
-one.
+Средний триггер — причина, по которой выход 7 читает выход 5, а не считает файлы тестов. У поверхности,
+чьё покрытие целиком приварено к уходящей технологии, словами `judge.md` §Инвентарь связанности,
+судьи нет вообще: сьют умирает вместе с технологией, о которой утверждает, а переписывание его
+утверждений так, чтобы они компилировались против нового кода, уничтожает ровно ту стабильность, которая
+делала его судьёй. Условием является не существование тестов, а выживание судьи после миграции. Читать
+триггер надо как «на изменяемой поверхности нет пригодного судьи», и полностью приваренный сьют
+удовлетворяет ему так же надёжно, как пустой.
 
-### Safety-net decision (output 9)
+### Решение по страховочной сетке (выход 9)
 
-Owned by `safety-net.md`. Three possible outcomes: a judge is already reachable and no safety net
-is needed; one of the three entry branches runs first; or no branch produces a valid judge, which
-is a NO-GO — see the STOP conditions owned by `scope.md`.
+Им владеет `safety-net.md`. Три возможных исхода: судья уже достижим и сетка не нужна; сначала работает
+одна из трёх входных веток; либо ни одна ветка валидного судьи не даёт — это NO-GO, см. условия STOP,
+которыми владеет `scope.md`.
 
-## Mode selection: risk versus verification cost
+## Выбор режима: риск против стоимости верификации
 
-The proposed mode is a function of two independent axes, not a single risk score:
+Предлагаемый режим — функция двух независимых осей, а не одной оценки риска:
 
-- **Risk** — what output 6 measured: blast radius, volume, and hazards. A localized swap of a
-  small library touched by a handful of call sites is low risk regardless of how it is verified. A
-  cross-cutting DI container swap is high risk by construction, because it changes resolution and
-  singleton semantics everywhere the container is used.
-- **Verification cost** — what outputs 3-5 measured: how expensive it is to run the chosen judge.
-  A judge that is a command anyone can issue and that returns in seconds or minutes — compiler,
-  existing suite, a recorded baseline diffed automatically — is cheap. A judge that cannot produce
-  a verdict without a system driven end to end, a device, a provisioned environment or a human
-  observing the result is expensive, independent of how risky the underlying change is.
+- **Риск** — то, что измерил выход 6: радиус поражения, объём, опасности. Локализованная замена
+  небольшой библиотеки, которую трогает горстка мест вызова, — низкий риск независимо от того, чем она
+  проверяется. Сквозная замена DI-контейнера — высокий риск по построению, потому что она меняет
+  семантику разрешения и синглтонов везде, где контейнер используется.
+- **Стоимость верификации** — то, что измерили выходы 3–5: во что обходится прогон выбранного судьи.
+  Судья, который сводится к команде, доступной любому, и возвращается за секунды или минуты
+  (компилятор, существующий сьют, записанный baseline, сравниваемый автоматически), дёшев. Судья,
+  который не может выдать вердикт без сквозного прогона системы, устройства, поднятого окружения или
+  человека, наблюдающего результат, дорог — независимо от того, насколько рискованно само изменение.
 
-  **Cost is what it takes to run the judge, not the label of the level it sits at.** The two come
-  apart in both directions and the level label is the wrong input here: an L3 golden-master diff
-  that is a recorded payload and one assertion runs in the same second as the unit tests, while an
-  L2 reachable only by a person working through a suite by hand is expensive. Read this axis by
-  the run.
+  **Стоимость — это то, что нужно для прогона судьи, а не ярлык уровня, на котором он стоит.** Эти двое
+  расходятся в обе стороны, и ярлык уровня здесь неверный вход: дифф golden master на L3, состоящий из
+  записанной полезной нагрузки и одного утверждения, отрабатывает за ту же секунду, что и юнит-тесты, а
+  L2, достижимый только человеком, вручную проходящим сьют, дорог. Читать эту ось по прогону.
 
-Combining the two axes gives the proposed mode:
+Сочетание двух осей даёт предлагаемый режим:
 
-- **Cheap verification, low risk** (the judge runs unattended on one command in seconds to
-  minutes, *and* output 6 came back low risk — small blast radius, bounded volume) → propose
-  **autonomous**: the loop runs
-  through Phase 6 without a human checkpoint between phases, because a wrong result is caught
-  cheaply and immediately by the judge itself. The minimum valid level does not gate this corner:
-  an L3 judge that runs in one command is cheap verification and belongs here.
-- **Expensive verification, high risk** (no verdict without a human in the observation loop, a
-  device or a provisioned environment, *and* output 6 came back high risk) → propose
-  **human-gated**: a human reviews the RULEBOOK before fan-out and reviews
-  Phase 6 results before the migration is considered done, because a wrong result here is
-  expensive to detect and expensive to undo.
-- Everything between the two — cheap-verification-high-risk, or expensive-verification-low-risk,
-  or moderate on both axes (a judge that needs some orchestration but no human observer, over a
-  change whose radius is real but bounded), or anything that does not clearly sit at either corner
-  — proposes **adaptive**, the default: run the loop end to end but surface each phase's result
-  for a light-touch confirmation rather than a full review, escalating to a checkpoint only where
-  output 6 or output 9 flagged a hazard.
+- **Дёшево проверить, низкий риск** (судья идёт без присмотра по одной команде за секунды или минуты
+  *и* выход 6 вернул низкий риск — маленький радиус, ограниченный объём) → предлагать **автономный**:
+  цикл идёт до фазы 6 без чекпойнтов человека между фазами, потому что неверный результат ловится
+  дёшево и немедленно самим судьёй. Минимальный валидный уровень этот угол не ограничивает: судья L3,
+  отрабатывающий по одной команде, — это дешёвая верификация, и его место здесь.
+- **Дорого проверить, высокий риск** (вердикта нет без человека в цикле наблюдения, устройства или
+  поднятого окружения *и* выход 6 вернул высокий риск) → предлагать **с гейтами человека**: человек
+  ревьюит RULEBOOK до веера и ревьюит результаты фазы 6 до того, как миграция считается завершённой,
+  потому что неверный результат здесь дорого обнаружить и дорого откатить.
+- Всё между двумя углами — дёшево при высоком риске, дорого при низком, среднее по обеим осям (судья,
+  которому нужна какая-то оркестрация, но не наблюдатель-человек, над изменением, чей радиус реален, но
+  ограничен), и вообще всё, что не ложится чётко ни в один угол, — предлагает **адаптивный**, дефолт:
+  прогнать цикл сквозняком, но выносить результат каждой фазы на лёгкое подтверждение вместо полного
+  ревью, эскалируя до чекпойнта только там, где выход 6 или выход 9 отметили опасность.
 
-**Two axes, and nothing else, select the mode.** Each corner is a conjunction of both axes, so no
-input matches more than one bullet, and everything that matches neither corner falls to adaptive.
-Topology and the legacy profile are inputs to the axes, not a third gate: cross-cutting topology is
-what makes risk high by construction (Risk axis above), and a legacy profile is expensive
-verification exactly when its judge needs a human in the observation loop. A cross-cutting migration
-whose judge is one unattended command is therefore high risk with cheap verification — adaptive,
-with the escalations output 6 and output 9 ask for. Reading topology as a direct human-gated trigger
-is an error.
+**Режим выбирают две оси и ничего больше.** Каждый угол — конъюнкция обеих осей, поэтому ни один вход
+не подходит больше чем под один пункт, а всё, что не подходит ни под один угол, падает в адаптивный.
+Топология и legacy-профиль — входы этих осей, а не третий гейт: сквозная топология это то, что делает
+риск высоким по построению (ось риска выше), а legacy-профиль означает дорогую верификацию ровно тогда,
+когда его судье нужен человек в цикле наблюдения. Сквозная миграция, чей судья — одна команда без
+присмотра, следовательно, высокорисковая с дешёвой верификацией: адаптивный режим с теми эскалациями,
+которых просят выходы 6 и 9. Читать топологию как прямой триггер режима с гейтами человека — ошибка.
 
-**The proposal is not the decision.** Phase 0 names a mode and states the reasoning that produced
-it; the human confirms, downgrades, or upgrades it before Phase 1 starts. A cheap-and-low-risk
-proposal that the human wants reviewed anyway is a valid outcome, and so is a human choosing to
-run a nominally high-risk migration autonomously because the codebase is disposable. The function
-above produces a recommendation, not an authorization.
+**Предложение не является решением.** Фаза 0 называет режим и излагает рассуждение, которое к нему
+привело; человек подтверждает, понижает или повышает его до начала фазы 1. Дешёвое и низкорисковое
+предложение, которое человек всё равно хочет отревьюить, — валидный исход, как и решение человека
+прогнать номинально высокорисковую миграцию автономно, потому что кодовая база одноразовая. Функция
+выше производит рекомендацию, а не разрешение.
 
-## References
+## Ссылки
 
-- Taxonomy and topology definitions: [scope.md](scope.md)
-- Verification levels and minimum-valid-level procedure: [verification-matrix.md](verification-matrix.md)
-- Judge sources, coverage assessment, coupling inventory: [judge.md](judge.md)
-- Safety-net entry branches and the NO-GO condition: [safety-net.md](safety-net.md)
+- Таксономия и определения топологии: [scope.md](scope.md)
+- Уровни верификации и процедура выбора минимального валидного: [verification-matrix.md](verification-matrix.md)
+- Источники судьи, оценка покрытия, инвентарь связанности: [judge.md](judge.md)
+- Входные ветки страховочной сетки и условие NO-GO: [safety-net.md](safety-net.md)
