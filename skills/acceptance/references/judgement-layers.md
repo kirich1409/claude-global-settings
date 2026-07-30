@@ -1,108 +1,109 @@
-Referenced from: `~/.claude/skills/acceptance/SKILL.md` (§Step 4 — Judgement Layers).
+Ссылается из: `~/.claude/skills/acceptance/SKILL.md` (§Шаг 4, слои суждения).
 
-# Judgement layers (L1b) — routing, fix loop, budget
+# Слои суждения (L1b) — маршрутизация, цикл фиксов, бюджет
 
-`code-reviewer` always runs. Every other reviewer is conditional and fires on **either** spec
-frontmatter **or** a diff pattern. Both paths matter: frontmatter declares intent, but bug
-fixes and unspec'd tasks carry no frontmatter at all, so a frontmatter-only gate silently
-under-reviews exactly the changes least likely to have been designed.
+`code-reviewer` работает всегда. Все остальные ревьюеры условны и срабатывают **либо** по frontmatter
+спеки, **либо** по паттерну диффа. Важны оба пути: frontmatter объявляет намерение, но у багфиксов и
+задач без спеки frontmatter нет вовсе, поэтому гейт только по нему молча недоревьюивает ровно те
+изменения, которые с наименьшей вероятностью были спроектированы.
 
-## Reviewer matrix
+## Матрица ревьюеров
 
-| Reviewer | Fires on frontmatter | Fires on diff |
+| Ревьюер | Срабатывает по frontmatter | Срабатывает по диффу |
 |---|---|---|
-| `code-reviewer` | always | always |
-| `business-analyst` | `acceptance_criteria_ids` non-empty | spec or requirements files changed |
-| `ux-expert` (design) | `design.figma` set and `has_ui_surface` | UI-surface changes — screens, views, composables, copy, animation |
-| `ux-expert` (a11y) | `non_functional.a11y` set and `has_ui_surface` | accessibility attributes or semantics touched |
-| `security-expert` | `risk_areas` ∈ {auth, payment, pii, data-migration} | any pattern in §Security pattern triggers |
-| `performance-expert` | `non_functional.sla` set, or `risk_areas` includes `perf-critical` | hot-path code (rendering, query loops, batch jobs), N+1 shapes, large-buffer allocation, threading or concurrency changes |
-| `architecture-expert` | — | new module, new public API symbol, cross-module dependency change, layered-structure violation, or a diff spanning ≥ 3 top-level modules |
-| `build-engineer` | — | `build.gradle*`, `settings.gradle*`, `pom.xml`, `package.json`, `Cargo.toml`, `go.mod`, `pyproject.toml`, `Makefile`, version-catalog edits, plugin upgrades |
-| `devops-expert` | — | `.github/workflows/*`, `.gitlab-ci.yml`, `Dockerfile`, `docker-compose*`, `.circleci/config.yml`, deploy scripts, infra-as-code |
-| coverage audit | — | see §Coverage audit |
+| `code-reviewer` | всегда | всегда |
+| `business-analyst` | `acceptance_criteria_ids` непуст | изменились файлы спеки или требований |
+| `ux-expert` (дизайн) | задан `design.figma` и `has_ui_surface` | изменения UI-поверхности — экраны, views, composable, тексты, анимация |
+| `ux-expert` (a11y) | задан `non_functional.a11y` и `has_ui_surface` | тронуты атрибуты доступности или семантика |
+| `security-expert` | `risk_areas` ∈ {auth, payment, pii, data-migration} | любой паттерн из §Паттерн-триггеры безопасности |
+| `performance-expert` | задан `non_functional.sla` либо `risk_areas` содержит `perf-critical` | код горячего пути (отрисовка, циклы запросов, пакетные задания), формы N+1, аллокации больших буферов, изменения потоков и конкурентности |
+| `architecture-expert` | — | новый модуль, новый публичный символ API, изменение кросс-модульной зависимости, нарушение слоёв либо дифф, охватывающий ≥ 3 модулей верхнего уровня |
+| `build-engineer` | — | `build.gradle*`, `settings.gradle*`, `pom.xml`, `package.json`, `Cargo.toml`, `go.mod`, `pyproject.toml`, `Makefile`, правки version catalog, апгрейды плагинов |
+| `devops-expert` | — | `.github/workflows/*`, `.gitlab-ci.yml`, `Dockerfile`, `docker-compose*`, `.circleci/config.yml`, скрипты деплоя, инфраструктура как код |
+| coverage-аудит | — | см. §Coverage-аудит |
 
-Both `ux-expert` triggers firing → one invocation with mode `both`. No trigger fires → the
-layer is `code-reviewer` alone, which is a valid outcome, not a misconfiguration.
+Сработали оба триггера `ux-expert` — один вызов с режимом `both`. Не сработал ни один триггер — слой
+это один `code-reviewer`, и это валидный исход, а не ошибка конфигурации.
 
-**Public API heuristic** for `architecture-expert`:
+**Эвристика публичного API** для `architecture-expert`:
 
-- **Kotlin/Java** — `src/main/` changes adding, removing, or renaming `public` / `open`
-  symbols, or touching `settings.gradle*`, `Module.kt`, `Dependencies.kt`.
-- **TypeScript/JavaScript** — `export` / re-export lines, `index.ts` entrypoints,
-  `package.json` `"exports"`.
-- **Swift** — `public` / `open` declarations, `Package.swift` `products` / `targets`.
+- **Kotlin/Java** — изменения в `src/main/`, добавляющие, удаляющие или переименовывающие символы
+  `public` и `open`, либо трогающие `settings.gradle*`, `Module.kt`, `Dependencies.kt`.
+- **TypeScript/JavaScript** — строки `export` и реэкспортов, точки входа `index.ts`, поле `"exports"`
+  в `package.json`.
+- **Swift** — объявления `public` и `open`, `products` и `targets` в `Package.swift`.
 - **HTTP/RPC** — `**/routes/**`, `**/controllers/**`, `**/handlers/**`, `**/api/**`, `*.proto`,
   `*.graphql`, `openapi.yaml`.
-- **Cross-module** — changed paths span ≥ 3 top-level module directories per
-  `settings.gradle*`, `package.json` workspaces, or `Cargo.toml` `[workspace]`.
+- **Кросс-модульность** — изменённые пути охватывают ≥ 3 каталогов модулей верхнего уровня по
+  `settings.gradle*`, workspace в `package.json` либо `[workspace]` в `Cargo.toml`.
 
-Ambiguous → do **not** spawn `architecture-expert`. A false negative here is cheaper than a
-false positive.
+Неоднозначно — `architecture-expert` **не** запускать. Ложноотрицательное здесь дешевле
+ложноположительного.
 
-## Security pattern triggers
+## Паттерн-триггеры безопасности
 
-| Category | Pattern (path or diff content) | Tier |
+| Категория | Паттерн (путь либо содержимое диффа) | Тир |
 |---|---|---|
-| Network layer | path under `/network/`, `/api/`, `/http/`, `/rpc/`, `/graphql/` | broad |
-| Auth / crypto | path under `/auth/`, `/crypto/`, `/token/`, `/session/` | narrow |
-| Credential storage | diff mentions `SharedPreferences`, `EncryptedSharedPreferences`, `Keychain`, `UserDefaults`, `localStorage`, `sessionStorage`, `document.cookie`, `KeyStore` | narrow |
-| Supply chain | a new dependency line in `build.gradle*`, `Podfile`, `Package.swift`, `package.json`, `pom.xml`, `Cargo.toml`, `requirements.txt`, `pyproject.toml`, `go.mod` | narrow |
-| DB migrations | path under `migrations/`, `*.sql`, `Migration.kt`, `schema.prisma`, Flyway / Liquibase config, `alembic/` | narrow |
-| Deserialization | Jackson / Gson / `kotlinx.serialization` config blocks, Python `pickle`, `XMLDecoder`, `ObjectInputStream` | narrow |
+| Сетевой слой | путь под `/network/`, `/api/`, `/http/`, `/rpc/`, `/graphql/` | broad |
+| Auth и криптография | путь под `/auth/`, `/crypto/`, `/token/`, `/session/` | narrow |
+| Хранение учётных данных | в диффе встречаются `SharedPreferences`, `EncryptedSharedPreferences`, `Keychain`, `UserDefaults`, `localStorage`, `sessionStorage`, `document.cookie`, `KeyStore` | narrow |
+| Supply chain | новая строка зависимости в `build.gradle*`, `Podfile`, `Package.swift`, `package.json`, `pom.xml`, `Cargo.toml`, `requirements.txt`, `pyproject.toml`, `go.mod` | narrow |
+| Миграции БД | путь под `migrations/`, `*.sql`, `Migration.kt`, `schema.prisma`, конфигурация Flyway или Liquibase, `alembic/` | narrow |
+| Десериализация | блоки конфигурации Jackson, Gson, `kotlinx.serialization`, Python `pickle`, `XMLDecoder`, `ObjectInputStream` | narrow |
 
-**Thresholds** — false-positive control:
+**Пороги** — контроль ложных срабатываний:
 
-- ≥ 1 narrow → full security review, same as the `risk_areas` trigger.
-- ≥ 2 broad → full security review.
-- exactly 1 broad and no narrow → **scoped review**: name the specific surface in the prompt
-  ("audit the network layer for regressions only"), not a full audit.
-- no pattern and no `risk_areas` → `security-expert` does not fire; other reviewers still may.
+- ≥ 1 narrow → полное ревью безопасности, как по триггеру `risk_areas`.
+- ≥ 2 broad → полное ревью безопасности.
+- ровно 1 broad и ни одного narrow → **scoped-ревью**: назвать в промпте конкретную поверхность
+  («проверить сетевой слой только на регрессии»), а не полный аудит.
+- ни паттерна, ни `risk_areas` → `security-expert` не срабатывает; остальные ревьюеры могут.
 
-`--skip-security-review` disables both the frontmatter and the pattern trigger for the run, and
-is recorded verbatim in the receipt's `acknowledged risks` with the user's reason. Discouraged.
+`--skip-security-review` выключает и frontmatter-триггер, и паттерны на весь прогон и дословно
+записывается в раздел принятых рисков расписки вместе с причиной вызывающего. Не рекомендуется.
 
-## Coverage audit
+## Coverage-аудит
 
-Late-stage coverage check over what the mechanical block's public-API gate flagged plus what
-the test plan declared. It exists because a green test run proves the written tests pass, not
-that the right tests exist.
+Поздняя проверка покрытия по тому, что отметил гейт публичного API в механическом блоке, плюс по тому,
+что объявил тест-план. Существует потому, что зелёный прогон тестов доказывает прохождение написанных
+тестов, а не существование нужных.
 
-**Fires when any:** a public API symbol changed with no matching test (rule in
-`~/.claude/rules/qa-and-testing.md` §Gate покрытия public API); `docs/testplans/<slug>-test-plan.md`
-declares TCs with no matching implementation for this slug — cross-referenced by TC type and
-name, interpreted by the agent, not by regex; the diff touches data-layer, repository, service,
-or use-case files without adding or updating tests; `--coverage-audit`.
+**Срабатывает при любом:** изменился публичный символ API без соответствующей проверки (правило в
+`~/.claude/rules/qa-and-testing.md`, §Gate покрытия public API); `docs/testplans/<slug>-test-plan.md`
+объявляет TC, у которых нет реализации для этого слага (сверка по типу TC и имени, интерпретируется
+агентом, а не regex); дифф трогает файлы data-слоя, репозиториев, сервисов или use case без добавления
+или обновления проверок; передан `--coverage-audit`.
 
-**Skips when any:** trivial diff (single file, < 50 LOC, no new public API, refactor only);
-`--skip-coverage-audit`; the affected module has no test infrastructure — short-circuit and
-file a follow-up ("add test harness for X"). Never skip silently.
+**Пропускается при любом:** тривиальный дифф (один файл, менее 50 строк, без нового публичного API,
+только рефакторинг); `--skip-coverage-audit`; в затронутом модуле нет тестовой инфраструктуры —
+замкнуть накоротко и завести follow-up («добавить тестовый harness для X»). Молча не пропускать
+никогда.
 
-**Acceptance measures coverage; it never authors it.** The audit is read-only in every mode,
-including under `--fix`. Writing a check requires investigating the area, choosing a kind and a
-level, and often building a seam or a harness — a different discipline with its own skill. A gate
-that also authors what it grades stops being a gate.
+**Приёмка измеряет покрытие, но никогда его не пишет.** Аудит только читает во всех режимах, включая
+`--fix`. Написать проверку — значит разобраться в области, выбрать вид и уровень, а часто и построить
+seam или harness: это другая дисциплина со своим скиллом. Гейт, который сам пишет то, что оценивает,
+перестаёт быть гейтом.
 
-So the audit produces a gap list and nothing else. Each gap is a **BLOCK**: an untested public
-symbol fails the gate regardless of whether anyone was willing to write the check. The remedy
-named in the receipt is `/cover-with-tests <area> --source <test plan>`, run by the caller as its
-own step; when it completes, re-run acceptance and the gap is gone or it is not.
+Поэтому аудит производит список пробелов и больше ничего. Каждый пробел — **BLOCK**: непокрытый
+публичный символ роняет гейт независимо от того, был ли кто-то готов написать проверку. Средство,
+названное в расписке, — `/cover-with-tests <область> --source <тест-план>`, запускаемый вызывающим
+отдельным шагом; когда он отработает, приёмку перепрогнать, и пробел либо исчез, либо нет.
 
-`ESCALATE` instead of a gap list means the audit found a behavior that is structurally
-unobservable — no seam, no assertable effect. That is a finding about the code, not about the
-missing check, and it needs a decision rather than another attempt.
+`ESCALATE` вместо списка пробелов означает, что аудит нашёл структурно ненаблюдаемое поведение: ни
+seam'а, ни утверждаемого эффекта. Это находка о коде, а не о недостающей проверке, и ей нужно решение,
+а не ещё одна попытка.
 
 ```markdown
 # Coverage audit: <slug>
 
-**Date:** <ISO date>
+**Date:** <ISO-дата>
 **Triggered by:** new-public-api | tp-tc-mismatch | data-layer-no-tests | --coverage-audit
 **Verdict:** PASS | GAPS_FOUND | ESCALATE
 
 ## Inputs
-- Test plan: `docs/testplans/<slug>-test-plan.md` (or `N/A: no test plan`)
-- Diff against: `origin/<base>` (commit range)
-- Test files in diff: <list>
+- Тест-план: `docs/testplans/<slug>-test-plan.md` (либо `N/A: тест-плана нет`)
+- Дифф против: `origin/<base>` (диапазон коммитов)
+- Тестовые файлы в диффе: <список>
 
 ## Cross-reference
 
@@ -115,50 +116,49 @@ missing check, and it needs a decision rather than another attempt.
 |---|---|---|---|
 
 ## Gaps
-- (gap-1) <symbol or TC> — <what is unproven> — remedy: `/cover-with-tests <area> --level L<n>`
+- (gap-1) <символ или TC> — <что не доказано> — средство: `/cover-with-tests <область> --level L<n>`
 ```
 
-`PASS` — everything already covered. `GAPS_FOUND` — gaps listed with their remedy; BLOCK.
-`ESCALATE` — a behavior is structurally unobservable and needs a decision, not another attempt;
-BLOCK against the round budget.
+`PASS` — всё уже покрыто. `GAPS_FOUND` — пробелы перечислены со своим средством; BLOCK. `ESCALATE` —
+поведение структурно ненаблюдаемо и требует решения, а не новой попытки; BLOCK против бюджета раундов.
 
-The gap rows are shaped to be handed straight to `/cover-with-tests` — `symbol`, what is unproven,
-and the minimum level — which is the same information its `--from-report` contract expects.
+Строки пробелов сделаны так, чтобы их можно было передать прямо в `/cover-with-tests`: символ, что не
+доказано, и минимальный уровень — ровно та информация, которую ждёт его контракт `--from-report`.
 
-## Grading and the fix loop
+## Оценка находок и цикл фиксов
 
-Findings are graded on the 0–100 confidence rubric defined once in
-`~/.claude/agents/code-reviewer.md` and inherited by every reviewer. Violations of a
-`## Non-negotiables` section in an applicable `CLAUDE.md` are BLOCK regardless of confidence
-and are never moved to acknowledged risks.
+Находки оцениваются по рубрике confidence 0–100, определённой один раз в
+`~/.claude/agents/code-reviewer.md` и унаследованной каждым ревьюером. Нарушения раздела
+`## Non-negotiables` в применимом `CLAUDE.md` — BLOCK независимо от confidence, и в принятые риски они
+не переносятся никогда.
 
-| Severity × confidence | Grade | Action under `--fix` |
+| Severity × confidence | Оценка | Действие под `--fix` |
 |---|---|---|
-| critical ≥ 75 | BLOCK | Fix now, re-run the mechanical block. Green and resolved → BLOCK cleared. Doesn't converge → stays BLOCK, round ends without PASS. Never downgrade to "acknowledged risk". |
-| major ≥ 75 | BLOCK | Fix if tractable. Needs refactoring beyond the diff → escalate; stays BLOCK until the caller resolves it or accepts it at ESCALATE. |
-| minor ≥ 50 | WARN | Report only — not fixed even under `--fix`, never blocks. |
+| critical ≥ 75 | BLOCK | Чинить сразу, перепрогнать механический блок. Зелено и закрыто → BLOCK снят. Не сходится → остаётся BLOCK, раунд заканчивается без PASS. Никогда не понижать до «принятого риска». |
+| major ≥ 75 | BLOCK | Чинить, если поддаётся. Требует рефакторинга за пределами диффа → эскалировать; остаётся BLOCK, пока вызывающий не разрешит его или не примет на ESCALATE. |
+| minor ≥ 50 | WARN | Только сообщается. Не чинится даже под `--fix`, не блокирует. |
 
-**Without `--fix` the loop does not exist.** Every grade is reported as-is, a surviving BLOCK
-makes the run `FAILED`, and the receipt names what would have been fixed. This is the default:
-the caller asked whether the change is acceptable, not for the gate to change it.
+**Без `--fix` цикла не существует.** Каждая оценка сообщается как есть, уцелевший BLOCK делает прогон
+`FAILED`, а расписка называет, что было бы починено. Это дефолт: вызывающий спросил, приемлемо ли
+изменение, а не просил гейт его менять.
 
-Fixes are delegated to the engineer agent that owns the surface — acceptance orchestrates and
-judges, it never writes the fix itself.
+Фиксы делегируются инженерному агенту, владеющему поверхностью: приёмка оркестрирует и судит, но
+никогда не пишет фикс сама.
 
-**Under `--fix`, re-run the mechanical block after any mutation.** On failure:
+**Под `--fix` после любой мутации перепрогонять механический блок.** При падении:
 
-1. Log which finding's fix broke it.
-2. Narrow repair, **one attempt**. The code was green before this fix, so a regression means
-   the fix was wrong; retrying compounds instead of converging.
-3. Still red → revert the fix and keep the originating finding as BLOCK for the round. It
-   counts against the budget and is never relabelled as an acknowledged risk.
-4. Round ends with unresolved BLOCKs → next round. Budget exhausted (default 3, `--max-rounds`)
-   → ESCALATE.
+1. Записать, чей фикс его сломал.
+2. Узкий ремонт, **одна попытка**. До этого фикса код был зелёным, значит регрессия означает, что
+   неверен сам фикс; повторные попытки не сходятся, а накапливают.
+3. Всё ещё красный → откатить фикс и оставить породившую находку BLOCK на этот раунд. Она считается
+   против бюджета и никогда не переклеивается в принятый риск.
+4. Раунд закончился с непогашенными BLOCK → следующий раунд. Бюджет исчерпан (по умолчанию 3,
+   `--max-rounds`) → ESCALATE.
 
-Never let mechanical failures cascade, and never use revert-and-continue to ship a BLOCK
-quietly.
+Не давать падениям механики каскадировать и не использовать «откатил и поехали дальше», чтобы тихо
+отгрузить BLOCK.
 
-**ESCALATE — stop and hand back** when: BLOCKs survive the round budget; a mechanical failure
-doesn't converge after its one retry; a BLOCK needs refactoring beyond the diff; an expert
-finding demands an architectural change; the engineer agent required for a fix is not
-installed. State which layer escalated, what is unresolved, and what the caller must decide.
+**ESCALATE — остановиться и вернуть управление** когда: BLOCK пережили бюджет раундов; падение
+механики не сошлось после единственной повторной попытки; BLOCK требует рефакторинга за пределами
+диффа; находка эксперта требует архитектурного изменения; нужный для фикса инженерный агент не
+установлен. Назвать, какой слой эскалировал, что осталось нерешённым и что должен решить вызывающий.

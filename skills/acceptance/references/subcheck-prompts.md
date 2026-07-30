@@ -1,206 +1,213 @@
-Referenced from: `~/.claude/skills/acceptance/SKILL.md` (§Step 3 mechanical block, §Step 4
-judgement layers, §Step 5 device block).
+Ссылается из: `~/.claude/skills/acceptance/SKILL.md` (§Шаг 3 механический блок, §Шаг 4 слои
+суждения, §Шаг 5 device-блок).
 
-# Acceptance — Per-Agent Sub-Check Prompts
+# Acceptance — промпты подпроверок
 
-Trigger conditions are **not** repeated here — they live once in
-[`judgement-layers.md`](judgement-layers.md). This file holds what each agent is told and what
-its verdict values mean.
+Условия срабатывания здесь **не** повторяются: они живут один раз в
+[`judgement-layers.md`](judgement-layers.md). Этот файл держит то, что говорят каждому агенту, и что
+означают его вердикты.
 
-## Spawn `manual-tester` (device block, L5)
+## Запуск `manual-tester` (device-блок, L5)
 
-`manual-tester` owns the runtime environment end-to-end per its Step 0. Acceptance does not
-pre-launch — that is intentional delegation. Runs after L3 and L4, and only when they left no
+`manual-tester` владеет средой исполнения от начала до конца по своему шагу 0. Приёмка ничего не
+запускает заранее — это намеренное делегирование. Идёт после L3 и L4 и только когда те не оставили
 BLOCK.
 
-Prompt contents:
-1. **Spec context** — full text or clear pointers.
-2. **Test plan** — the complete set of test cases.
-3. **Target hints** (optional) — device/URL if the user already named one.
-4. **Scope** — which tiers (default: Smoke + Feature).
-5. **Output path** — `swarm-report/<slug>-acceptance-manual.md` with the per-check schema.
+Что несёт промпт:
 
-If the agent returns `WARN` with `blocked_on`, surface that text to the user as the primary
-next-step requirement before re-running acceptance.
+1. **Контекст спеки** — полный текст либо внятные указатели.
+2. **Тест-план** — полный набор тест-кейсов.
+3. **Подсказки по цели** (необязательно) — устройство или URL, если пользователь уже их назвал.
+4. **Объём** — какие уровни (по умолчанию Smoke плюс Feature).
+5. **Путь вывода** — `swarm-report/<slug>-acceptance-manual.md` по схеме подпроверки.
 
-## Spawn `code-reviewer` (always)
+Если агент вернул `WARN` с `blocked_on`, вынести этот текст пользователю главным требованием
+следующего шага до повторного прогона приёмки.
 
-Prompt contents:
-1. **Task description** — one sentence from spec or PR title.
-2. **Plan pointer** — path to implement receipt or research report if present.
-3. **Git diff** — current diff.
-4. **Output path** — `swarm-report/<slug>-acceptance-code.md`.
+## Запуск `code-reviewer` (всегда)
 
-Verdict rules: `PASS` if no semantic bugs, logic errors, or security issues; `WARN` for
-style/minor; `FAIL` for blockers.
+Что несёт промпт:
 
-## Mechanical block — command selection
+1. **Описание задачи** — одно предложение из спеки или заголовка PR.
+2. **Указатель на план** — путь к расписке реализации или отчёту исследования, если они есть.
+3. **Git diff** — текущий дифф.
+4. **Путь вывода** — `swarm-report/<slug>-acceptance-code.md`.
 
-Used by §Step 3 when the project declares no explicit check target. Prefer the project's own
-aggregate command (`./gradlew check`, `npm test`, `make check`) over the single-purpose
-commands below; these are the fallback when only a build is resolvable.
+Правила вердикта: `PASS`, если нет смысловых багов, логических ошибок и проблем безопасности; `WARN`
+на стилевое и мелкое; `FAIL` на блокеры.
 
-| `ecosystem` | Command |
+## Механический блок — выбор команд
+
+Используется шагом 3, когда проект не объявляет явную цель проверки. Предпочитать собственную
+агрегатную команду проекта (`./gradlew check`, `npm test`, `make check`) командам ниже: они запасной
+вариант на случай, когда разрешима только сборка.
+
+| `ecosystem` | Команда |
 |---|---|
-| `gradle` | `./gradlew build -x test --quiet` (single-module) or `./gradlew :check` (multi-module) |
-| `node` | `npm run build` (or `pnpm build` / `yarn build`) |
+| `gradle` | `./gradlew build -x test --quiet` (один модуль) либо `./gradlew :check` (много модулей) |
+| `node` | `npm run build` (либо `pnpm build` / `yarn build`) |
 | `rust` | `cargo build --release --quiet` |
 | `go` | `go build ./...` |
-| `python` | `python -m compileall .` or package-specific build |
+| `python` | `python -m compileall .` либо сборка пакета |
 
-Multi-module detection: scan `settings.gradle*` for `include(` statements. Subprojects declared
-and no target named by the user → ask which module is the target **before** Step 3 starts.
+Определение многомодульности: просканировать `settings.gradle*` на `include(`. Подпроекты объявлены, а
+цель пользователь не назвал — спросить, какой модуль целевой, **до** начала шага 3.
 
-Nothing resolvable → `verdict: SKIPPED` with `blocked_on: check commands unknown`, recorded as a
-tracked exception, never as an inapplicable level. On failure capture the last ~50 lines only —
-the exit code is the verdict, the log explains it. Receipt at
-`swarm-report/<slug>-acceptance-mechanical.md` with `check: mechanical`.
+Ничего не разрешилось → `verdict: SKIPPED` с `blocked_on: check commands unknown`, оформленным
+отслеживаемым исключением, а не неприменимым уровнем. При падении захватывать только последние ~50
+строк: вердикт даёт код возврата, лог его объясняет. Расписка —
+`swarm-report/<slug>-acceptance-mechanical.md` с `check: mechanical`.
 
-## Spawn `business-analyst` (conditional — AC coverage)
+## Запуск `business-analyst` (условно — покрытие AC)
 
-Prompt contents:
-1. **Spec** — the spec file path.
-2. **Diff / implement receipt** — evidence for each AC.
-3. **Test plan** (if any) — TC list mapped to AC via each test case's `Source:` field
-   (e.g. `Source: AC-1` or `Source: AC-2, AC-3`). This is the canonical mapping defined in
-   `write-plan/references/test-plan.md`; do not invent a new `AC-ref:` field.
-4. **manual-tester output** (if running) — pointer to
+Что несёт промпт:
+
+1. **Спека** — путь к файлу.
+2. **Дифф или расписка реализации** — доказательства по каждому AC.
+3. **Тест-план** (если есть) — список TC, сопоставленный с AC через поле `Source:` каждого кейса
+   (`Source: AC-1` либо `Source: AC-2, AC-3`). Это каноническое сопоставление, определённое в
+   `write-plan/references/test-plan.md`; собственное поле `AC-ref:` не выдумывать.
+4. **Вывод manual-tester** (если он работает) — указатель на
    `swarm-report/<slug>-acceptance-manual.md`.
-5. **Output path** — `swarm-report/<slug>-acceptance-ac-coverage.md`.
+5. **Путь вывода** — `swarm-report/<slug>-acceptance-ac-coverage.md`.
 
-Verdict rules: `PASS` if every `AC-N` has at least one evidence pointer; `WARN` for weak
-coverage (single witness on high-risk AC); `FAIL` for any missing AC. Severity: `FAIL` on
-missing AC is `critical`; weak coverage is `major`.
+Правила вердикта: `PASS`, если у каждого `AC-N` есть хотя бы один указатель на доказательство; `WARN`
+на слабое покрытие (единственный свидетель на высокорисковом AC); `FAIL` на любой пропущенный AC.
+Severity: `FAIL` по пропущенному AC — `critical`, слабое покрытие — `major`.
 
-## Spawn `ux-expert` (conditional — design-review or a11y)
+## Запуск `ux-expert` (условно — дизайн-ревью или a11y)
 
-Both modes require `has_ui_surface == true`: a11y on a backend, library, or CLI has no surface
-to audit, so the trigger does not fire there even when `non_functional.a11y` is set.
+Оба режима требуют `has_ui_surface == true`: у бэкенда, библиотеки и CLI нет поверхности для аудита
+доступности, поэтому там триггер не срабатывает, даже когда `non_functional.a11y` задан.
 
-Both modes firing → one invocation with mode `both`; the agent writes **two** artifacts so
-aggregation treats them as independent checks:
+Сработали оба режима — один вызов с режимом `both`; агент пишет **два** артефакта, чтобы агрегация
+считала их независимыми проверками:
 
-- `swarm-report/<slug>-acceptance-design.md` with `check: design`
-- `swarm-report/<slug>-acceptance-a11y.md` with `check: a11y`
+- `swarm-report/<slug>-acceptance-design.md` с `check: design`
+- `swarm-report/<slug>-acceptance-a11y.md` с `check: a11y`
 
-When only one mode fires, only the corresponding artifact is written.
+Сработал один режим — пишется только соответствующий артефакт.
 
-Prompt contents:
-1. **Mode** — `design-review` / `a11y` / `both`.
-2. **Spec** — file path.
-3. **Design source** — `design.figma` URL (design-review mode).
-4. **a11y target** — value of `non_functional.a11y` (e.g. `wcag-aa`).
-5. **Running app pointer** — target hints; the agent reads running-app state via MCP only
-   when the environment is already prepared, otherwise works from screenshots/code.
-6. **Output paths** — one or both of the filenames listed above, matching the mode.
+Что несёт промпт:
 
-Verdict rules: `PASS` if design matches reference and a11y criteria met; `WARN` for minor
-spacing/color deviations or AA soft failures; `FAIL` for missing components, broken
-interaction paths, or hard a11y violations (keyboard trap, contrast below threshold).
+1. **Режим** — `design-review` / `a11y` / `both`.
+2. **Спека** — путь к файлу.
+3. **Источник дизайна** — URL из `design.figma` (режим дизайн-ревью).
+4. **Цель по a11y** — значение `non_functional.a11y` (например `wcag-aa`).
+5. **Указатель на работающее приложение** — подсказки по цели; состояние приложения агент читает через
+   MCP только когда среда уже поднята, иначе работает по скриншотам и коду.
+6. **Пути вывода** — один или оба файла выше, по режиму.
 
-## Spawn `security-expert` (conditional)
+Правила вердикта: `PASS`, если дизайн соответствует эталону и критерии a11y выполнены; `WARN` на
+мелкие отклонения отступов и цвета либо мягкие провалы уровня AA; `FAIL` на отсутствующие компоненты,
+сломанные пути взаимодействия и жёсткие нарушения доступности (ловушка фокуса, контраст ниже порога).
 
-Prompt contents:
-1. **Trigger** — the `risk_areas` subset, or the matched pattern categories and their tiers.
-2. **Scope** — `full`, or `scoped` with the named surface when a single broad pattern matched.
-   A scoped run audits that surface for regressions, not the whole codebase.
-3. **Diff** — full git diff.
-4. **Spec** — file path, when one exists.
-5. **Output path** — `swarm-report/<slug>-acceptance-security.md`.
+## Запуск `security-expert` (условно)
 
-Verdict rules: `PASS` if no applicable OWASP / project-security-rule violations; `WARN` for
-minor hardening opportunities; `FAIL` for exploitable issues, secret leaks, or regulation
-breaches.
+Что несёт промпт:
 
-## Spawn `performance-expert` (conditional)
+1. **Триггер** — подмножество `risk_areas` либо совпавшие категории паттернов с их тирами.
+2. **Объём** — `full` либо `scoped` с названной поверхностью, когда совпал один broad-паттерн.
+   Scoped-прогон проверяет эту поверхность на регрессии, а не всю кодовую базу.
+3. **Дифф** — полный git diff.
+4. **Спека** — путь к файлу, если она есть.
+5. **Путь вывода** — `swarm-report/<slug>-acceptance-security.md`.
 
-Prompt contents:
-1. **SLA target** — from `non_functional.sla`; when the trigger came from the diff instead,
-   say so explicitly and name the baseline used, since a verdict without a baseline number is
-   not a performance result.
-2. **Diff** — full git diff.
-3. **Output path** — `swarm-report/<slug>-acceptance-performance.md`.
+Правила вердикта: `PASS`, если нет нарушений применимых категорий OWASP и правил безопасности проекта;
+`WARN` на мелкие возможности усиления; `FAIL` на эксплуатируемые проблемы, утечки секретов и нарушения
+регуляций.
 
-Verdict rules: `PASS` if no regression; `WARN` for borderline; `FAIL` for violations.
+## Запуск `performance-expert` (условно)
 
-## Spawn `architecture-expert` (conditional — diff-triggered)
+Что несёт промпт:
 
-Prompt contents:
-1. **Trigger reason** — `public-api` / `cross-module` / `new-module` / `layering` with the
-   specific file list that matched.
-2. **Diff** — full git diff (scoped to triggered files + their immediate neighbours).
-3. **Module map** — list of top-level modules touched, discovered from
-   `settings.gradle*` / `package.json` workspaces / `Cargo.toml` workspace members.
-4. **Output path** — `swarm-report/<slug>-acceptance-architecture.md` with `check: architecture`.
+1. **Цель по SLA** — из `non_functional.sla`; если триггер пришёл из диффа, сказать это явно и назвать
+   использованный baseline: вердикт без числа baseline результатом по производительности не является.
+2. **Дифф** — полный git diff.
+3. **Путь вывода** — `swarm-report/<slug>-acceptance-performance.md`.
 
-Verdict rules: `PASS` if public contracts are preserved and module dependency direction is
-clean; `WARN` for style issues (e.g., missing deprecation annotation, avoidable coupling);
-`FAIL` for contract breakage, circular dependencies, or leaking internals into a public API.
+Правила вердикта: `PASS` при отсутствии регрессии; `WARN` на пограничное; `FAIL` на нарушения.
 
-## Spawn `build-engineer` (conditional — diff-triggered)
+## Запуск `architecture-expert` (условно, по диффу)
 
-Prompt contents:
-1. **Build files changed** — exact file list from the diff.
-2. **Diff** — scoped to those files plus any touched module manifests.
-3. **Ecosystem** — resolved `ecosystem` from Step 0 (drives which toolchain the agent should
-   evaluate against).
-4. **Output path** — `swarm-report/<slug>-acceptance-build-config.md` with
-   `check: build-config`.
+Что несёт промпт:
 
-Note: the mechanical block already owns `check: mechanical`. Expert review of **config
-changes** uses `build-config` so aggregation treats the two axes independently — a project can
-build cleanly on a broken config, and vice versa.
+1. **Причина срабатывания** — `public-api` / `cross-module` / `new-module` / `layering` с конкретным
+   списком совпавших файлов.
+2. **Дифф** — полный git diff, сужённый до сработавших файлов и их ближайших соседей.
+3. **Карта модулей** — список затронутых модулей верхнего уровня, обнаруженный по `settings.gradle*`,
+   workspace в `package.json` либо членам workspace в `Cargo.toml`.
+4. **Путь вывода** — `swarm-report/<slug>-acceptance-architecture.md` с `check: architecture`.
 
-Verdict rules: `PASS` if dependency additions are pinned/hash-verified, plugin versions are
-consistent, and task wiring is intact; `WARN` for unpinned version ranges, unused
-dependencies, or minor style issues; `FAIL` for breaking plugin mismatches, missing required
-configuration, or dependency choices that conflict with project policy.
+Правила вердикта: `PASS`, если публичные контракты сохранены, а направление зависимостей чистое;
+`WARN` на стилевое (пропущенная аннотация устаревания, избегаемая связанность); `FAIL` на слом
+контракта, циклические зависимости и утечку внутренностей в публичный API.
 
-## Spawn `devops-expert` (conditional — diff-triggered)
+## Запуск `build-engineer` (условно, по диффу)
 
-Prompt contents:
-1. **CI files changed** — exact file list.
-2. **Diff** — scoped to CI/release files.
-3. **Repo context** — `public` vs `private` (affects secret handling guidance),
-   and any related marketplace/deployment manifests if present.
-4. **Output path** — `swarm-report/<slug>-acceptance-devops.md` with `check: devops`.
+Что несёт промпт:
 
-Verdict rules: `PASS` if pipeline health is preserved, secrets are handled correctly, and
-rollout gates remain sound; `WARN` for minor inefficiencies or missing
-`timeout-minutes` / `concurrency` guards; `FAIL` for leaked secrets, disabled safety gates,
-or breaking workflow syntax.
+1. **Изменённые build-файлы** — точный список из диффа.
+2. **Дифф** — сужённый до этих файлов плюс затронутые манифесты модулей.
+3. **Экосистема** — разрешённый `ecosystem` из шага 0: он определяет, против какого toolchain агент
+   оценивает.
+4. **Путь вывода** — `swarm-report/<slug>-acceptance-build-config.md` с `check: build-config`.
 
-## Coverage audit (measurement only)
+Замечание: `check: mechanical` уже принадлежит механическому блоку. Экспертное ревью **изменений
+конфигурации** использует `build-config`, чтобы агрегация считала эти оси независимыми: проект может
+собираться чисто при сломанной конфигурации и наоборот.
 
-Read-only in every mode, including under `--fix` — acceptance grades coverage, it never authors
-it. Any agent that can read the diff and the test sources can run it; no engineer agent is needed
-because nothing is written.
+Правила вердикта: `PASS`, если добавленные зависимости закреплены и проверены по хешам, версии
+плагинов согласованы, а связывание задач цело; `WARN` на незакреплённые диапазоны версий,
+неиспользуемые зависимости и мелкое стилевое; `FAIL` на ломающие несовпадения плагинов, отсутствующую
+обязательную конфигурацию и выбор зависимостей, конфликтующий с политикой проекта.
 
-Prompt contents:
-1. **Trigger** — `new-public-api` / `tp-tc-mismatch` / `data-layer-no-tests` /
-   `--coverage-audit`, with the symbols or TC IDs that matched.
-2. **Test plan** — `docs/testplans/<slug>-test-plan.md`, or `N/A: no test plan`.
-3. **Diff** — scoped to the changed sources plus their test sources.
-4. **Mandate** — cross-reference declared TCs and changed public symbols against the test sources
-   and list what is unproven. Do **not** write, modify, or delete a check. For each gap, name the
-   minimum pyramid level the missing check must reach, so the row can be handed to
-   `/cover-with-tests` unchanged.
-5. **Output** — `swarm-report/<slug>-coverage-audit.md` (schema in
-   [`judgement-layers.md`](judgement-layers.md) §Coverage audit) plus
-   `swarm-report/<slug>-acceptance-coverage.md` with `check: coverage` carrying the verdict.
+## Запуск `devops-expert` (условно, по диффу)
 
-Verdict mapping: `PASS` → everything already covered; `GAPS_FOUND` → gaps listed, treated as
-BLOCK, remedy is a separate `/cover-with-tests` run; `ESCALATE` → a behavior is structurally
-unobservable, treated as BLOCK and needing a decision.
+Что несёт промпт:
 
-## L3 / L4 automated device checks
+1. **Изменённые CI-файлы** — точный список.
+2. **Дифф** — сужённый до файлов CI и релиза.
+3. **Контекст репозитория** — публичный или приватный (влияет на рекомендации по секретам), плюс
+   связанные манифесты маркетплейса и деплоя, если они есть.
+4. **Путь вывода** — `swarm-report/<slug>-acceptance-devops.md` с `check: devops`.
 
-Commands come from the project the same way the mechanical block's do — its instrumentation or
-E2E task (`./gradlew connectedCheck`, `xcodebuild test -destination …`, the project's Playwright
-or Maestro target). These run inside the device block, so they share its exclusive hold on the
-device with `manual-tester` and never run concurrently with it.
+Правила вердикта: `PASS`, если здоровье пайплайна сохранено, секреты обрабатываются корректно, а гейты
+раскатки целы; `WARN` на мелкую неэффективность и отсутствующие ограничители `timeout-minutes` и
+`concurrency`; `FAIL` на утёкшие секреты, отключённые предохранители и ломающий синтаксис workflow.
 
-Artifacts: `swarm-report/<slug>-acceptance-ui-tests.md` (`check: ui-tests`) and
-`swarm-report/<slug>-acceptance-e2e.md` (`check: e2e`). No suite exists and none can be added
-cheaply → `verdict: SKIPPED` with `blocked_on` naming what is missing. That is a tracked
-exception, not an inapplicable level.
+## Coverage-аудит (только измерение)
+
+Только читает во всех режимах, включая `--fix`: приёмка оценивает покрытие, но никогда его не пишет.
+Прогнать аудит может любой агент, умеющий читать дифф и тестовые исходники, — инженерный агент здесь не
+нужен, потому что ничего не пишется.
+
+Что несёт промпт:
+
+1. **Триггер** — `new-public-api` / `tp-tc-mismatch` / `data-layer-no-tests` / `--coverage-audit`, с
+   символами или идентификаторами TC, которые совпали.
+2. **Тест-план** — `docs/testplans/<slug>-test-plan.md` либо `N/A: тест-плана нет`.
+3. **Дифф** — сужённый до изменённых исходников и их тестовых исходников.
+4. **Мандат** — сверить объявленные TC и изменённые публичные символы с тестовыми исходниками и
+   перечислить, что не доказано. **Не** писать, не менять и не удалять ни одной проверки. По каждому
+   пробелу назвать минимальный уровень пирамиды, которого обязана достичь недостающая проверка, чтобы
+   строку можно было передать в `/cover-with-tests` без изменений.
+5. **Вывод** — `swarm-report/<slug>-coverage-audit.md` (схема в
+   [`judgement-layers.md`](judgement-layers.md), §Coverage-аудит) плюс
+   `swarm-report/<slug>-acceptance-coverage.md` с `check: coverage`, несущий вердикт.
+
+Соответствие вердиктов: `PASS` — всё уже покрыто; `GAPS_FOUND` — пробелы перечислены, трактуется как
+BLOCK, средство — отдельный прогон `/cover-with-tests`; `ESCALATE` — поведение структурно ненаблюдаемо,
+трактуется как BLOCK и требует решения.
+
+## Автоматические device-проверки L3 и L4
+
+Команды берутся из проекта так же, как для механического блока: его инструментальная или E2E-задача
+(`./gradlew connectedCheck`, `xcodebuild test -destination …`, целевая задача Playwright или Maestro в
+проекте). Они работают внутри device-блока, поэтому делят с `manual-tester` его эксклюзивное владение
+устройством и никогда не идут одновременно с ним.
+
+Артефакты: `swarm-report/<slug>-acceptance-ui-tests.md` (`check: ui-tests`) и
+`swarm-report/<slug>-acceptance-e2e.md` (`check: e2e`). Сьюта нет и дёшево добавить нельзя →
+`verdict: SKIPPED` с `blocked_on`, называющим недостающее. Это отслеживаемое исключение, а не
+неприменимый уровень.

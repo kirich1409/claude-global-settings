@@ -1,79 +1,78 @@
-Referenced from: `~/.claude/skills/acceptance/SKILL.md` (§Step 6: Aggregate and Write Receipt).
+Ссылается из: `~/.claude/skills/acceptance/SKILL.md` (§Шаг 6, агрегировать и записать расписку).
 
-# Acceptance — Aggregation, Receipt Format, and Routing
+# Acceptance — агрегация, формат расписки и маршрутизация
 
-Read frontmatter of each `swarm-report/<slug>-acceptance-<check>.md` first (verdict +
-severity + confidence + domain_relevance + blocked_on). Read the body only if
-`verdict != PASS`. Do not inline artifact bodies — link them.
+Сначала читать frontmatter каждого `swarm-report/<slug>-acceptance-<check>.md` (verdict, severity,
+confidence, domain_relevance, blocked_on). Тело читать только при `verdict != PASS`. Тела артефактов
+не вставлять — давать на них ссылки.
 
-**Missing per-check artifact.** Every check writes its artifact, including on failure — the
-mechanical block writes one even when the build is red, and a skipped check writes one with
-`verdict: SKIPPED`. If a planned artifact is nonetheless missing at aggregation time, treat the
-check as `verdict: FAIL` with
-`blocked_on: per-check artifact missing` — do not silently drop it. `blocked_on` is the
-canonical field for surfacing unresolved conditions per the per-check schema; no separate
-`error:` field exists.
+**Отсутствующий артефакт подпроверки.** Свой артефакт пишет каждая проверка, в том числе при падении:
+механический блок пишет его даже на красной сборке, а пропущенная проверка пишет его с
+`verdict: SKIPPED`. Если запланированный артефакт всё же отсутствует на момент агрегации, считать
+проверку `verdict: FAIL` с `blocked_on: per-check artifact missing` — молча не отбрасывать. `blocked_on`
+и есть каноническое поле для вынесения неразрешённых условий по схеме подпроверки; отдельного поля
+`error:` не существует.
 
-## Aggregation — PoLL rules
+## Агрегация — правила PoLL
 
-Acceptance uses the same aggregation protocol as `multiexpert-review` (see
-`multiexpert-review/SKILL.md` §"Step 4 — Synthesize verdict"). Input shape is per-check
-(not per-reviewer), reduction logic identical:
+Приёмка использует тот же протокол агрегации, что и `multiexpert-review` (см.
+`multiexpert-review/SKILL.md`, §Шаг 4). Форма входа здесь по проверкам, а не по ревьюерам; логика
+свёртки идентична:
 
-| Signal | Action |
+| Сигнал | Действие |
 |---|---|
-| **`critical` severity** from any sub-check with `confidence: high` | → Blocker. Aggregated Status = `FAILED`. |
-| **Same issue** (same file:line or same AC id) raised by 2+ sub-checks independently | → Escalate to `critical` regardless of individual severity. Multiple specialists seeing the same problem = real problem. |
-| **`major` severity** from a sub-check with `domain_relevance: high` | → Important. Aggregated Status = `PARTIAL` if not already escalated. |
-| **Contradicting verdicts** (one `PASS`, another `FAIL` on the same item) | → "Uncertainty — requires decision". Aggregated Status = `PARTIAL`, contradiction listed in the receipt. |
-| **`minor` severity** or **`low` confidence** from a single check | → Note, not blocker. Does not affect aggregated Status. |
-| **`low` domain_relevance** check flagging an issue | → Note, weight lower. |
+| **severity `critical`** от любой подпроверки с `confidence: high` | → блокер. Aggregated Status = `FAILED`. |
+| **Одна и та же проблема** (тот же `file:line` либо тот же идентификатор AC) поднята двумя и более подпроверками независимо | → эскалировать до `critical` независимо от индивидуальной severity. Несколько специалистов видят одно и то же — это настоящая проблема. |
+| **severity `major`** от подпроверки с `domain_relevance: high` | → важное. Aggregated Status = `PARTIAL`, если ещё не эскалировано выше. |
+| **Противоречащие вердикты** (одна проверка `PASS`, другая `FAIL` по тому же пункту) | → «неопределённость, требует решения». Aggregated Status = `PARTIAL`, противоречие перечислено в расписке. |
+| **severity `minor`** либо **`confidence: low`** от одной проверки | → заметка, не блокер. На сводный статус не влияет. |
+| Проверка с **`domain_relevance: low`**, поднявшая проблему | → заметка, вес ниже. |
 
-**Bug severities (P0–P3) remain the primary routing axis** for the caller. Any P0/P1
-bug reported by any sub-check maps directly to `FAILED` regardless of the PoLL above;
-PoLL layers additional rules on top for cases not covered by bug severity alone (e.g.
-AC coverage FAIL without an associated P0 bug).
+**Severity багов (P0–P3) остаётся главной осью маршрутизации** для вызывающего. Любой баг P0 или P1 от
+любой подпроверки напрямую даёт `FAILED` независимо от PoLL выше; PoLL накладывает дополнительные
+правила поверх — для случаев, которые severity бага сама по себе не покрывает (например FAIL по
+покрытию AC без связанного бага P0).
 
-## Aggregated Status — final table
+## Aggregated Status — итоговая таблица
 
-| Input | Aggregated Status |
+| Вход | Aggregated Status |
 |---|---|
-| All checks `PASS` or `SKIPPED`, no P0–P3 bugs, no PoLL blocker | `VERIFIED` |
-| Any P0 / P1 bug **or** PoLL blocker (critical high-confidence, or 2+-agent escalation) | `FAILED` |
-| P2 / P3 bugs only, **or** PoLL important, **or** contradicting verdicts, **or** any `WARN` not otherwise classified | `PARTIAL` |
-| `manual-tester` returned `WARN` with `blocked_on` | `PARTIAL` with `blocked_on` surfaced in Summary |
+| Все проверки `PASS` или `SKIPPED`, багов P0–P3 нет, блокера PoLL нет | `VERIFIED` |
+| Любой баг P0 или P1 **либо** блокер PoLL (critical с высокой confidence либо эскалация от двух и более агентов) | `FAILED` |
+| Только баги P2 и P3, **либо** важное по PoLL, **либо** противоречащие вердикты, **либо** любой `WARN`, не классифицированный иначе | `PARTIAL` |
+| `manual-tester` вернул `WARN` с `blocked_on` | `PARTIAL`, и `blocked_on` вынесен в Summary |
 
-## Receipt format
+## Формат расписки
 
-Save to `swarm-report/<slug>-acceptance.md`. Legacy fields preserved; new sections appended.
+Сохранять в `swarm-report/<slug>-acceptance.md`. Имена полей и заголовки разделов английские: их
+читают потребители ниже по потоку.
 
 ```markdown
 # Acceptance: <slug>
 
 **Status:** VERIFIED / FAILED / PARTIAL
-**Date:** <date>
+**Date:** <дата>
 **Type:** Feature / Bug fix
 **Project type:** <project_type>
 **Project type override:** <spec | user | none>
 **Ecosystem:** <ecosystem>
-**Spec source:** [what was used]
-**Test plan:** [resolved permanent path / generated on-the-fly / none]
+**Spec source:** [что использовано]
+**Test plan:** [разрешённый постоянный путь / сгенерирован на лету / нет]
 **test_plan_source:** receipt | mounted | on-the-fly | absent
-**Context artifacts:** [paths to upstream artifacts used as input — e.g. research.md, debug.md, coverage-diagnosis.md, coverage-audit.md]
-**Arguments:** [the argument string verbatim, with the caller's reason for each narrowing flag — or `none`]
+**Context artifacts:** [пути к вышестоящим артефактам-входам — research.md, debug.md, coverage-diagnosis.md, coverage-audit.md]
+**Arguments:** [строка аргументов дословно, с причиной вызывающего на каждый сужающий флаг — либо `none`]
 
 ## Idempotency Hashes
-- `diff_hash`: <sha256 of `git diff <base>...HEAD`>
-- `spec_hash`: <sha256 of the spec file bytes, or `null` if no file spec>
-- `test_plan_hash`: <sha256 of the permanent test plan, or `null`>
+- `diff_hash`: <sha256 от `git diff <base>...HEAD`>
+- `spec_hash`: <sha256 байтов файла спеки либо `null`, если спеки-файла нет>
+- `test_plan_hash`: <sha256 постоянного тест-плана либо `null`>
 
-These three hashes drive the Re-verification Loop decision table; downstream orchestrators
-don't need to read them.
+Эти три хеша питают таблицу решений цикла повторной верификации; оркестраторам выше их читать не нужно.
 
 ## Check Plan
-- list of checks that ran, one per line, with their trigger
-- e.g. `business-analyst` (AC coverage) — triggered by spec.acceptance_criteria_ids
-- e.g. `ux-expert` — not triggered (no design.figma)
+- список проверок, которые отработали, по строке на каждую, с триггером
+- например `business-analyst` (покрытие AC) — триггер spec.acceptance_criteria_ids
+- например `ux-expert` — не сработал (нет design.figma)
 
 ## Check Results
 
@@ -95,40 +94,40 @@ don't need to read them.
 | DevOps | devops-expert | … | … | … | swarm-report/<slug>-acceptance-devops.md |
 
 ## Convergence signals
-Issues raised by 2+ sub-checks independently. Strongest signal of real problems.
-List one line each with the file:line or AC id and the list of checks that flagged it.
+Проблемы, поднятые двумя и более подпроверками независимо. Сильнейший сигнал реальных дефектов.
+По строке на каждую, с `file:line` либо идентификатором AC и списком проверок, которые её отметили.
 
 ## Summary
-[1–3 sentences. If PARTIAL with blocked_on — state the blocker first. If any convergence
-signal — mention it in the first sentence.]
+[1–3 предложения. Если PARTIAL с blocked_on — блокер первым. Если есть сигнал схождения —
+упомянуть его в первом предложении.]
 
 ## Test Results
-- Total: [n] | Passed: [n] | Failed: [n] | Blocked: [n]
+- Всего: [n] | Пройдено: [n] | Упало: [n] | Заблокировано: [n]
 
 ## Bugs Found
-[List by severity — P0 first, then P1, P2, P3. Link each to the per-check artifact that
-reported it.]
+[По severity — сначала P0, затем P1, P2, P3. Каждый со ссылкой на артефакт подпроверки,
+которая его сообщила.]
 
-## Bug Reproduction Check (bug fix only)
-- Reproduction steps from debug.md: [executed / not applicable]
-- Bug reproduces after fix: [yes / no]
+## Bug Reproduction Check (только багфикс)
+- Шаги воспроизведения из debug.md: [исполнены / неприменимо]
+- Баг воспроизводится после фикса: [да / нет]
 
 ## Recommendation
-[Ship / Do not ship / Ship with known issues — and why]
+[Ship / Do not ship / Ship with known issues — и почему]
 ```
 
-## Routing (consumed by callers)
+## Маршрутизация (её читают вызывающие)
 
-- **VERIFIED** → `create-pr` (or mark existing PR ready for review).
-- **FAILED** with P0/P1 and obvious cause → fix on the branch with the bug list as input,
-  then re-run acceptance. Max 3 round-trips.
-- **FAILED** with P0/P1 and unclear cause → investigate root cause (plan-mode debug) first,
-  then fix and re-run.
-- **FAILED** with P0/P1 requiring regression coverage → `/cover-with-tests <area> --regression`
-  authors the check (it verifies the red-green contract, which acceptance cannot — by the time
-  acceptance runs, the fix is already in). Then fix and re-run.
-- **GAPS_FOUND** from the coverage audit → `/cover-with-tests` on the listed gaps as its own step,
-  then re-run. Acceptance never closes the gap itself.
-- **PARTIAL** with P2/P3 only or WARN — ask the user: fix now or ship with known issues
-  (continue to `create-pr`, include in PR description).
-- **PARTIAL** with `blocked_on` — surface the blocker; do not continue until resolved.
+- **VERIFIED** → `create-pr` либо перевод существующего PR в ready for review.
+- **FAILED** с P0/P1 и очевидной причиной → починить на ветке, взяв список багов входом, и
+  перепрогнать приёмку. Максимум три круга.
+- **FAILED** с P0/P1 и непонятной причиной → сначала расследовать первопричину, затем чинить и
+  перепрогонять.
+- **FAILED** с P0/P1, требующим регрессионного покрытия → `/cover-with-tests <область> --regression`
+  пишет проверку: он проверяет контракт red-green, чего приёмка не может — к моменту её запуска фикс
+  уже в дереве. Затем чинить и перепрогонять.
+- **GAPS_FOUND** от coverage-аудита → `/cover-with-tests` по перечисленным пробелам отдельным шагом,
+  затем перепрогон. Приёмка пробел не закрывает никогда.
+- **PARTIAL** только с P2/P3 либо с WARN — спросить пользователя: чинить сейчас или отгружать с
+  известными проблемами (дальше в `create-pr`, с упоминанием в описании PR).
+- **PARTIAL** с `blocked_on` — вынести блокер; не продолжать, пока он не разрешён.

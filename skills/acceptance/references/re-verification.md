@@ -1,45 +1,45 @@
-Referenced from: `~/.claude/skills/acceptance/SKILL.md` (§Re-verification Loop).
+Ссылается из: `~/.claude/skills/acceptance/SKILL.md` (§Цикл повторной верификации).
 
-# Acceptance — Re-verification Loop
+# Acceptance — цикл повторной верификации
 
-On fix-loop re-entry (after `FAILED` → fix on the branch → re-run acceptance):
+При повторном входе после фикса (`FAILED` → фикс на ветке → новый прогон приёмки):
 
-1. Re-probe Step 0 and Step 1 (project type rarely changes; inputs may).
-2. Compute `diff_hash_new` = `sha256(git diff <base>...HEAD)`.
-3. Decide per-check action using the previous per-check artifact and `diff_hash`:
+1. Перезондировать шаги 0 и 1: тип проекта меняется редко, входы могут.
+2. Вычислить `diff_hash_new` = `sha256(git diff <base>...HEAD)`.
+3. Решить по каждой проверке, опираясь на её предыдущий артефакт и `diff_hash`:
 
-   | Previous verdict | Previous `diff_hash` vs `diff_hash_new` | Action |
+   | Прошлый вердикт | Прошлый `diff_hash` против `diff_hash_new` | Действие |
    |---|---|---|
-   | `PASS` or `SKIPPED` | match | **Skip** — reuse the existing artifact as-is. Record `re-used previous verdict` in the aggregated receipt. |
-   | `PASS` or `SKIPPED` | mismatch | Re-run. |
-   | `WARN` | match | Skip. Re-used verdict keeps the WARN; user had the option to ship with it. |
-   | `WARN` | mismatch | Re-run. |
-   | `FAIL` | any | **Always re-run.** A FAIL is the point of the loop; hash match means the fix didn't land in the diff yet — still must re-run to confirm. |
-   | any prior verdict with previous `diff_hash` = `null`, absent, or unreadable | any | Re-run — cannot prove idempotency without a usable hash. |
+   | `PASS` или `SKIPPED` | совпал | **Пропустить** — переиспользовать существующий артефакт как есть. Записать `re-used previous verdict` в сводную расписку. |
+   | `PASS` или `SKIPPED` | не совпал | Перепрогнать. |
+   | `WARN` | совпал | Пропустить. Переиспользованный вердикт сохраняет WARN: у пользователя была возможность отгрузить с ним. |
+   | `WARN` | не совпал | Перепрогнать. |
+   | `FAIL` | любой | **Всегда перепрогонять.** FAIL и есть смысл цикла; совпадение хеша означает, что фикс ещё не попал в дифф, — всё равно надо перепрогнать для подтверждения. |
+   | любой вердикт, у которого прошлый `diff_hash` равен `null`, отсутствует или нечитаем | любой | Перепрогнать — без пригодного хеша идемпотентность не доказать. |
 
-   An explicit `diff_hash: null` and a missing `diff_hash` field are treated the same way:
-   both mean the prior artifact does not carry enough information to prove idempotency, so
-   the check must be re-run.
+   Явный `diff_hash: null` и отсутствующее поле `diff_hash` трактуются одинаково: и то и другое
+   означает, что прошлый артефакт не несёт достаточно информации для доказательства идемпотентности,
+   значит проверку надо перепрогнать.
 
-4. For checks that are re-run:
-   - Overwrite the per-check artifact with fresh content and a new `diff_hash`.
-   - `manual-tester` specifically re-runs previously-failed TCs plus a Smoke tier by default;
-     the full plan is re-run only on explicit request or when the spec changed.
-5. Aggregate into a fresh `swarm-report/<slug>-acceptance.md`, overwriting the previous one.
-6. Repeat until VERIFIED or the user decides to ship as-is.
+4. Для перепрогоняемых проверок:
+   - перезаписать артефакт подпроверки свежим содержимым и новым `diff_hash`;
+   - `manual-tester` по умолчанию перепрогоняет ранее упавшие TC плюс уровень Smoke; полный план
+     перепрогоняется только по явному запросу либо когда изменилась спека.
+5. Агрегировать в свежий `swarm-report/<slug>-acceptance.md` поверх предыдущего.
+6. Повторять, пока не VERIFIED либо пока пользователь не решит отгружать как есть.
 
-**Spec/test-plan change override.** If the spec file or test-plan file changed between runs
-(detected by comparing their `sha256` to values recorded in the previous aggregated receipt
-under `spec_hash` / `test_plan_hash`), `business-analyst` and `manual-tester` are always
-re-run regardless of `diff_hash` — their input is the spec/TC list, not just the code diff.
-Other checks remain subject to the `diff_hash` policy.
+**Переопределение при изменении спеки или тест-плана.** Если между прогонами изменился файл спеки или
+тест-плана (обнаруживается сравнением их `sha256` со значениями, записанными в прошлой сводной
+расписке под `spec_hash` и `test_plan_hash`), `business-analyst` и `manual-tester` перепрогоняются
+всегда, независимо от `diff_hash`: их вход — спека и список TC, а не только дифф кода. Остальные
+проверки остаются под политикой `diff_hash`.
 
-**Back-compat rule.** If the previous aggregated receipt does not contain `spec_hash`
-and/or `test_plan_hash` (e.g. a pre-iteration-3 receipt) — or either prior value is unknown
-or unreadable — treat that input as **changed** and re-run the affected checks to be safe:
-missing/unknown `spec_hash` forces `business-analyst`; missing/unknown `test_plan_hash`
-forces `manual-tester`. If both are missing/unknown, re-run both. Other checks remain
-subject to the `diff_hash` policy.
+**Правило обратной совместимости.** Если прошлая сводная расписка не содержит `spec_hash` или
+`test_plan_hash` — либо любое из прошлых значений неизвестно или нечитаемо, — считать этот вход
+**изменившимся** и на всякий случай перепрогнать затронутые проверки: отсутствующий или неизвестный
+`spec_hash` форсирует `business-analyst`, отсутствующий или неизвестный `test_plan_hash` форсирует
+`manual-tester`. Отсутствуют оба — перепрогнать обоих. Остальные проверки остаются под политикой
+`diff_hash`.
 
-This is the full idempotency pass that iteration 2 parked. Cost saving: on a single-file fix
-after a 5-agent FAIL, typically 2–3 passed checks are re-used instead of re-run.
+Экономия: на однофайловом фиксе после FAIL с пятью агентами обычно две-три пройденные проверки
+переиспользуются вместо перезапуска.

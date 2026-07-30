@@ -1,91 +1,89 @@
-Referenced from: `~/.claude/skills/acceptance/SKILL.md` (§Step 1: Gather Inputs).
+Ссылается из: `~/.claude/skills/acceptance/SKILL.md` (§Шаг 1, собрать входы).
 
-# Acceptance — Source Branches and Spec Frontmatter
+# Acceptance — ветки источника и frontmatter спеки
 
-Detailed input-resolution logic for Step 1. Acceptance requires at least one verification
-source (spec, test plan, or `debug.md`); this file specifies how each branch fires and
-what artifacts it produces.
+Подробная логика разрешения входов для шага 1. Приёмке нужен хотя бы один источник верификации
+(спека, тест-план либо `debug.md`); этот файл задаёт, как срабатывает каждая ветка и что она
+производит.
 
-## 1.1 Spec Source (optional if a test plan or debug.md is provided)
+## 1.1 Источник-спека (необязателен, если есть тест-план или debug.md)
 
-Accept any combination of: Figma mockups, PRD / requirements, acceptance criteria list, PR
-description, GitHub/Linear issue. Read all provided sources.
+Принимать любое сочетание: макеты Figma, PRD и требования, список критериев приёмки, описание PR,
+issue в GitHub или Linear. Читать все предоставленные источники.
 
-**Read the spec frontmatter.** If present, load `platform`, `surfaces`, `risk_areas`,
-`non_functional`, `acceptance_criteria_ids`, `design.figma`. These drive the conditional
-triggers in Step 4 plus two invariant guards on the plan:
+**Прочитать frontmatter спеки.** Если он есть, загрузить `platform`, `surfaces`, `risk_areas`,
+`non_functional`, `acceptance_criteria_ids`, `design.figma`. Они питают условные триггеры шага 4 плюс
+два инварианта плана:
 
-- `surfaces` contains `ui` forces the device block to run when a scenario source exists, even
-  if Step 0 detected a non-UI project (hybrid products with both UI and non-UI surfaces).
-- `surfaces` is set but does not contain `ui` on a UI-detected project means the spec
-  explicitly excludes UI — skip `manual-tester` even if `has_ui_surface` is true, and note
-  this in the Check Plan section of the receipt.
+- `surfaces` содержит `ui` — device-блок запускается при наличии источника сценария, даже если шаг 0
+  определил проект как не-UI (гибридные продукты с UI- и не-UI-поверхностями).
+- `surfaces` задан, но `ui` в нём нет, а проект определён как UI — значит спека исключает UI явно:
+  пропустить `manual-tester`, даже когда `has_ui_surface` истинно, и отметить это в разделе Check Plan
+  расписки.
 
-If the spec has no frontmatter (pre-iteration-2 specs, external specs, or plain-text
-issues) — every conditional defaults to "not triggered" and `surfaces` is treated as
-unspecified; only the base checks keyed off `has_ui_surface` run. This preserves backward
-compatibility.
+Если у спеки нет frontmatter (старые спеки, внешние спеки, обычный текст issue) — каждое условие
+считается несработавшим, `surfaces` считается незаданным, и работают только базовые проверки,
+завязанные на `has_ui_surface`. Так сохраняется обратная совместимость.
 
-## 1.2 Probe available artifacts (parallel)
+## 1.2 Прозондировать доступные артефакты (параллельно)
 
-Before branching, read the following in a single batched Read call set. Each may
-error-as-absent — that is expected:
+До ветвления прочитать одним пакетом вызовов Read. Каждый может вернуть «отсутствует», и это
+ожидаемо:
 
-- `swarm-report/<slug>-test-plan.md` (receipt)
-- `docs/testplans/<slug>-test-plan.md` (permanent)
-- `swarm-report/<slug>-debug.md` (bug-fix reproduction steps)
+- `swarm-report/<slug>-test-plan.md` (расписка)
+- `docs/testplans/<slug>-test-plan.md` (постоянный файл)
+- `swarm-report/<slug>-debug.md` (шаги воспроизведения бага)
 
-Combined with inline inputs and spec sources, one of the branches below fires. Record the
-selected branch as `test_plan_source` in the receipt.
+Вместе с инлайновыми входами и источниками спеки срабатывает одна из веток ниже. Выбранную ветку
+записать в расписку как `test_plan_source`.
 
-### Branch 1 — Receipt present (`test_plan_source: receipt`)
+### Ветка 1 — есть расписка (`test_plan_source: receipt`)
 
-**Condition:** `swarm-report/<slug>-test-plan.md` exists.
+**Условие:** существует `swarm-report/<slug>-test-plan.md`.
 
-Read the receipt's YAML frontmatter and load `permanent_path`. Interpret `review_verdict`
-per the canonical definition in `write-plan/references/test-plan-receipt.md`: treat
-`PASS` / `WARN` / `skipped` as proceed; `FAIL` and `pending` as blockers that escalate
-back to the caller, recommending revision via `multiexpert-review` before acceptance runs
-again. Pass the **permanent file** to `manual-tester` as the primary test-plan source.
-If the receipt has a `platform:` field, use it as an additional input to Step 0's
-override policy.
+Прочитать YAML-frontmatter расписки и загрузить `permanent_path`. Интерпретировать `review_verdict` по
+каноническому определению из `write-plan/references/test-plan-receipt.md`: `PASS`, `WARN` и `skipped`
+означают «идти дальше»; `FAIL` и `pending` — блокеры, которые эскалируются вызывающему с рекомендацией
+сначала доработать через `multiexpert-review`. **Постоянный файл** передать `manual-tester` как
+основной источник тест-плана. Если в расписке есть поле `platform:`, использовать его как
+дополнительный вход для политики переопределения шага 0.
 
-### Branch 2 — Permanent file exists without receipt (`test_plan_source: mounted`)
+### Ветка 2 — постоянный файл без расписки (`test_plan_source: mounted`)
 
-**Condition:** Branch 1 did not fire **and** `docs/testplans/<slug>-test-plan.md` exists
-on disk without a matching receipt.
+**Условие:** ветка 1 не сработала **и** `docs/testplans/<slug>-test-plan.md` существует на диске без
+соответствующей расписки.
 
-Acceptance owns the mount-receipt when invoked without an upstream receipt. Emit a
-mount-receipt at `swarm-report/<slug>-test-plan.md` following the canonical format in
-`write-plan/references/test-plan-receipt.md`. Apply the mount overrides: `status: Mounted`,
-`review_verdict: skipped`, `source_spec: existing (pre-orchestration)`. Derive
-`phase_coverage` from the permanent file's phase headings; omit the field if coverage
-cannot be determined reliably. Pass the permanent file to `manual-tester`.
+Когда приёмку вызвали без вышестоящей расписки, mount-распиской владеет она сама. Выпустить
+mount-расписку в `swarm-report/<slug>-test-plan.md` по каноническому формату из
+`write-plan/references/test-plan-receipt.md`. Применить переопределения монтирования:
+`status: Mounted`, `review_verdict: skipped`, `source_spec: existing (pre-orchestration)`. Вывести
+`phase_coverage` из заголовков фаз постоянного файла; если покрытие надёжно не определяется, поле
+опустить. Постоянный файл передать `manual-tester`.
 
-### Branch 3 — Inline test plan, spec, or `debug.md` available (`test_plan_source: on-the-fly`)
+### Ветка 3 — инлайновый тест-план, спека или `debug.md` (`test_plan_source: on-the-fly`)
 
-**Condition:** Branches 1 and 2 did not fire **and** the invocation provides a test plan
-inline, a spec source, `swarm-report/<slug>-debug.md`, or any combination of these.
-`debug.md` is treated as a spec-like source for bug-fix verification when no receipt or
-permanent test plan exists, so this branch also covers the standalone "debug-only" case.
+**Условие:** ветки 1 и 2 не сработали **и** вызов даёт инлайновый тест-план, источник-спеку,
+`swarm-report/<slug>-debug.md` либо любое их сочетание. `debug.md` трактуется как спека-подобный
+источник для верификации багфикса, когда нет ни расписки, ни постоянного тест-плана, поэтому эта ветка
+покрывает и случай «только debug».
 
-Four modes:
+Четыре режима:
 
-- **Test plan only (no spec / no debug.md)** — execute as-is; verdict depends on TC
-  pass/fail.
-- **Test plan + spec and/or debug.md** — execute the plan, cross-reference against the
-  spec or reproduction steps, flag obvious gaps to the user ("spec/debug mentions X but
-  the test plan doesn't cover it — add a TC?").
-- **Spec only (no test plan)** — generate a test plan from the spec: identify testable
-  flows, write TC-prefixed cases with tiers/steps/expected results, present for approval,
-  adjust per feedback.
-- **`debug.md` only (no test plan, no spec)** — derive E2E from the inverted reproduction
-  steps (Step 2 owns the inversion); record `test_plan_source: on-the-fly`. No on-the-fly
-  TC generation beyond what Step 2 already produces.
+- **Только тест-план** (без спеки и без debug.md) — исполнять как есть; вердикт зависит от
+  прохождения TC.
+- **Тест-план плюс спека и/или debug.md** — исполнить план, сверить со спекой или шагами
+  воспроизведения, вынести пользователю очевидные пробелы («спека или debug упоминают X, а тест-план
+  этого не покрывает — добавить TC?»).
+- **Только спека** (тест-плана нет) — сгенерировать тест-план из спеки: выделить проверяемые флоу,
+  написать кейсы с префиксом TC, уровнями, шагами и ожидаемыми результатами, показать на одобрение,
+  поправить по обратной связи.
+- **Только `debug.md`** (ни тест-плана, ни спеки) — вывести E2E из инвертированных шагов
+  воспроизведения (инверсией владеет шаг 2), записать `test_plan_source: on-the-fly`. Никакой
+  генерации TC на лету сверх того, что уже даёт шаг 2.
 
-### Branch 4 — Nothing available (`test_plan_source: absent`)
+### Ветка 4 — ничего нет (`test_plan_source: absent`)
 
-**Condition:** no receipt, no permanent file, no inline test plan, no spec source, and no
-`swarm-report/<slug>-debug.md` (bug-fix path).
+**Условие:** ни расписки, ни постоянного файла, ни инлайнового тест-плана, ни источника-спеки, ни
+`swarm-report/<slug>-debug.md`.
 
-Proceed to SKILL.md §Step 1.5 Source-Missing Gate. Do not run any checks.
+Перейти к §Шаг 1.5, гейт отсутствующего источника, в SKILL.md. Никаких проверок не запускать.
