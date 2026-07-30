@@ -1,12 +1,15 @@
-# create-pr — Visual Change Detection Patterns
+# create-pr — паттерны обнаружения визуальных изменений
 
-Referenced from: `~/.claude/skills/create-pr/SKILL.md` (§7.3).
+Ссылается из: `~/.claude/skills/create-pr/SKILL.md` (§7.3).
 
-Look at changed file paths for:
+Смотреть на пути изменённых файлов:
+
 - Android/Compose: `*Screen.kt`, `*Composable.kt`, `res/layout/`, `res/drawable/`
-- Compose Multiplatform: Kotlin UI patterns + `commonMain` UI dirs
+- Compose Multiplatform: те же паттерны Kotlin UI плюс UI-каталоги в `commonMain`
 - Web: `*.tsx`, `*.jsx`, `*.css`, `*.scss`, `*.html`
 - iOS: `*View.swift`, `*Screen.swift`, `Views/`, `Screens/`, `*.xib`, `*.storyboard`
-  (plain `*.swift` is too broad — most Swift files are non-UI; match by suffix/dir)
+  (обычный `*.swift` слишком широк — большинство Swift-файлов не про UI; сопоставлять по суффиксу и
+  каталогу)
 
-If visual changes detected — include "Screenshots / demo" section and prompt the user (in `--draft` and `--promote` modes) for attachments. `--refresh` preserves existing Screenshots content.
+Визуальные изменения обнаружены — включить раздел «Screenshots / demo» и запросить у пользователя
+вложения в режимах `--draft` и `--promote`. `--refresh` сохраняет существующее содержимое раздела.
