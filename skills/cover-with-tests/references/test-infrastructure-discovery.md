@@ -1,55 +1,60 @@
-# Test Infrastructure Discovery
+# Обнаружение тестовой инфраструктуры
 
-Reference for `cover-with-tests` Phase 4 — see `../SKILL.md` for the skill entry point.
+Reference для фазы 4 скилла `cover-with-tests` — точка входа в `../SKILL.md`.
 
-Use these tables while inspecting existing tests (3-5 samples if available) and build
-configuration to produce the Test Infrastructure Summary that drives downstream code
-generation. Generated tests must be indistinguishable from hand-written tests in the
-project — do not introduce a new framework, assertion library, or mocking tool.
+Пользоваться этими таблицами, осматривая существующие проверки (три-пять образцов, если они есть) и
+конфигурацию сборки, чтобы собрать Test Infrastructure Summary, который питает генерацию кода дальше.
+Сгенерированные проверки должны быть неотличимы от написанных в проекте вручную: не вводить новый
+фреймворк, библиотеку утверждений или инструмент подмены.
 
-## Detect frameworks and libraries
+Таблицы ниже перечисляют экосистемы, у которых сегодня есть профильный инженерный агент. Стек, которого
+здесь нет, — не повод остановиться: те же категории обнаруживаются в его конфигурации сборки и
+существующих проверках, а результат ложится в тот же Summary.
 
-| Category | What to detect | Where to look |
-|----------|---------------|---------------|
-| Test framework (Kotlin) | JUnit 4, JUnit 5, Kotest | `build.gradle(.kts)` dependencies, existing test imports |
-| Test framework (Swift) | Swift Testing (`@Test` / `@Suite`), XCTest (`XCTestCase`), Quick | `Package.swift` dependencies, Xcode test targets, existing test imports |
-| Assertion library | Truth, AssertJ, Kotest matchers, kotlin.test, `#expect`, `XCTAssert*`, Nimble matchers | Existing test imports and assertions |
-| Mocking / test doubles | MockK, Mockito-Kotlin, manual fakes; protocol-backed fakes/stubs/spies in Swift | Existing test imports, `@MockK`, `mock()`, `Fake*`/`Stub*`/`Spy*` classes |
-| Async testing | `kotlinx-coroutines-test` (`runTest`), Turbine; Swift `async` tests, `withCheckedContinuation`, `XCTestExpectation` | Existing test imports, build config |
-| UI testing | Compose `createComposeRule`, `compose-ui-test`; ViewInspector, XCUITest, snapshot tests | Existing test imports, build config |
-| DI in tests | Hilt test, Koin test, manual construction (both stacks) | Existing test setup patterns |
+## Обнаружить фреймворки и библиотеки
 
-## Detect conventions
+| Категория | Что искать | Где искать |
+|---|---|---|
+| Тестовый фреймворк (Kotlin) | JUnit 4, JUnit 5, Kotest | зависимости в `build.gradle(.kts)`, импорты существующих тестов |
+| Тестовый фреймворк (Swift) | Swift Testing (`@Test` / `@Suite`), XCTest (`XCTestCase`), Quick | зависимости в `Package.swift`, тестовые таргеты Xcode, импорты существующих тестов |
+| Библиотека утверждений | Truth, AssertJ, матчеры Kotest, `kotlin.test`, `#expect`, `XCTAssert*`, матчеры Nimble | импорты и утверждения существующих тестов |
+| Подмены и двойники | MockK, Mockito-Kotlin, ручные фейки; в Swift фейки, стабы и шпионы за протоколами | импорты существующих тестов, `@MockK`, `mock()`, классы `Fake*`/`Stub*`/`Spy*` |
+| Асинхронность в тестах | `kotlinx-coroutines-test` (`runTest`), Turbine; в Swift async-тесты, `withCheckedContinuation`, `XCTestExpectation` | импорты существующих тестов, конфигурация сборки |
+| UI-тестирование | Compose `createComposeRule`, `compose-ui-test`; ViewInspector, XCUITest, snapshot-тесты | импорты существующих тестов, конфигурация сборки |
+| DI в тестах | Hilt test, Koin test, ручная конструкция (оба стека) | паттерны подготовки в существующих тестах |
 
-| Convention | What to detect | How |
-|-----------|---------------|-----|
-| Naming | `should verb`, `test verb`, backtick names, `given_when_then`, Swift Testing descriptive strings (`@Test("Empty cart shows zero total")`) | Read existing test function / `@Test` names |
-| File placement | Kotlin: same package as source, or separate test package; Swift: `Tests/<Target>Tests/` (SwiftPM) or Xcode test target matching the module | Compare test file locations to source |
-| Test class naming | `ClassNameTest`, `ClassNameSpec`, `ClassNameTests`; Swift `@Suite` structs or `XCTestCase` subclasses named `<Type>Tests` | Read existing test class / suite names |
-| Setup pattern | `@Before`/`@BeforeEach`, `init {}`, builder/factory; Swift Testing `init` / `deinit`, XCTest `setUp` / `tearDown` | Read existing test setup blocks |
-| Assertion style | Fluent (`assertThat(x).isEqualTo(y)`) vs plain (`assertEquals`); `#expect(...)` vs `XCTAssertEqual(...)` | Read existing assertions |
+## Обнаружить конвенции
 
-## Test Infrastructure Summary template
+| Конвенция | Что искать | Как |
+|---|---|---|
+| Именование | `should verb`, `test verb`, имена в бэктиках, `given_when_then`, описательные строки Swift Testing (`@Test("Empty cart shows zero total")`) | прочитать имена существующих тестовых функций и `@Test` |
+| Размещение файлов | Kotlin: тот же пакет, что у исходника, либо отдельный тестовый пакет; Swift: `Tests/<Target>Tests/` (SwiftPM) либо тестовый таргет Xcode, соответствующий модулю | сравнить расположение тестовых файлов с исходными |
+| Именование тестовых классов | `ClassNameTest`, `ClassNameSpec`, `ClassNameTests`; в Swift структуры `@Suite` или наследники `XCTestCase` с именем `<Type>Tests` | прочитать имена существующих тестовых классов и сьютов |
+| Паттерн подготовки | `@Before` / `@BeforeEach`, `init {}`, builder или фабрика; в Swift Testing `init` / `deinit`, в XCTest `setUp` / `tearDown` | прочитать блоки подготовки существующих тестов |
+| Стиль утверждений | текучий (`assertThat(x).isEqualTo(y)`) против простого (`assertEquals`); `#expect(...)` против `XCTAssertEqual(...)` | прочитать существующие утверждения |
 
-Compile findings into a structured summary that the code-generation agent consumes verbatim:
+## Шаблон Test Infrastructure Summary
+
+Свести находки в структурированную сводку, которую агент генерации кода потребляет дословно:
 
 ```
 ## Test Infrastructure Summary
 
-**Platform:** {Kotlin/Android / Swift/iOS / Swift/macOS / KMP}
-**Framework:** {JUnit 4 / JUnit 5 / Kotest / Swift Testing / XCTest / Quick}
-**Assertions:** {Truth / AssertJ / Kotest matchers / kotlin.test / #expect / XCTAssert / Nimble}
+**Platform:** {Kotlin/Android / Swift/iOS / Swift/macOS / KMP / <другая экосистема>}
+**Framework:** {JUnit 4 / JUnit 5 / Kotest / Swift Testing / XCTest / Quick / <обнаруженный>}
+**Assertions:** {Truth / AssertJ / Kotest matchers / kotlin.test / #expect / XCTAssert / Nimble / <обнаруженный>}
 **Test doubles:** {MockK / Mockito-Kotlin / manual fakes / protocol-backed fakes / stubs / spies / none}
 **Async testing:** {runTest + Turbine / runTest / runBlocking / async tests / XCTestExpectation / none}
 **UI testing:** {compose-ui-test / ViewInspector / XCUITest / snapshot / none}
 
-**Naming convention:** {description — e.g., "backtick names with 'should' prefix", or "Swift Testing descriptive strings"}
-**Class / suite naming:** {e.g., "ClassNameTest", "@Suite struct FooTests"}
-**File placement:** {e.g., "same package in src/test/kotlin/", or "Tests/AuthTests/"}
-**Setup pattern:** {e.g., "@Before with MockK annotations", or "Swift Testing init/deinit"}
-**Assertion style:** {e.g., "Truth fluent assertions", or "#expect with descriptive tests"}
+**Naming convention:** {описание — «имена в бэктиках с префиксом should» либо «описательные строки Swift Testing»}
+**Class / suite naming:** {«ClassNameTest», «@Suite struct FooTests»}
+**File placement:** {«тот же пакет в src/test/kotlin/» либо «Tests/AuthTests/»}
+**Setup pattern:** {«@Before с аннотациями MockK» либо «init/deinit в Swift Testing»}
+**Assertion style:** {«текучие утверждения Truth» либо «#expect с описательными тестами»}
 
-**Example test file:** {path to a representative existing test for reference}
+**Example test file:** {путь к репрезентативному существующему тесту для образца}
 ```
 
-Keep the section headings and field names stable — downstream prompts assume this structure.
+Заголовки разделов и имена полей держать неизменными — промпты дальше по потоку рассчитывают на эту
+структуру.

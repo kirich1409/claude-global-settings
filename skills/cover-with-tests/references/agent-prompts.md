@@ -1,24 +1,29 @@
-# Agent Prompt Templates
+# Шаблоны промптов делегирования
 
-Reference for `cover-with-tests` Phase 5 — see `../SKILL.md` for the skill entry point.
+Reference для фазы 5 скилла `cover-with-tests` — точка входа в `../SKILL.md`.
 
-Pick the template that matches the agent you selected in Phase 4.1 and fill in the `{…}`
-placeholders from Phases 1-3. Keep the section headings exactly as written so downstream
-agents can locate the slots reliably.
+Взять шаблон под агента, выбранного маршрутизацией фазы 5, и заполнить плейсхолдеры `{…}` из фаз 1–4.
+Заголовки разделов оставлять ровно как написано: по ним агент находит слоты.
 
-Every delegation prompt must include:
+Тела промптов остаются английскими — они уходят агенту дословно, и последняя строка каждого сама велит
+отвечать на языке запроса пользователя.
 
-1. **Target code paths** — full file paths to the code being tested
-2. **Test Infrastructure Summary** — from Phase 2
-3. **Test cases to implement** — from Phase 3 plan
-4. **Existing test examples** — path to 1-2 representative test files for style reference.
-   If no existing tests exist (scaffolding from scratch), set the slot to:
+Каждый промпт делегирования обязан нести:
+
+1. **Пути целевого кода** — полные пути к файлам, которые покрываются.
+2. **Test Infrastructure Summary** — из фазы 4.
+3. **Что писать** — решения фазы 3: поведения, виды и уровни.
+4. **Образцы существующих проверок** — путь к одному-двум репрезентативным файлам для стиля.
+   Существующих проверок нет (строим с нуля) — поставить в слот:
    `"No example available — infer conventions from build config and project naming."`
-5. **Test plan** — if one was found in Phase 1.5, include its path
-6. **Regression scenario** — in Regression Mode only: the structured bug description from
-   Phase 1.1 (`regression-scenario` input). Omit or set to "N/A" in normal mode.
+5. **Источник истины** — путь к тест-плану или спеке из фазы 2, либо пометка о характеризации.
+6. **Сценарий регрессии** — только в режиме `--regression`: структурированное описание бага из
+   входных данных. В остальных режимах опустить либо поставить «N/A».
 
-## Prompt template for kotlin-engineer
+Стека без профильного агента шаблоны ниже не покрывают: там главная сессия пишет проверки сама, взяв
+тот же Summary как собственный бриф.
+
+## Шаблон для kotlin-engineer
 
 ```
 Write unit tests for the following code. Match the project's existing test conventions exactly.
@@ -28,19 +33,19 @@ Read these files:
 {list of file paths}
 
 ## Test Infrastructure
-{Test Infrastructure Summary from Phase 2}
+{Test Infrastructure Summary}
 
-## Regression scenario (Regression Mode only — omit or "N/A" otherwise)
+## Regression scenario (--regression only — omit or "N/A" otherwise)
 {regression_scenario: root cause + reproduction steps + expected vs actual behavior}
 
 ## Test cases to write
-{list of test cases from Phase 3}
+{decisions: behaviors, kinds, levels}
 
 ## Style reference
 Read this existing test for style and conventions: {path to example test}
 
-## Test plan (optional)
-{path to test plan from docs/testplans/, or "No test plan available"}
+## Source of truth (optional)
+{path to test plan from docs/testplans/, or "Characterization — pin current behavior"}
 
 ## Requirements
 - Write complete, compilable test files — no TODOs, no placeholders
@@ -50,14 +55,14 @@ Read this existing test for style and conventions: {path to example test}
 - Place test files in the correct test source set and package
 - Each test function tests exactly one behavior
 - Test names describe the behavior being verified, not the implementation
-- IF Regression Mode (regression scenario is set): write EXACTLY ONE test for the
-  regression scenario above — do NOT sweep for other coverage gaps; add a one-line
-  comment on the test function: `// Regression: verifies fix for [root cause]`
+- IF a regression scenario is set: write EXACTLY ONE test for it — do NOT sweep for other
+  coverage gaps; add a one-line comment on the test function:
+  `// Regression: verifies fix for [root cause]`
 
 Respond in the same language as the user's request.
 ```
 
-## Prompt template for compose-developer
+## Шаблон для compose-developer
 
 ```
 Write Compose UI tests for the following composables. Match the project's existing test conventions.
@@ -67,19 +72,19 @@ Read these files:
 {list of file paths}
 
 ## Test Infrastructure
-{Test Infrastructure Summary from Phase 2}
+{Test Infrastructure Summary}
 
-## Regression scenario (Regression Mode only — omit or "N/A" otherwise)
+## Regression scenario (--regression only — omit or "N/A" otherwise)
 {regression_scenario: root cause + reproduction steps + expected vs actual behavior}
 
 ## Test cases to write
-{list of test cases from Phase 3}
+{decisions: behaviors, kinds, levels}
 
 ## Style reference
 Read this existing test for style and conventions: {path to example test}
 
-## Test plan (optional)
-{path to test plan from docs/testplans/, or "No test plan available"}
+## Source of truth (optional)
+{path to test plan from docs/testplans/, or "Characterization — pin current behavior"}
 
 ## Requirements
 - Use createComposeRule() or createAndroidComposeRule() as used in existing tests
@@ -87,14 +92,14 @@ Read this existing test for style and conventions: {path to example test}
 - Use semantic matchers (onNodeWithText, onNodeWithTag) over implementation details
 - Write complete, compilable test files — no TODOs, no placeholders
 - Follow the project's existing conventions exactly
-- IF Regression Mode (regression scenario is set): write EXACTLY ONE test for the
-  regression scenario above — do NOT sweep for other coverage gaps; add a one-line
-  comment on the test function: `// Regression: verifies fix for [root cause]`
+- IF a regression scenario is set: write EXACTLY ONE test for it — do NOT sweep for other
+  coverage gaps; add a one-line comment on the test function:
+  `// Regression: verifies fix for [root cause]`
 
 Respond in the same language as the user's request.
 ```
 
-## Prompt template for swift-engineer
+## Шаблон для swift-engineer
 
 ```
 Write unit tests for the following Swift code. Match the project's existing test conventions exactly.
@@ -104,19 +109,19 @@ Read these files:
 {list of file paths}
 
 ## Test Infrastructure
-{Test Infrastructure Summary from Phase 2}
+{Test Infrastructure Summary}
 
-## Regression scenario (Regression Mode only — omit or "N/A" otherwise)
+## Regression scenario (--regression only — omit or "N/A" otherwise)
 {regression_scenario: root cause + reproduction steps + expected vs actual behavior}
 
 ## Test cases to write
-{list of test cases from Phase 3}
+{decisions: behaviors, kinds, levels}
 
 ## Style reference
 Read this existing test for style and conventions: {path to example test}
 
-## Test plan (optional)
-{path to test plan from docs/testplans/, or "No test plan available"}
+## Source of truth (optional)
+{path to test plan from docs/testplans/, or "Characterization — pin current behavior"}
 
 ## Requirements
 - Write complete, compilable test files — no TODOs, no placeholders
@@ -128,14 +133,14 @@ Read this existing test for style and conventions: {path to example test}
 - Place test files in the correct test target / Tests directory and module namespace
 - For async code use `async` tests and structured concurrency; avoid `DispatchSemaphore` hacks
 - Each test function tests exactly one behavior; names describe behavior, not implementation
-- IF Regression Mode (regression scenario is set): write EXACTLY ONE test for the
-  regression scenario above — do NOT sweep for other coverage gaps; add a one-line
-  comment on the test function: `// Regression: verifies fix for [root cause]`
+- IF a regression scenario is set: write EXACTLY ONE test for it — do NOT sweep for other
+  coverage gaps; add a one-line comment on the test function:
+  `// Regression: verifies fix for [root cause]`
 
 Respond in the same language as the user's request.
 ```
 
-## Prompt template for swiftui-developer
+## Шаблон для swiftui-developer
 
 ```
 Write SwiftUI UI tests for the following views. Match the project's existing test conventions.
@@ -145,19 +150,19 @@ Read these files:
 {list of file paths}
 
 ## Test Infrastructure
-{Test Infrastructure Summary from Phase 2}
+{Test Infrastructure Summary}
 
-## Regression scenario (Regression Mode only — omit or "N/A" otherwise)
+## Regression scenario (--regression only — omit or "N/A" otherwise)
 {regression_scenario: root cause + reproduction steps + expected vs actual behavior}
 
 ## Test cases to write
-{list of test cases from Phase 3}
+{decisions: behaviors, kinds, levels}
 
 ## Style reference
 Read this existing test for style and conventions: {path to example test}
 
-## Test plan (optional)
-{path to test plan from docs/testplans/, or "No test plan available"}
+## Source of truth (optional)
+{path to test plan from docs/testplans/, or "Characterization — pin current behavior"}
 
 ## Requirements
 - Match the project's existing approach — ViewInspector-style unit tests, XCUITest UI tests,
@@ -166,9 +171,9 @@ Read this existing test for style and conventions: {path to example test}
 - Prefer accessibility identifiers / labels over view-tree internals for queries
 - Write complete, compilable test files — no TODOs, no placeholders
 - Follow the project's existing conventions exactly
-- IF Regression Mode (regression scenario is set): write EXACTLY ONE test for the
-  regression scenario above — do NOT sweep for other coverage gaps; add a one-line
-  comment on the test function: `// Regression: verifies fix for [root cause]`
+- IF a regression scenario is set: write EXACTLY ONE test for it — do NOT sweep for other
+  coverage gaps; add a one-line comment on the test function:
+  `// Regression: verifies fix for [root cause]`
 
 Respond in the same language as the user's request.
 ```
