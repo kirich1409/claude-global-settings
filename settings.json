@@ -24,6 +24,7 @@
       "NotebookEdit",
       "Read(~/.gradle/**)",
       "Bash(ast-index:*)",
+      "Bash(ksrc:*)",
       "WebFetch(domain:github.com)",
       "WebFetch(domain:gist.github.com)",
       "WebFetch(domain:raw.githubusercontent.com)",
@@ -321,6 +322,9 @@
       }
     ]
   },
+  "worktree": {
+    "baseRef": "fresh"
+  },
   "statusLine": {
     "type": "command",
     "command": "bash $HOME/.claude/statusline-command.sh"
@@ -334,7 +338,8 @@
     "kotlin-lsp@claude-plugins-official": false,
     "context-mode@context-mode": true,
     "warp@claude-code-warp": true,
-    "claude-code-wakatime@wakatime": true
+    "claude-code-wakatime@wakatime": true,
+    "ksrc@respawn-tools": true
   },
   "extraKnownMarketplaces": {
     "krozov-ai-tools": {
@@ -366,6 +371,18 @@
       "source": {
         "source": "git",
         "url": "https://github.com/wakatime/claude-code-wakatime.git"
+      }
+    },
+    "claude-in-mobile": {
+      "source": {
+        "source": "git",
+        "url": "https://github.com/AlexGladkov/claude-in-mobile.git"
+      }
+    },
+    "respawn-tools": {
+      "source": {
+        "source": "github",
+        "repo": "respawn-llc/claude-plugin-marketplace"
       }
     }
   },
