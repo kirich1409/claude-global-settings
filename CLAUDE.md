@@ -30,3 +30,9 @@ rules, agents, skills, hooks и scripts. Правки идут прямо в `ma
 правил, субагенту передавать путь в prompt: `task-types`, `verification-pyramid`, `dependencies`,
 `external-sources`, `verify-library-api`, `model-effort-routing`, `context-resilience`,
 `task-execution`, `git-worktree`.
+
+## Вывод Bash
+
+Если установлен `rtk`, hook переписывает Bash-команды в `rtk <cmd>` и сжимает вывод — формат
+отличается от родного (у `git diff` пропадают заголовки `diff --git`/`index`, добавляется сводка).
+Нужен дословный вывод — `rtk proxy <cmd>`. Аналитика экономии — `rtk gain`.
