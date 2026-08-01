@@ -88,6 +88,7 @@
       "mcp__plugin_context-mode_context-mode__ctx_batch_execute",
       "mcp__plugin_context-mode_context-mode__ctx_search",
       "mcp__plugin_context-mode_context-mode__ctx_fetch_and_index",
+      "mcp__plugin_maven-mcp_maven-mcp",
       "Bash(ast-index help:*)",
       "Bash(ast-index rebuild:*)",
       "Bash($HOME/.claude/scripts/gh/*)",
@@ -338,7 +339,8 @@
     "context-mode@context-mode": true,
     "warp@claude-code-warp": true,
     "claude-code-wakatime@wakatime": true,
-    "ksrc@respawn-tools": true
+    "ksrc@respawn-tools": true,
+    "maven-mcp@krozov-ai-tools": true
   },
   "extraKnownMarketplaces": {
     "krozov-ai-tools": {
