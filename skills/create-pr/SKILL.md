@@ -361,7 +361,7 @@ fi
 
 **Промоция (`promote`):**
 > PR переведён в ready for review: `<url>`
-> Дальше: `/drive-to-merge` (или `/drive-to-merge --auto`) — автономно следить за CI, обрабатывать
+> Дальше: `/drive-to-merge` (или `/drive-to-merge --merge=auto`) — автономно следить за CI, обрабатывать
 > комментарии ревью и довести PR до merge.
 
 **Создан сразу ready:**

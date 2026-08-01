@@ -82,7 +82,7 @@ PR/MR уже смержен или закрыт — остановиться и 
 
 Семантика политик:
 
-- `auto` — режим `--auto` снимает гейт слияния и может пользоваться нативным auto-merge платформы.
+- `auto` — `--merge=auto` снимает гейт слияния и может пользоваться нативным auto-merge платформы.
 - `team-strict` — гейт слияния спрашивает всегда, в любом режиме; `--when-pipeline-succeeds` в GitLab
   выключен, пока пользователь явно не передал `--native-auto-merge` при вызове.
 
@@ -114,7 +114,7 @@ PR 42 → `login-pr42`). Номер PR разводит параллельные
 
 URL: <URL PR>
 Platform: github | gitlab
-Mode: default | auto | dry-run
+Mode: reviews=<auto|ask> merge=<auto|ask|never> rebase=<yes|no> | dry-run
 Merge policy: auto | team-strict
 Principal: <@actor>            # gh api user --jq .login
 Repository node id: <graphql node id репозитория>
