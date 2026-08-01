@@ -50,13 +50,13 @@
 Исключение снимает церемонию, но не верификацию: у конфига есть свой минимальный верификатор
 (`validate-config`, schema, dry-run) — прогнать обязательно.
 
-**PR promotion gate — `/create-pr --promote`** требует явного подтверждения пользователя. Открыть
+**PR promotion gate — `/create-pr promote`** требует явного подтверждения пользователя. Открыть
 draft PR — рутина.
 
 ## Потоки
 
 **Нетривиальная фича:** preparation gate → реализация на feature branch в worktree, draft PR
-заранее через `/create-pr --draft` → `/acceptance` → `/create-pr --promote`
+заранее через `/create-pr draft` → `/acceptance` → `/create-pr promote`
 (с подтверждением) → `/drive-to-merge`. Опционально `/multiexpert-review` для высокорисковых планов.
 
 **Багфикс:** зафиксировать шаги воспроизведения в `swarm-report/<slug>-debug.md` — это источник
