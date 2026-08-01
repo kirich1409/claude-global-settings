@@ -196,7 +196,6 @@
   "model": "opus",
   "skillOverrides": {
     "evaluate-dependency": "off",
-    "find-skills": "off",
     "kotlin-tooling-cocoapods-spm-migration": "off"
   },
   "hooks": {
