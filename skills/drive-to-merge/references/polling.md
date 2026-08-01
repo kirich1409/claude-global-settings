@@ -42,7 +42,6 @@ auto-merge платформы и выйти сразу либо запланир
 ```
 WAKEUP_PROMPT="/drive-to-merge"
 [ "$STATE_MODE" = "auto" ] && WAKEUP_PROMPT="/drive-to-merge --reviews=auto --merge=auto"
-# dry-run до фазы 4 не доходит — он выходит после первой таблицы решений.
 
 ScheduleWakeup(
   delaySeconds: <выбранное>,

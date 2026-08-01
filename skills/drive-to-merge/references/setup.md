@@ -114,7 +114,7 @@ PR 42 → `login-pr42`). Номер PR разводит параллельные
 
 URL: <URL PR>
 Platform: github | gitlab
-Mode: reviews=<auto|ask> merge=<auto|ask|never> rebase=<yes|no> | dry-run
+Mode: reviews=<auto|ask> merge=<auto|ask|never> rebase=<yes|no>
 Merge policy: auto | team-strict
 Principal: <@actor>            # gh api user --jq .login
 Repository node id: <graphql node id репозитория>
