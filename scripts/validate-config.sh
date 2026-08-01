@@ -183,6 +183,52 @@ PYEOF
   fi
 fi
 
+# --- 10. ~/.claude/** pointers in markdown resolve ---------------------------------------
+# Skills and agents reach into references/** by absolute path — that is the one channel that
+# actually delivers text, since references/ never loads on its own. A file moving between
+# rules/ and references/ silently breaks the pointer: skills/acceptance pointed at
+# rules/context-resilience.md for weeks after that file moved. Prose placeholders (foo.md,
+# trailing "...") and glob patterns are exempt.
+PTR_OUT="$(mktemp)"
+PTR_PY="$(mktemp)"
+# Script goes to a file, not a heredoc: a heredoc on the xargs end of a pipeline steals
+# stdin from the pipe, so xargs would consume this source text as its file list and the
+# check would pass while inspecting nothing.
+cat > "$PTR_PY" <<'PYEOF'
+import os, re, sys
+pat = re.compile(r"(?:\$HOME/\.claude|~/\.claude)/([^\s\"'`;|&)\]}]+)")
+PLACEHOLDERS = ("foo", "bar", "baz")
+bad = []
+for f in sys.argv[1:]:
+    try:
+        lines = open(f, encoding="utf-8").readlines()
+    except OSError:
+        continue
+    for i, line in enumerate(lines, 1):
+        if "validate-config: allow" in line:
+            continue
+        for m in pat.finditer(line):
+            # Strip trailing prose punctuation, then a file:line suffix ("task-types.md:9").
+            p = re.sub(r":\d+$", "", m.group(1).rstrip(".,:;)"))
+            if not p or p.endswith("/") or "..." in p:
+                continue
+            if any(c in p for c in "*<>{}$"):
+                continue
+            if os.path.basename(p).split(".")[0] in PLACEHOLDERS:
+                continue
+            if not os.path.exists(p):
+                bad.append(f"{f}:{i}->{p}")
+print(" ".join(bad))
+PYEOF
+git ls-files -z -- '*.md' | xargs -0 python3 "$PTR_PY" > "$PTR_OUT"
+badptr=$(cat "$PTR_OUT"); rm -f "$PTR_OUT" "$PTR_PY"
+if [ -n "$badptr" ]; then
+  fail "markdown points at non-existent ~/.claude paths:"
+  printf '%s\n' "$badptr" | tr ' ' '\n' | sed 's/^/    /'
+else
+  ok "all ~/.claude paths in markdown resolve"
+fi
+
 echo
 if [ "$FAIL" -ne 0 ]; then
   echo "validate-config: FAIL"

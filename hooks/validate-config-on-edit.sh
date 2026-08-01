@@ -14,8 +14,10 @@ set -u
 INPUT=$(cat)
 FILE=$(printf '%s' "$INPUT" | python3 -c 'import json,sys; print(json.load(sys.stdin).get("tool_input",{}).get("file_path",""))' 2>/dev/null)
 
+# .md is in scope because rules/skills/agents cross-reference each other by absolute
+# ~/.claude path, and a moved file breaks the pointer with nothing else to catch it.
 case "$FILE" in
-  */settings.json|*/settings.local.json) ;;
+  */settings.json|*/settings.local.json|*.md) ;;
   *) exit 0 ;;
 esac
 
