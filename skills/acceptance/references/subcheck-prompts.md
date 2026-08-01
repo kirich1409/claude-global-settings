@@ -184,7 +184,7 @@ Severity: `FAIL` по пропущенному AC — `critical`, слабое �
 
 Что несёт промпт:
 
-1. **Триггер** — `new-public-api` / `tp-tc-mismatch` / `data-layer-no-tests` / `--coverage-audit`, с
+1. **Триггер** — `new-public-api` / `tp-tc-mismatch` / `data-layer-no-tests` / `--coverage-audit=yes`, с
    символами или идентификаторами TC, которые совпали.
 2. **Тест-план** — `docs/testplans/<slug>-test-plan.md` либо `N/A: тест-плана нет`.
 3. **Дифф** — сужённый до изменённых исходников и их тестовых исходников.
