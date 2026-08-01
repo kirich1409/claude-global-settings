@@ -196,8 +196,12 @@ PTR_PY="$(mktemp)"
 # check would pass while inspecting nothing.
 cat > "$PTR_PY" <<'PYEOF'
 import os, re, sys
-pat = re.compile(r"(?:\$HOME/\.claude|~/\.claude)/([^\s\"'`;|&)\]}]+)")
-PLACEHOLDERS = ("foo", "bar", "baz")
+# Two spellings of the same pointer. The bare `rules/x.md` form is the one that rotted
+# unnoticed: files moved to references/ and seven backticked links kept naming rules/.
+pat = re.compile(
+    r"(?:\$HOME/\.claude|~/\.claude)/([^\s\"'`;|&)\]}]+)"
+    r"|`((?:rules|references)/[^`\s]+\.md)`")
+PLACEHOLDERS = ("foo", "bar", "baz", "x", "name", "slug")
 bad = []
 for f in sys.argv[1:]:
     try:
@@ -209,15 +213,18 @@ for f in sys.argv[1:]:
             continue
         for m in pat.finditer(line):
             # Strip trailing prose punctuation, then a file:line suffix ("task-types.md:9").
-            p = re.sub(r":\d+$", "", m.group(1).rstrip(".,:;)"))
+            p = re.sub(r":\d+$", "", (m.group(1) or m.group(2)).rstrip(".,:;)"))
             if not p or p.endswith("/") or "..." in p:
                 continue
             if any(c in p for c in "*<>{}$"):
                 continue
             if os.path.basename(p).split(".")[0] in PLACEHOLDERS:
                 continue
-            if not os.path.exists(p):
-                bad.append(f"{f}:{i}->{p}")
+            # `references/x.md` is ambiguous: it resolves against the repo root for global
+            # references and against the skill directory for a skill's own. Either hit passes.
+            if os.path.exists(p) or os.path.exists(os.path.join(os.path.dirname(f), p)):
+                continue
+            bad.append(f"{f}:{i}->{p}")
 print(" ".join(bad))
 PYEOF
 git ls-files -z -- '*.md' | xargs -0 python3 "$PTR_PY" > "$PTR_OUT"
