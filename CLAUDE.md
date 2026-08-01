@@ -33,12 +33,8 @@ rules, agents, skills, hooks и scripts. Правки идут прямо в `ma
 
 `references/**` не загружается ни у главной сессии, ни у субагентов — читать Read'ом по указателю из
 правил, субагенту передавать путь в prompt: `task-types`, `verification-pyramid`, `dependencies`,
-`external-sources`, `verify-library-api`, `jvm-dependencies`, `model-effort-routing`,
-`context-resilience`, `task-execution`, `git-worktree`.
-
-**Любой вопрос о JVM-библиотеке** — версия, CVE, лицензия, исходники API, аудит зависимостей —
-начинается с `references/jvm-dependencies.md`: там названы каналы, которыми это берётся вместо
-памяти и веба. Читать и вне Gradle-проекта: по одной координате каналы работают в пустом каталоге.
+`external-sources`, `verify-library-api`, `model-effort-routing`, `context-resilience`,
+`task-execution`, `git-worktree`.
 
 ## Вывод Bash
 
