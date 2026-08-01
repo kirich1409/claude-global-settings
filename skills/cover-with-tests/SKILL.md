@@ -31,11 +31,11 @@ coverage-аудит внутри `/acceptance` приходят сюда, поэ
 | [`references/agent-prompts.md`](references/agent-prompts.md) | Шаблоны промптов делегирования для фазы 5 |
 
 Соседнее владение, здесь не повторяется: эвристика выбора вида и словарь `Type` живут в
-`write-plan/references/test-plan.md` §Type; уровни пирамиды — в `~/.claude/rules/qa-and-testing.md`;
-seam-ловушка и семантика golden master — в `migrate-code/references/safety-net.md`.
+`write-plan/references/test-plan.md` §Type; seam-ловушка и семантика golden master — в
+`migrate-code/references/safety-net.md`.
 
-**Автор чинит сломанные тесты** — `~/.claude/rules/qa-and-testing.md`. Отключить тест без ссылки на
-отслеживаемую задачу в самой аннотации отключения нельзя.
+**Автор чинит сломанные тесты.** Отключить тест без ссылки на отслеживаемую задачу в самой
+аннотации отключения нельзя.
 
 ---
 
