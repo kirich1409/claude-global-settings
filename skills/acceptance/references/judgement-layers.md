@@ -69,7 +69,8 @@
 тестов, а не существование нужных.
 
 **Срабатывает при любом:** изменился публичный символ API без соответствующей проверки (правило в
-`~/.claude/rules/qa-and-testing.md`, §Gate покрытия public API); `docs/testplans/<slug>-test-plan.md`
+`~/.claude/references/verification-pyramid.md`, §Gate покрытия public API);
+`docs/testplans/<slug>-test-plan.md`
 объявляет TC, у которых нет реализации для этого слага (сверка по типу TC и имени, интерпретируется
 агентом, а не regex); дифф трогает файлы data-слоя, репозиториев, сервисов или use case без добавления
 или обновления проверок; передан `--coverage-audit`.
