@@ -17,7 +17,7 @@ Reference для фазы 5 скилла `cover-with-tests` — точка вх�
    Существующих проверок нет (строим с нуля) — поставить в слот:
    `"No example available — infer conventions from build config and project naming."`
 5. **Источник истины** — путь к тест-плану или спеке из фазы 2, либо пометка о характеризации.
-6. **Сценарий регрессии** — только в режиме `--regression`: структурированное описание бага из
+6. **Сценарий регрессии** — только на источнике-репро: структурированное описание бага из
    входных данных. В остальных режимах опустить либо поставить «N/A».
 
 Стека без профильного агента шаблоны ниже не покрывают: там главная сессия пишет проверки сама, взяв
@@ -35,7 +35,7 @@ Read these files:
 ## Test Infrastructure
 {Test Infrastructure Summary}
 
-## Regression scenario (--regression only — omit or "N/A" otherwise)
+## Regression scenario (bug-repro source only — omit or "N/A" otherwise)
 {regression_scenario: root cause + reproduction steps + expected vs actual behavior}
 
 ## Test cases to write
@@ -74,7 +74,7 @@ Read these files:
 ## Test Infrastructure
 {Test Infrastructure Summary}
 
-## Regression scenario (--regression only — omit or "N/A" otherwise)
+## Regression scenario (bug-repro source only — omit or "N/A" otherwise)
 {regression_scenario: root cause + reproduction steps + expected vs actual behavior}
 
 ## Test cases to write
@@ -111,7 +111,7 @@ Read these files:
 ## Test Infrastructure
 {Test Infrastructure Summary}
 
-## Regression scenario (--regression only — omit or "N/A" otherwise)
+## Regression scenario (bug-repro source only — omit or "N/A" otherwise)
 {regression_scenario: root cause + reproduction steps + expected vs actual behavior}
 
 ## Test cases to write
@@ -152,7 +152,7 @@ Read these files:
 ## Test Infrastructure
 {Test Infrastructure Summary}
 
-## Regression scenario (--regression only — omit or "N/A" otherwise)
+## Regression scenario (bug-repro source only — omit or "N/A" otherwise)
 {regression_scenario: root cause + reproduction steps + expected vs actual behavior}
 
 ## Test cases to write
