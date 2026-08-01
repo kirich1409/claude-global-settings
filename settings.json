@@ -93,13 +93,6 @@
       "Bash(~/.claude/scripts/gh/*)",
       "Bash(./gradlew:*)",
       "Skill(claude-md-management:revise-claude-md)",
-      "mcp__mobile__screenshot",
-      "mcp__mobile__list_devices",
-      "mcp__mobile__set_device",
-      "mcp__mobile__install_app",
-      "mcp__mobile__launch_app",
-      "mcp__mobile__get_logs",
-      "mcp__mobile__clear_logs",
       "WebFetch(domain:formulae.brew.sh)",
       "Bash(grep:*)",
       "Bash(rg:*)",
@@ -199,7 +192,7 @@
     ],
     "defaultMode": "auto"
   },
-  "model": "sonnet",
+  "model": "opus",
   "skillOverrides": {
     "evaluate-dependency": "off",
     "find-skills": "off",
@@ -350,12 +343,6 @@
         "repo": "kirich1409/krozov-ai-tools"
       }
     },
-    "firebase": {
-      "source": {
-        "source": "github",
-        "repo": "firebase/firebase-tools"
-      }
-    },
     "context-mode": {
       "source": {
         "source": "github",
@@ -368,13 +355,6 @@
         "source": "github",
         "repo": "Kotlin/kotlin-agent-skills"
       }
-    },
-    "claude-in-mobile": {
-      "source": {
-        "source": "git",
-        "url": "https://github.com/AlexGladkov/claude-in-mobile.git"
-      },
-      "autoUpdate": true
     },
     "claude-code-warp": {
       "source": {
