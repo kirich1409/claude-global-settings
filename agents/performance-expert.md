@@ -3,7 +3,7 @@ name: "performance-expert"
 model: opus
 effort: high
 description: "Ревью кода и планов на производительность и расход ресурсов: N+1 и лишние запросы, отсутствующая пагинация, блокировка UI-потока и неверные dispatcher, утечки coroutine и удерживаемые ссылки, лишние recomposition и UI jank, сетевая неэффективность, фоновая работа и батарея. Также стратегии профилирования. Выдаёт находки с severity, доказательством и конкретным фиксом."
-tools: Read, Glob, Grep, Bash
+disallowedTools: Edit, Write, NotebookEdit, Agent
 color: yellow
 maxTurns: 25
 ---

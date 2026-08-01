@@ -42,7 +42,7 @@ paths:
 
 Команды — в таблицах выше; здесь только когда `android` primary, а когда fallback.
 
-- **Docs:** `android docs search` — единственный курируемый канал guides (как принято / migration / best practice). Для API truth — **параллельно с `ksrc`** (jar = реальный API, docs = рекомендованная форма; расхождение = legacy / устаревшая версия). Context7 / Web — fallback, когда оба молчат.
+- **Docs:** `android docs search` — единственный курируемый канал guides (как принято / migration / best practice). Для API truth — **параллельно с сорсами зависимости** (jar = реальный API, docs = рекомендованная форма; расхождение = legacy / устаревшая версия); чем закрыт этот канал — `~/.claude/references/jvm-dependencies.md`. Context7 / Web — fallback, когда оба молчат.
 - **Bundled skills** (`~/.android/cli/skills/**/SKILL.md`, 19 шт, T2) — третий канал guides, **install не нужен**: `find <kw>` → `Read SKILL.md` → structured workflow (~10 шагов). Триггер: миграция / upgrade / узкая область (Wear M3, XR, CameraX, Navigation 3, edge-to-edge, Compose Styles/adaptive, R8, Perfetto, testing-setup, PBL, Engage, AppFunctions, XML→Compose, AGP 9). `last-updated` старше года в evolving стеке → понизить вес. **Не использовать**, когда глобальный Claude Code skill покрывает 1:1 (`agp-9-upgrade` ↔ `kotlin-tooling-agp9-migration`) — глобальный приоритетнее (routable, интегрирован с gates).
 - **Device / SDK / AVD / screen / layout:** `android` primary над raw `adb` / `sdkmanager` / `avdmanager` / `emulator` — на raw только при отсутствующем флаге.
 - **Build:** сама сборка — проектным Gradle; `android run` — только deploy-and-launch уже собранного APK.
@@ -59,7 +59,7 @@ paths:
 | Задача | Fallback |
 |------|----------|
 | Документация | Context7 (`resolve-library-id`) → WebSearch по `developer.android.com` → WebFetch страницы |
-| Метаданные проекта | Read `app/build.gradle*` / `settings.gradle*`; `ksrc` для исходников зависимостей |
+| Метаданные проекта | Read `app/build.gradle*` / `settings.gradle*`; исходники и версии зависимостей — `~/.claude/references/jvm-dependencies.md` |
 | Макет / скриншот | `adb shell uiautomator dump` + `adb pull /sdcard/window_dump.xml` / `adb exec-out screencap -p > shot.png` |
 | SDK / Emulator | `$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager` / `$ANDROID_HOME/emulator/emulator -list-avds`, `avdmanager` |
 | Деплой | `./gradlew :app:installDebug`, затем `adb shell am start -n <pkg>/<activity>` |

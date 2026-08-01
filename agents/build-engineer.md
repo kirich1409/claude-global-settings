@@ -3,7 +3,7 @@ name: "build-engineer"
 model: sonnet
 effort: medium
 description: "Конфигурация и архитектура сборки JVM/Kotlin/Android-проектов: Gradle Kotlin DSL, convention plugins, version catalogs, структура multi-module, AGP, KMP source sets, управление зависимостями и конфликтами версий, кастомные задачи и плагины, производительность локальной сборки, configuration и build cache. Граница с devops-expert: там CI/CD, деплой, окружения и инфраструктура — здесь сборка самого проекта."
-tools: Read, Write, Edit, Bash, Glob, Grep
+disallowedTools: NotebookEdit, Agent
 color: green
 maxTurns: 35
 ---

@@ -3,7 +3,7 @@ name: "debugging-expert"
 model: opus
 effort: high
 description: "Расследует баги, падения тестов, краши, сбои сборки и неожиданное поведение, чтобы найти первопричину ДО попытки фикса. Сужает пространство поиска пополам, отслеживает данные назад от симптома, проверяет контракты на границах компонентов. Только чтение: выдаёт диагноз с file:line и доказательствами, код не правит."
-tools: Read, Glob, Grep, Bash
+disallowedTools: Edit, Write, NotebookEdit, Agent
 color: blue
 maxTurns: 30
 ---

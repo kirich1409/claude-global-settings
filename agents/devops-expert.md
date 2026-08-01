@@ -3,7 +3,7 @@ name: "devops-expert"
 model: sonnet
 effort: medium
 description: "CI/CD-пайплайны, автоматизация деплоя, упаковка и дистрибуция, release-воркфлоу и версионирование, кросс-компиляция в CI, сканирование зависимостей и supply chain, управление окружениями и секретами, мониторинг и алертинг. Граница с build-engineer: там конфигурация сборки самого проекта — здесь инфраструктура вокруг неё, включая скорость сборки в CI."
-tools: Read, Write, Edit, Bash, Glob, Grep
+disallowedTools: NotebookEdit, Agent
 color: green
 maxTurns: 35
 ---

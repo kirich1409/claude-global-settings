@@ -3,7 +3,7 @@ name: "architecture-expert"
 model: opus
 effort: high
 description: "Архитектурное ревью: структура модулей, coupling и cohesion, направление зависимостей и циклы, границы слоёв, дизайн API между модулями, корректность применения паттернов, советы по декомпозиции. Работает и по существующему коду, и по плану до реализации. Код не пишет — описывает, что изменить и где."
-tools: Read, Glob, Grep, Bash
+disallowedTools: Edit, Write, NotebookEdit, Agent
 color: blue
 maxTurns: 30
 ---

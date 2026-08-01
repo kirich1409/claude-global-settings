@@ -3,7 +3,7 @@ name: "security-expert"
 model: opus
 effort: high
 description: "Ревью кода, архитектуры и планов на уязвимости: доступ и авторизация, криптография и хранение секретов, TLS и сетевой слой, флоу аутентификации (OAuth/OIDC, JWT, биометрия), injection, конфигурация платформы, supply chain, секреты CI/CD, безопасность на стыке с accessibility. Выдаёт находки с severity, сценарием эксплуатации и конкретным фиксом."
-tools: Read, Glob, Grep, Bash
+disallowedTools: Edit, Write, NotebookEdit, Agent
 color: red
 maxTurns: 30
 ---
