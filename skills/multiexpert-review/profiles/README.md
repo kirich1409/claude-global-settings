@@ -8,10 +8,11 @@
 ## Канонический инвентарь
 
 ```
-PROFILE_INVENTORY = [implementation-plan, test-plan, spec]
+PROFILE_INVENTORY = [implementation-plan, test-plan, spec, skill-instruction]
 ```
 
-(На момент написания существуют все три: `implementation-plan.md`, `test-plan.md`, `spec.md`.)
+(На момент написания существуют все четыре: `implementation-plan.md`, `test-plan.md`, `spec.md`,
+`skill-instruction.md`.)
 
 Этот список **авторитетен**. Движок читает его на старте, разбирая этот файл. Добавление профиля
 требует двух вещей одним коммитом: создать `profiles/<name>.md` и дописать `<name>` в список выше.
