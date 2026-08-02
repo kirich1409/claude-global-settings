@@ -16,6 +16,22 @@ Architecture), используют дословные промпты ниже �
 Каждый промпт обязан содержать строку: *«Respond in the same language as the research topic
 description.»*
 
+## Блок акцентов
+
+Акценты, собранные конфигурационным раундом фазы 1.5 и аргументом `--focus`, вставляются **в каждый**
+запускаемый промпт одинаковым блоком — тем же текстом, без подгонки под трек:
+
+```
+Focus areas (prioritise, do not filter): {акцент 1; акцент 2; …}
+```
+
+Одинаковость обязательна: разные акценты разным трекам — это оркестратор, который уже знает ответ и
+подталкивает к нему сборщиков, то есть та самая утечка между изолированными агентами, против которой
+устроен консорциум. Акцентов не задавали — блок опускается целиком, заглушку не вставлять.
+
+Слово «prioritise, do not filter» в строке не декоративное: находка вне акцентов остаётся в отчёте
+эксперта, акценты задают лишь порядок внимания и глубину копания.
+
 ---
 
 ## Обнаружение инструментов и работа по нескольким каналам — единый источник
@@ -48,6 +64,7 @@ Web, Docs, Dependencies и OSS Examples — четыре **независимы�
 focus: {web | library-docs | dependency-intelligence | oss-examples}
 topic: {тема}
 constraints: {известные границы — только KMP, без новых зависимостей, закреплённые версии, срок}
+Focus areas (prioritise, do not filter): {акценты фазы 1.5 и --focus; строка опускается, если их нет}
 
 Investigate only your focus class for this topic, per your standing instructions
 (discover available channels → query all relevant ones → cross-check by tier → report
@@ -87,6 +104,8 @@ Find and report:
 Use a code-index tool for symbol resolution when one is available; fall back to
 Grep + Read otherwise. Check build files, configuration, and test code too.
 
+Focus areas (prioritise, do not filter): {акценты фазы 1.5 и --focus; строка опускается, если их нет}
+
 Respond in the same language as the research topic description. Structure: overview,
 then findings grouped by category.
 ```
@@ -106,5 +125,8 @@ Analyze:
 5. Integration points — where does this touch existing abstractions?
 
 Read the relevant module structure and build files before making judgments.
+
+Focus areas (prioritise, do not filter): {акценты фазы 1.5 и --focus; строка опускается, если их нет}
+
 Respond in the same language as the research topic description.
 ```
