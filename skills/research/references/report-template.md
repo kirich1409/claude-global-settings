@@ -10,6 +10,7 @@ Date: {дата}
 Mode: {interactive | autonomous}
 Question answered: {yes | partially | no}
 Experts consulted: {какие треки отработали}
+Single-track: {yes; строка опускается, когда треков было больше одного}
 Tracks skipped: {трек — причина; «—», если запущены все}
 Coverage limitations: {классы каналов, недостижимые в этой сессии, и упавшие треки; «—», если таких нет}
 Focus areas: {акценты; строка опускается, если их не задавали}
