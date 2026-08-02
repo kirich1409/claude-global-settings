@@ -20,8 +20,9 @@ date: <YYYY-MM-DD>
 status: draft           # draft → approved (ставит фаза 4 на PASS/CONDITIONAL); при эскалации остаётся draft — эскалацию несёт review_verdict, а не это поле
 spec: docs/specs/<YYYY-MM-DD>-<slug>.md    # реальный путь, если спека есть (дата — собственная дата спеки, формат как у write-spec); спеки нет — написать none, путь НЕ выдумывать
 risk_areas: []          # подмножество [auth, payment, pii, data-migration, perf-critical] — только подсказка; выбор рецензентов идёт по прозе плана (Technical Approach, Risks), поэтому риски обязаны быть описаны и там, иначе профильный эксперт не сработает
-review_verdict: pending # pending → pass | conditional | escalate (ставит фаза 3)
+review_verdict: pending # pending → pass | conditional | escalate | blocked_upstream | overridden_by_user (ставит фаза 3); blocked_upstream — дефект в спеке или research, план ждёт отката, см. ~/.claude/references/pipeline-rollback.md
 review_blockers: []     # заполняется циклом ревью, когда блокеры остались
+upstream_blocker:       # только при blocked_upstream: путь к файлу состояния, где лежит пакет находок с доказательствами (`swarm-report/plan-<slug>-state.md`)
 ---
 
 # Plan: <название>

@@ -11,7 +11,9 @@ This harness checks **structural** properties, not content-level correctness. Be
 | Fixture | Expected profile | Expected behavior |
 |---------|------------------|-------------------|
 | `plan.md` | `implementation-plan` | Tech-match agent selection; verdict alphabet `PASS/CONDITIONAL/FAIL` |
-| `test-plan.md` | `test-plan` | Roster includes `business-analyst`; verdict alphabet `PASS/WARN/FAIL`; review prompt augmented with 5-item checklist (a)–(e) |
+| `test-plan.md` | `test-plan` | Roster includes `business-analyst`; verdict alphabet `PASS/WARN/FAIL`; review prompt augmented with the 7-item checklist (a)–(g) |
+| `upstream-plan.md` + `upstream-spec.md` | `implementation-plan` | Upstream detector fires: `{UPSTREAM_DOCUMENT}` filled from `spec:`, at least one finding with `scope: upstream`, escalation type `upstream_defect`, cycle aborted **without** a fix round on the plan |
+| `plan.md` (no `spec:`) | `implementation-plan` | Upstream detector stays silent: `{UPSTREAM_DOCUMENT}` empty → every finding `local`, ordinary FAIL/CONDITIONAL cycle. Negative control for the detector |
 | `spec.md` | `spec` | Roster = `[business-analyst, architecture-expert]`; verdict alphabet `PASS/CONDITIONAL/FAIL`; severity mapping uses rubric-item keys (`acceptance_criteria`, `prerequisites`, `out_of_scope`, etc.) |
 | `unknown-artifact.md` | (none — ask user) | Detector falls through all four stages; engine returns profile-choice prompt to user, does not silently default |
 
@@ -61,6 +63,32 @@ This harness checks **structural** properties, not content-level correctness. Be
 - **Detector path:** all four stages fall through (no hint, no frontmatter, no path glob match, no structural signatures)
 - **Expected engine behavior:** prompt user with `AskUserQuestion` listing `PROFILE_INVENTORY = [implementation-plan, test-plan, spec]`. **Never** silent fallback to implementation-plan.
 - **Verdict:** N/A until user selects a profile
+
+### `upstream-plan.md` + `upstream-spec.md` (upstream detector)
+
+The only executable check on the rollback protocol. The plan is deliberately well-written; the defects
+sit in the spec it links to, so a fix cycle on the plan cannot close them — the failure mode the
+detector exists to prevent.
+
+- **Prompt:** the review prompt must contain a `## The Upstream Document (upstream-spec.md)` section
+  with the spec's full text. Absent → the detector is misconfigured, and everything below is void.
+- **Expected findings:** at least one `scope: upstream` with a location inside `upstream-spec.md`
+  (AC-1 platform restriction, or the AC-2/AC-3 contradiction) and a verbatim quote from that file —
+  never from the plan's own restatement.
+- **Expected engine behavior:** verification step first (`spike-runner` / `hard-case-arbiter`), then
+  escalation `upstream_defect`; the plan is **not** edited, the cycle counter does not advance to a
+  fix round. Class assigned at synthesis: `infeasible` for AC-1, `contradictory` for AC-2 vs AC-3.
+- **Threshold check:** a sub-threshold upstream finding (`major`, single reviewer) must **not** abort
+  the cycle — it is reported as an ordinary local finding.
+- **Provenance:** AC-1 is `[agent]` → rollback proceeds autonomously; AC-2/AC-3 are `[user]` → blocking
+  question, and a silent relaxation of either is a failed run.
+
+### `plan.md` — negative control
+
+Same profile, no `spec:` in frontmatter. `{UPSTREAM_DOCUMENT}` stays empty, so every finding must come
+back `local` regardless of how upstream-ish it looks. An `upstream` finding here is a false positive:
+it means a reviewer invented an address in a document that does not exist — the main escape hatch the
+detector must not open.
 
 ## What this harness does NOT cover
 

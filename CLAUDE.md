@@ -42,7 +42,7 @@ rules, agents, skills, hooks и scripts. Правки идут прямо в `ma
 `references/**` не загружается ни у главной сессии, ни у субагентов — читать Read'ом по указателю из
 правил, субагенту передавать путь в prompt: `task-types`, `verification-pyramid`, `dependencies`,
 `external-sources`, `verify-library-api`, `model-effort-routing`, `context-resilience`,
-`task-execution`, `git-worktree`.
+`task-execution`, `git-worktree`, `pipeline-rollback`.
 
 ## Вывод Bash
 

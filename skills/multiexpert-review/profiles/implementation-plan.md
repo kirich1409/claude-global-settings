@@ -23,7 +23,7 @@ source_routing:
 
 receipt:
   path_template: "docs/plans/<slug>/plan.md"
-  fields_to_update: [review_verdict, review_blockers]
+  fields_to_update: [review_verdict, review_blockers, upstream_blocker]
 ---
 
 ## Rubric

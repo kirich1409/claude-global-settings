@@ -68,9 +68,11 @@ FAIL → починить артефакт в источнике → переп�
 
 **Предел циклов:** 3 всего за вызов (первый плюс два повторных), если вызывающий не передал
 `--max-cycles`. Всё ещё FAIL после предела — эскалация пользователю типа `cycle_cap_exhausted`, **не**
-тупик. Эскалация может сработать и раньше предела: два цикла подряд с `recurrence: true` (детектор
-churn, см. Шаг 4) — эскалация типа `convergence_failure` немедленно, независимо от того, сколько
-циклов осталось до `--max-cycles`. В обоих случаях — не автономная правка вне движка: пользователь
+тупик. Эскалация может сработать и раньше предела по двум детекторам Шага 4: два цикла подряд с
+`recurrence: true` (детектор churn) — тип `convergence_failure`; верифицированная находка
+`scope: upstream` (детектор upstream-дефекта) — тип `upstream_defect`, срабатывает на любом цикле,
+включая первый. Оба — немедленно, независимо от того, сколько циклов осталось до `--max-cycles`.
+В обоих случаях — не автономная правка вне движка: пользователь
 выбирает путь возобновления из меню (см. «После эскалации: возобновление» ниже), вызывающий действует
 по выбору. Дальше по конвейеру идти можно только с фактическим PASS/CONDITIONAL этого движка либо с
 явно записанным оверрайдом пользователя — не с фактом «пользователь сказал, как поправить».
@@ -122,8 +124,10 @@ Status: {detecting | reviewing | synthesizing | fixing | awaiting-user-resolutio
 
 Churn streak: {N}   # подряд идущих циклов с recurrence: true; сбрасывается в 0 циклом без recurrence
 
-## Escalations   # раздел появляется только если предел исчерпывался или сработал convergence_failure
-### After cycle {M}: escalated {дата}, type: {cycle_cap_exhausted | convergence_failure}
+## Escalations   # раздел появляется только если предел исчерпывался, сработал convergence_failure либо upstream_defect
+### After cycle {M}: escalated {дата}, type: {cycle_cap_exhausted | convergence_failure | upstream_defect}
+- Upstream target: {file:line вышестоящего документа}   # только для upstream_defect
+- Evidence: {доказательство} / Class: {infeasible | contradictory | underspecified} / Verified by: {spike-runner CONFIRMED | hard-case-arbiter}
 - User resolution: {что решил пользователь — дизайн-решение, директива по фиксу, либо "overridden: <дословно>"}
 - Resolution path: {extend_budget | raise_reviewer_model | hard_case_arbiter | back_to_previous_stage}
 - Budget extended to: {новое M} | Overridden without re-review: {yes, с причиной}
@@ -240,6 +244,8 @@ You are reviewing a {artifact_type} as a {agent_role} expert.
 ## The Artifact
 {full_artifact_text}
 
+{UPSTREAM_DOCUMENT}
+
 {PROFILE_PROMPT_AUGMENTATION}
 
 ## Your Task
@@ -259,17 +265,37 @@ For each issue:
 **Issue N: {short title}**
 - **severity**: critical | major | minor
 - **confidence**: high | medium | low
+- **scope**: local | upstream
 - **issue**: what the problem is (1-2 sentences)
 - **suggestion**: what to do instead (1-2 sentences)
+- **upstream_evidence**: {only when scope=upstream} exact location in the upstream document + proof of infeasibility
 
 Severity: critical = blocks implementation; major = significantly affects quality/perf/maintainability; minor = nice-to-have.
 Confidence: high = squarely in your domain; medium = relevant but could be wrong; low = outside core expertise.
+Scope: local = fixable by editing this artifact. upstream = NOT fixable here — predetermined by the upstream
+document shown above. **If no upstream document is shown, upstream does not apply at all: report local.** An
+artifact with no upstream document owns every open question itself.
+Requires all four: (1) no edit here closes it — every attempt either violates an upstream requirement or decides
+something this artifact does not own, (2) a location in the UPSTREAM DOCUMENT ITSELF (file:line, AC item, decision
+row; or where the missing answer should have been) — never this artifact's own restatement of it, (3) a verbatim
+quote from that upstream document, (4) proof — missing API in the pinned version, platform restriction, two
+conflicting requirements quoted side by side, a measured budget that cannot be met, or an absent answer plus the
+named observable difference the missing decision would make ("depending on this, the user sees X or Y").
+"Looks hard" and "seems unrealistic" are not proof; without all four, report it as local.
 
 Respond in the same language the artifact is written in.
 ```
 
 `{PROFILE_PROMPT_AUGMENTATION}` подставляется из раздела `## Prompt augmentation` профиля; когда его
 нет — пусто.
+
+`{UPSTREAM_DOCUMENT}` — полный текст вышестоящего документа под заголовком `## The Upstream Document
+(<путь>)`: для плана и тест-плана это спека по `spec:` из frontmatter артефакта, для спеки — отчёт
+research. **Пусто, когда вышестоящего документа нет** (`spec: none`, источник `plan_mode` или
+`conversation` без переданной спеки) — и тогда детектор upstream выключен целиком: без документа
+рецензент сможет процитировать только пересказ внутри самого артефакта, а именно перевранный пересказ
+панель и обязана ловить. Доказательство, добытое из пересказа, отправляет откат туда, где дефекта
+нет, — точная копия сбоя, против которого написан протокол.
 
 ### Инвариантные правила
 
@@ -289,6 +315,8 @@ Respond in the same language the artifact is written in.
 | Противоречащие мнения агентов | вынести как «неопределённость — требует решения»; молча не выбирать одно |
 | Severity minor либо низкая confidence у одного агента | предложение |
 | Флаг низкой domain_relevance | заметка, вес ниже |
+| `scope: upstream` с заполненным `upstream_evidence` | кандидат на откат — обрабатывается детектором upstream ниже (со своим порогом severity/confidence), а не циклом правок |
+| `scope: upstream` без `upstream_evidence` либо без названного места вышестоящего документа | понизить до обычной местной находки текущей severity и чинить здесь |
 
 Профиль добавляет `verdicts` (алфавит, например `[PASS, CONDITIONAL, FAIL]` либо
 `[PASS, WARN, FAIL]`) и `severity_mapping` — для профилей на чеклистах вроде пунктов a–e тест-плана.
@@ -315,10 +343,65 @@ Respond in the same language the artifact is written in.
 Тип записывается в `## Escalations` файла состояния и в вывод пользователю. См. «После эскалации» ниже
 — выбор пути возобновления зависит от типа.
 
+### Детектор upstream-дефекта
+
+Квалифицированная находка `scope: upstream` — все три условия из промпта **и** взятый порог
+(см. ниже) — означает, что
+цикл правок не сойдётся в принципе: движок правит артефакт, в котором дефекта нет. Такая находка
+**прерывает цикл немедленно, на любом цикле, включая первый** — не дожидаясь ни `--max-cycles`, ни
+churn-streak. Продолжать цикл правок при живой upstream-находке запрещено: это и есть механика,
+сжигающая раунды на чужом дефекте.
+
+**Порог срабатывания** — вес блокера, иначе `upstream` становится дешевле `critical` и превращается в
+законный способ не делать работу. Обрывают цикл только: `severity: critical` при `confidence: high` у
+одного рецензента **или** совпадение по теме у двух рецензентов независимо (при любой их severity).
+Severity берётся **после** применения `severity_mapping` профиля; у находок без идентификатора пункта
+рубрики — самооценка рецензента.
+
+`major` порога не берёт намеренно: в профилях с чеклистом (`test-plan`) ровно `major` соответствует
+пунктам, чьё нарушение профиль оценивает как WARN — «конвейер продолжается». Если бы `major` обрывал
+цикл, детектор молча отменял бы вердиктную политику профиля, которую тот вправе задавать. Ниже порога
+находка обрабатывается как обычная местная, без отдельного состояния: подтвердится вторым рецензентом
+на следующем цикле — сработает правило агрегации «одна проблема от двух агентов независимо →
+critical», и порог будет взят.
+
+**Профиль с `allow_single_reviewer: true`** оставляет от порога одну ветку: панель из одного агента
+вторую взять не может. Для таких профилей `critical` + `confidence: high` — единственный вход в откат,
+и это осознанно строго: остановить конвейер мнением одного рецензента без перекрёстной проверки
+дороже, чем прокрутить лишний цикл правок.
+
+**Класс дефекта назначает движок при синтезе**, а не рецензент: `infeasible`, `contradictory` или
+`underspecified` по таблице классов `~/.claude/references/pipeline-rollback.md`. Рецензент даёт три
+вещи — «здесь не чинится», адрес наверху, доказательство; классификация требует знания протокола
+отката, которого в промпте рецензента намеренно нет.
+
+Порядок:
+
+1. **Верифицировать до эскалации** — классы `infeasible` и `contradictory`. Утверждение эмпирически
+   проверяемо (API, поведение платформы, механика инструмента) → `spike-runner`. `REFUTED` — находка
+   понижается до местной, цикл продолжается обычным порядком; `CONFIRMED` — дальше; `INCONCLUSIVE`
+   либо утверждение о противоречии требований и постановке задачи → `hard-case-arbiter`. Вывод
+   верификатора записывается в файл состояния как доказательство. Шаг не пропускается: откат дороже
+   цикла правок, а «нереализуемо» — типовой кабинетный вывод. Класс `underspecified` верифицируется
+   чтением: проверяется не наличие ответа, а что вопрос лежит на стороне ЧТО, а не КАК.
+2. Верификация подтвердила → **эскалация типа `upstream_defect`**, третий тип наряду с
+   `cycle_cap_exhausted` и `convergence_failure`. Остальные находки цикла (местные) фиксируются в
+   вердикте, но не чинятся до разрешения upstream — правки поверх сдвигающегося требования
+   выбрасываются.
+3. Вызывающий действует по `~/.claude/references/pipeline-rollback.md`: провенанс требования решает,
+   автономен ли откат (`agent` — да, `user` — блокирующий вопрос). Артефакт помечается блокировкой в
+   своём поле (у каждого своё, см. протокол), файл состояния не удаляется.
+
+Рекомендованный путь возобновления при этом типе — **«вернуться на предыдущий этап»**, а не
+расширение бюджета циклов; меню всё равно показывается, решение за пользователем.
+
 ### Формат вердикта
 
 ```
 ## Multi-Expert Review Verdict: {PASS | CONDITIONAL | WARN | FAIL}
+
+### Upstream blockers (fix one stage up)   # раздел появляется только при квалифицированной scope: upstream
+- {issue} — raised by {agent(s)} / Upstream: {file:line вышестоящего документа} / Evidence: {доказательство} / Verified by: {spike-runner CONFIRMED | hard-case-arbiter}
 
 ### Blockers (must fix)
 - {issue} — raised by {agent(s)}, severity: critical / Suggestion: {что делать}
@@ -349,6 +432,10 @@ Respond in the same language the artifact is written in.
 - **WARN** (только в алфавитах, где он есть) — блокеры закрыты, но нарушены вторичные пункты
   (например (d) и (e) тест-плана); конвейер продолжается.
 - **FAIL** — есть блокеры.
+
+Верифицированный upstream-блокер даёт **FAIL с эскалацией `upstream_defect`** — вердикт тот же, но
+обработка не цикл правок, а откат (см. детектор upstream-дефекта выше). PASS и CONDITIONAL при живом
+upstream-блокере невозможны: артефакт согласован с документом, который сам неверен.
 
 ## Шаг 5 — действие после ревью
 
@@ -407,7 +494,7 @@ Respond in the same language the artifact is written in.
    | **Продолжить тем же составом/моделью, расширить `--max-cycles`** | `cycle_cap_exhausted` без `recurrence` в истории — находки выглядят мелкими/механическими, а не структурными. |
    | **Поднять модель ревьюеров** (`--reviewer-model=opus` явно; если уже opus — поднять effort) на возобновлённых циклах | Находки тонкие/взаимодействующие и текущая модель их плохо ловит либо чинит с новыми побочными дефектами. |
    | **Подключить `hard-case-arbiter`** как дополнительного или замещающего ревьюера на возобновлённых циклах | **По умолчанию при `convergence_failure`** — профиль `hard-case-arbiter` (арбитр последней инстанции, см. его описание в реестре агентов) ровно для случая, когда несколько раундов фиксов не помогли, симптом мигрирует по одной теме, а обычные эксперты расходятся или повторяют один и тот же класс дефекта. |
-   | **Вернуться на предыдущий этап конвейера** (план → спека, спека → research) | Рецидивирующий дефект трассируется к одному структурному решению более раннего этапа, а не к деталям реализации текущего артефакта. |
+   | **Вернуться на предыдущий этап конвейера** (план → спека, спека → research) | **По умолчанию при `upstream_defect`**, а также когда рецидивирующий дефект трассируется к одному структурному решению более раннего этапа, а не к деталям реализации текущего артефакта. Механика отката — `~/.claude/references/pipeline-rollback.md`. |
 
    В интерактивном режиме или при присутствии пользователя — `AskUserQuestion` с этими вариантами,
    рекомендованный путь первым и с обоснованием. В headless-режиме — не требовать решения без
@@ -417,9 +504,12 @@ Respond in the same language the artifact is written in.
 3. Внести правку в источник по выбранному пользователем пути. Для «расширить бюджет» и «поднять
    модель» — правка по разрешённому блокеру (та же маршрутизация `source_routing`, что и у обычного
    FAIL). Для «hard-case-arbiter» — сначала прогон этого агента, затем правка по его вердикту. Для
-   «вернуться на предыдущий этап» — маршрутизация не в этот движок, а в скилл предыдущего этапа
-   (`write-spec`, `research`); возврат в `multiexpert-review` происходит после того, как предыдущий
-   этап переутверждён.
+   «вернуться на предыдущий этап» — маршрутизация не в этот движок, а в `write-spec --rollback` по
+   протоколу `~/.claude/references/pipeline-rollback.md`: провенанс требования решает, автономна ли
+   правка, текущий артефакт помечается блокировкой и не выбрасывается, спека правится точечно и
+   переутверждается своим гейтом. Возврат в `multiexpert-review` происходит после этого; счётчик
+   циклов начинается заново — вход изменился, — а `## Verdict History` и запись об откате
+   сохраняются. Второй откат по той же теме идёт по ограничителю рекурсии из того же справочника.
 4. **Возобновить `multiexpert-review` тем же профилем**, с составом и моделью по выбранному пути
    (тот же состав по умолчанию; расширенный или замещённый `hard-case-arbiter`-ом состав, если выбран
    этот путь; `--reviewer-model=opus`/выше, если выбран путь поднятия модели), передав
