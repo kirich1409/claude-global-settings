@@ -32,6 +32,12 @@ Focus areas (prioritise, do not filter): {акцент 1; акцент 2; …}
 Слово «prioritise, do not filter» в строке не декоративное: находка вне акцентов остаётся в отчёте
 эксперта, акценты задают лишь порядок внимания и глубину копания.
 
+Строка `Seed repositories` — исключение из требования одинаковости: она адресует конкретную работу
+одного трека, а не расставляет приоритеты всем. Её получает **только** экземпляр с
+`focus: oss-examples`; выдать её остальным значит сообщить им заготовку ответа. «Start here, do not
+stop here» так же не декоративно: трек обязан искать за пределами списка и по каждому пиннированному
+репозиторию сказать, подтвердилось ожидание или нет.
+
 ---
 
 ## Обнаружение инструментов и работа по нескольким каналам — единый источник
@@ -65,6 +71,8 @@ focus: {web | library-docs | dependency-intelligence | oss-examples}
 topic: {тема}
 constraints: {известные границы — только KMP, без новых зависимостей, закреплённые версии, срок}
 Focus areas (prioritise, do not filter): {акценты фазы 1.5 и --focus; строка опускается, если их нет}
+Seed repositories (start here, do not stop here): {owner/repo, … — ТОЛЬКО для focus: oss-examples,
+из фазы 1.6 и --oss-repos; строка опускается, если репозиториев нет}
 
 Investigate only your focus class for this topic, per your standing instructions
 (discover available channels → query all relevant ones → cross-check by tier → report
