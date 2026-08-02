@@ -3,7 +3,8 @@
   "respectGitignore": true,
   "cleanupPeriodDays": 30,
   "env": {
-    "ENABLE_CLAUDEAI_MCP_SERVERS": "false"
+    "ENABLE_CLAUDEAI_MCP_SERVERS": "false",
+    "CLAUDE_CODE_PLUGIN_PREFER_HTTPS": "1"
   },
   "permissions": {
     "allow": [
@@ -108,6 +109,18 @@
       "mcp__plugin_maven-mcp_maven-mcp__catalog_entry",
       "mcp__plugin_maven-mcp_maven-mcp__verify_coordinates",
       "mcp__plugin_maven-mcp_maven-mcp__get_eol_status",
+      "mcp__plugin_quickai_quickai__quickai_stats",
+      "mcp__plugin_quickai_quickai__quickai_top",
+      "mcp__plugin_quickai_quickai__quickai_task",
+      "mcp__plugin_quickai_quickai__quickai_tasks",
+      "mcp__plugin_quickai_quickai__quickai_bench",
+      "mcp__plugin_quickai_quickai__quickai_usage",
+      "mcp__plugin_quickai_quickai__quickai_cache",
+      "mcp__plugin_quickai_quickai__quickai_latency",
+      "mcp__plugin_quickai_quickai__quickai_spin",
+      "mcp__plugin_quickai_quickai__quickai_tools",
+      "mcp__plugin_quickai_quickai__quickai_waste",
+      "mcp__plugin_quickai_quickai__quickai_slow",
       "Bash(ast-index help:*)",
       "Bash(ast-index rebuild:*)",
       "Bash($HOME/.claude/scripts/gh/*)",
@@ -359,7 +372,8 @@
     "warp@claude-code-warp": true,
     "claude-code-wakatime@wakatime": true,
     "ksrc@respawn-tools": true,
-    "maven-mcp@krozov-ai-tools": true
+    "maven-mcp@krozov-ai-tools": true,
+    "quickai@alexgladkov": true
   },
   "extraKnownMarketplaces": {
     "krozov-ai-tools": {
@@ -403,6 +417,12 @@
       "source": {
         "source": "github",
         "repo": "respawn-llc/claude-plugin-marketplace"
+      }
+    },
+    "alexgladkov": {
+      "source": {
+        "source": "github",
+        "repo": "AlexGladkov/claude"
       }
     }
   },
