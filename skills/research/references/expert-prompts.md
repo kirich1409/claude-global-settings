@@ -72,7 +72,7 @@ topic: {тема}
 constraints: {известные границы — только KMP, без новых зависимостей, закреплённые версии, срок}
 Focus areas (prioritise, do not filter): {акценты фазы 1.5 и --focus; строка опускается, если их нет}
 Seed repositories (start here, do not stop here): {owner/repo, … — ТОЛЬКО для focus: oss-examples,
-из фазы 1.6 и --oss-repos; строка опускается, если репозиториев нет}
+из фазы 1.6; строка опускается, если репозиториев нет}
 
 Investigate only your focus class for this topic, per your standing instructions
 (discover available channels → query all relevant ones → cross-check by tier → report
