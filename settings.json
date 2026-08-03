@@ -381,7 +381,11 @@
     "claude-code-wakatime@wakatime": true,
     "ksrc@respawn-tools": true,
     "maven-mcp@krozov-ai-tools": true,
-    "quickai@alexgladkov": true
+    "quickai@alexgladkov": true,
+    "code-simplifier@claude-plugins-official": true,
+    "pr-review-toolkit@claude-plugins-official": true,
+    "github@claude-plugins-official": true,
+    "claude-md-management@claude-plugins-official": true
   },
   "extraKnownMarketplaces": {
     "krozov-ai-tools": {
