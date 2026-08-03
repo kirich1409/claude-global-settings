@@ -136,6 +136,14 @@ web (`package.json` с браузерным фреймворком), desktop (Co
 Прозондировать артефакты одним пакетом вызовов Read: `swarm-report/<slug>-test-plan.md`,
 `docs/testplans/<slug>-test-plan.md`, `swarm-report/<slug>-debug.md`.
 
+**Чистота рабочего дерева.** Проверить `git status --porcelain` до всего остального. Слои суждения
+считают дифф по диапазону коммитов, а механический блок и device-блок исполняют рабочее дерево:
+пока в дереве есть незакоммиченные изменения затронутых исходников, эти два блока проверяют не то,
+что судят ревьюеры, и `diff_hash` описывает не то, что прогонялось. Найдено — назвать файлы и
+потребовать решения (закоммитить либо явно принять расхождение записью в расписке), а не
+продолжать молча. Незакоммиченный прогон `code-simplifier` — самый частый источник этого
+расхождения, но правило общее и от него не зависит.
+
 Выбранный источник запускает одну из четырёх веток — `test_plan_source: receipt | mounted |
 on-the-fly | absent`. `debug.md` как единственный источник подходит под ветку 3 (`on-the-fly`):
 верификация багфикса относится к нему как к спека-подобному входу. Семантика веток, переопределения
@@ -279,12 +287,13 @@ Blockers: <скопировать из сводной расписки>
 
 ### Схема артефакта подпроверки
 
-Каждая подпроверка пишет `swarm-report/<slug>-acceptance-<check>.md`:
+Каждой подпроверке соответствует `swarm-report/<slug>-acceptance-<check>.md`. Ревьюеры панели
+read-only, поэтому файл пишет гейт из вернувшегося отчёта, а не сам агент:
 
 ```yaml
 ---
 type: acceptance-check
-check: mechanical | code | coverage | ac-coverage | design | a11y | security | performance | architecture | build-config | devops | ui-tests | e2e | manual
+check: mechanical | code | coverage | test-quality | error-handling | ac-coverage | design | a11y | security | performance | architecture | build-config | devops | ui-tests | e2e | manual
 agent: <имя агента или "bash">
 verdict: PASS | WARN | FAIL | SKIPPED
 severity: critical | major | minor | null
@@ -296,7 +305,7 @@ blocked_on: <что должен разрешить пользователь; с
 ```
 
 `severity`, `confidence` и `domain_relevance` обязательны для `WARN` и `FAIL` и равны null для
-`PASS` и `SKIPPED`. Один файл на значение `check`; агент, закрывающий две области, пишет два файла.
+`PASS` и `SKIPPED`. Один файл на значение `check`; для агента, закрывающего две области, гейт сохраняет два файла.
 `diff_hash` вычисляется один раз за прогон и одинаково записывается каждой проверкой; проверку с
 `diff_hash: null` цикл повторной верификации никогда не пропускает по совпадению хеша.
 

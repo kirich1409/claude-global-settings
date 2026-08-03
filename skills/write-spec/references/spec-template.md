@@ -16,7 +16,7 @@ status: draft
 # (хореография) и фазой тест-плана в `write-plan` (покрытие с учётом платформы).
 platform: []                     # Канонические значения: [android], [ios], [web], [desktop], [backend-jvm], [backend-node], [cli], [library], [generic]. Может быть многозначным для кроссплатформенных фич.
 surfaces: []                     # Например [ui], [api], [cli], [background-job]. Определяет, какие проверки приёмки запускаются.
-risk_areas: []                   # Например [auth], [payment], [pii], [data-migration], [perf-critical]. Каждая запись включает условного эксперта в приёмке.
+risk_areas: []                   # Например [auth], [payment], [pii], [data-migration], [perf-critical], [error-handling]. Каждая запись включает условного эксперта в приёмке.
 non_functional:                  # Необязательный блок. Каждая присутствующая запись включает свою экспертную проверку.
   sla:                           # Например p99 < 150ms. Включает performance-expert.
   a11y:                          # Например wcag-aa. Включает режим a11y у ux-expert.

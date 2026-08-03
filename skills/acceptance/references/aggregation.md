@@ -6,9 +6,9 @@
 confidence, domain_relevance, blocked_on). Тело читать только при `verdict != PASS`. Тела артефактов
 не вставлять — давать на них ссылки.
 
-**Отсутствующий артефакт подпроверки.** Свой артефакт пишет каждая проверка, в том числе при падении:
-механический блок пишет его даже на красной сборке, а пропущенная проверка пишет его с
-`verdict: SKIPPED`. Если запланированный артефакт всё же отсутствует на момент агрегации, считать
+**Отсутствующий артефакт подпроверки.** Артефакт есть у каждой проверки, в том числе упавшей и
+пропущенной: механический блок пишет свой сам даже на красной сборке, артефакты агентных проверок
+сохраняет гейт, а пропущенная проверка получает `verdict: SKIPPED`. Если запланированный артефакт всё же отсутствует на момент агрегации, считать
 проверку `verdict: FAIL` с `blocked_on: per-check artifact missing` — молча не отбрасывать. `blocked_on`
 и есть каноническое поле для вынесения неразрешённых условий по схеме подпроверки; отдельного поля
 `error:` не существует.
@@ -22,7 +22,7 @@ confidence, domain_relevance, blocked_on). Тело читать только п
 | Сигнал | Действие |
 |---|---|
 | **severity `critical`** от любой подпроверки с `confidence: high` | → блокер. Aggregated Status = `FAILED`. |
-| **Одна и та же проблема** (тот же `file:line` либо тот же идентификатор AC) поднята двумя и более подпроверками независимо | → эскалировать до `critical` независимо от индивидуальной severity. Несколько специалистов видят одно и то же — это настоящая проблема. |
+| **Одна и та же проблема** (тот же `file:line` либо тот же идентификатор AC) поднята двумя и более подпроверками независимо | → эскалировать до `critical` независимо от индивидуальной severity. Несколько специалистов видят одно и то же — это настоящая проблема. **Исключение:** все сошедшиеся находки `minor` → схождение поднимает confidence, но severity остаётся `minor`. Схождение доказывает, что находка реальна, а не что она серьёзна. |
 | **severity `major`** от подпроверки с `domain_relevance: high` | → важное. Aggregated Status = `PARTIAL`, если ещё не эскалировано выше. |
 | **Противоречащие вердикты** (одна проверка `PASS`, другая `FAIL` по тому же пункту) | → «неопределённость, требует решения». Aggregated Status = `PARTIAL`, противоречие перечислено в расписке. |
 | **severity `minor`** либо **`confidence: low`** от одной проверки | → заметка, не блокер. На сводный статус не влияет. |
@@ -81,6 +81,8 @@ confidence, domain_relevance, blocked_on). Тело читать только п
 | Mechanical | bash | … | … | … | swarm-report/<slug>-acceptance-mechanical.md |
 | Code review | code-reviewer | … | … | … | swarm-report/<slug>-acceptance-code.md |
 | Coverage | cover-with-tests | … | … | … | swarm-report/<slug>-acceptance-coverage.md |
+| Test quality | test-quality-reviewer | … | … | … | swarm-report/<slug>-acceptance-test-quality.md |
+| Error handling | error-handling-reviewer | … | … | … | swarm-report/<slug>-acceptance-error-handling.md |
 | UI tests | bash | … | … | … | swarm-report/<slug>-acceptance-ui-tests.md |
 | E2E | bash | … | … | … | swarm-report/<slug>-acceptance-e2e.md |
 | Manual QA | manual-tester | … | … | … | swarm-report/<slug>-acceptance-manual.md |
