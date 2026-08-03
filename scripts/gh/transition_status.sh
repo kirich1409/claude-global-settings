@@ -102,6 +102,9 @@ im_has_label() {
   # "status:in-review".
   local target_lc lbl lbl_lc
   target_lc=$(printf '%s' "$1" | tr '[:upper:]' '[:lower:]')
+  # Guard against bash <4.4's "unbound variable" on an empty array under `set -u`
+  # (e.g. macOS system /bin/bash 3.2) when the issue has zero labels.
+  [[ -z "$ISSUE_LABELS" ]] && return 1
   IFS=',' read -ra _im_labels <<< "$ISSUE_LABELS"
   for lbl in "${_im_labels[@]}"; do
     lbl_lc=$(printf '%s' "$lbl" | tr '[:upper:]' '[:lower:]')

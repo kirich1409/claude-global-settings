@@ -226,10 +226,17 @@
     ],
     "defaultMode": "auto"
   },
-  "model": "opus",
   "skillOverrides": {
     "evaluate-dependency": "off",
-    "kotlin-tooling-cocoapods-spm-migration": "off"
+    "kotlin-tooling-cocoapods-spm-migration": "off",
+    "optimize-harness": "name-only",
+    "research": "name-only",
+    "write-plan": "name-only",
+    "implement-plan": "name-only",
+    "migrate-code": "name-only",
+    "worktree-cleanup": "name-only",
+    "cover-with-tests": "name-only",
+    "dependency-changes": "name-only"
   },
   "hooks": {
     "SessionStart": [
@@ -357,6 +364,7 @@
   "worktree": {
     "baseRef": "fresh"
   },
+  "workflowKeywordTriggerEnabled": false,
   "statusLine": {
     "type": "command",
     "command": "bash $HOME/.claude/statusline-command.sh"
