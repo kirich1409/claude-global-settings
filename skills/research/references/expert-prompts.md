@@ -2,7 +2,7 @@
 
 Механика запусков — SKILL.md, фаза 2, § «Как ведут себя запуски»: здесь она не пересказывается.
 Каждый агент работает независимо; находки одного другому не передаются никогда. Два трека, **привязанных к кодовой базе** (Codebase,
-Architecture), используют дословные промпты ниже на `Explore` и `architecture-expert`; четыре
+Architecture), используют дословные промпты ниже на `explorer` и `architecture-expert`; четыре
 **внешних** трека (Web, Docs, Dependencies, OSS Examples) работают на агенте `source-researcher`
 (см. раздел про внешние треки).
 
@@ -48,14 +48,13 @@ stop here» так же не декоративно: трек обязан ис�
 состав стека и § *Оценка доверия* про tier.
 
 Кто из участников до этого метода дотягивается — важно, потому что каналы наследования разные:
-`source-researcher` знает путь из собственного системного промпта, `architecture-expert` наследует
-безусловные правила. **`Explore` не наследует ничего** — по `~/.claude/rules/orchestration.md` он
-пропускает `CLAUDE.md`, rules и `MEMORY.md` целиком, а `references/**` не загружается ни у кого. Всё,
-что нужно треку Codebase, обязано стоять в его дословном промпте.
+`source-researcher` знает путь из собственного системного промпта, `architecture-expert` и `explorer`
+наследуют безусловные правила. Общее у всех одно: **`references/**` не загружается ни у кого**, так
+что путь к справочнику треку Codebase по-прежнему даётся в промпте явно.
 
 Четыре **внешних** трека не получают зашитого инструмента в промпте: они идут на агенте
 **`source-researcher`**, который обнаруживает каналы сам в рантайме. Два трека, привязанных к кодовой
-базе, сохраняют собственные промпты — у `Explore` и `architecture-expert` разные задачи и
+базе, сохраняют собственные промпты — у `explorer` и `architecture-expert` разные задачи и
 инструментарий.
 
 ---
@@ -100,11 +99,12 @@ without synthesizing). Respond in the same language as the topic description.
 
 ---
 
-## Codebase Expert (субагент Explore)
+## Codebase Expert (субагент `explorer`)
 
-Директива про индекс кода стоит в промпте дословно, а не подразумевается: `Explore` правил не видит,
-и без неё он уходит грепом по всей кодовой базе — самым дорогим способом сделать ровно то, для чего
-индекс и существует.
+Директива про индекс кода из промпта ниже убрана намеренно: `explorer` наследует
+`~/.claude/rules/ast-index.md` как обычный субагент и знает про индекс без напоминания. Возвращать
+её сюда есть смысл только если промпт уйдёт встроенному `Explore`, который правил не видит и без
+директивы уходит грепом по всей кодовой базе.
 
 ```
 Investigate the codebase for everything related to: {topic}
@@ -116,11 +116,6 @@ Find and report:
 4. Module boundaries and layers that would be affected
 5. Any existing TODO/FIXME comments related to this topic
 
-Use `ast-index` via Bash before Grep: `search "q"`, `file "Name"`, `class "Name"`,
-`usages "Name"`, `implementations "Name"`, `callers "fn"`. Grep only when ast-index is
-empty or for regex/string-literal search. Before `Read` on a file >~500 lines, run
-`ast-index outline <file>` and Read only the targeted slice via `offset`/`limit`.
-On "Index not found" → `ast-index rebuild`, never fall back to Grep.
 Check build files, configuration, and test code too.
 
 Focus areas (prioritise, do not filter): {акценты фазы 1.5 и --focus; строка опускается, если их нет}

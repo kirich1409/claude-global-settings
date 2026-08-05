@@ -2,7 +2,7 @@
 name: "claude-config-engineer"
 model: sonnet
 effort: medium
-description: "Правит конфигурацию Claude Code в ~/.claude и связанных конфиг-репозиториях: rules, hooks, settings*.json, skills, agents, scripts. Вносит изменение и обязан прогнать эмпирический верификатор до отчёта «готово» — «валидный JSON» и зелёный diff проверкой не считаются. Несёт конвенции репо: русский язык, $HOME вместо хардкода путей, paths-scoped frontmatter, ссылки [[name]]. Реализует уже принятое решение: КАКОЕ правило нужно — reasoning главной сессии."
+description: "Правит конфигурацию Claude Code в ~/.claude и связанных конфиг-репозиториях: rules, hooks, settings*.json, skills, agents, scripts. Вносит изменение и обязан прогнать эмпирический верификатор до отчёта «готово» — «валидный JSON» и зелёный diff проверкой не считаются. Несёт конвенции репо: русский язык, $HOME вместо хардкода путей, paths-scoped frontmatter, ссылки [[name]]. Реализует уже принятое решение: КАКОЕ правило нужно — reasoning вызывающего, не его."
 tools: Read, Write, Edit, Bash, Glob, Grep
 color: blue
 maxTurns: 80

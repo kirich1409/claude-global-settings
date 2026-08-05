@@ -17,7 +17,7 @@
 
 # Шаблоны промптов исследовательских агентов
 
-## Codebase Expert (субагент Explore) — включать всегда
+## Codebase Expert (субагент `explorer`) — включать всегда
 
 ```
 Investigate the codebase for everything related to: {feature goal}
@@ -100,7 +100,7 @@ Assess:
 Be concrete — list specific scenarios, not abstract concerns.
 ```
 
-## Критическая оценка (субагент general-purpose)
+## Критическая оценка (субагент general-purpose, `model: opus`)
 
 Включать, когда пользователь предложил конкретный технический подход либо когда в кодовой базе есть
 устоявшиеся паттерны в этой области, которые могли устареть или быть проблемными.
@@ -124,7 +124,7 @@ Do NOT recommend blindly following project patterns if they are outdated or prob
 Flag bad patterns explicitly — the user should know before committing to them.
 ```
 
-## Цепочка зависимостей (субагент general-purpose)
+## Цепочка зависимостей (субагент general-purpose, `model: sonnet`)
 
 Включать, когда фича интегрируется с внешними сервисами, требует возможностей уровня ОС, трогает
 инфраструктуру либо запрос пользователя подразумевает фазу настройки.

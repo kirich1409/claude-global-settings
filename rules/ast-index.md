@@ -19,7 +19,7 @@
   через `offset`/`limit`.
 
 «Index not found» или `⚠ AST INDEX NOT AVAILABLE` в session reminder → `ast-index rebuild` через
-Bash (работает из любого агента, включая Explore), затем повторить поиск. Не переходить на Grep и
+Bash (работает из любого агента, включая `explorer`), затем повторить поиск. Не переходить на Grep и
 не пропускать поиск.
 
 Индекс поддерживается хуками автоматически: SessionStart делает `update` или `rebuild` и поднимает

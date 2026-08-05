@@ -226,6 +226,7 @@
     ],
     "defaultMode": "auto"
   },
+  "model": "sonnet",
   "skillOverrides": {
     "evaluate-dependency": "off",
     "kotlin-tooling-cocoapods-spm-migration": "off",
@@ -374,15 +375,12 @@
     "security-guidance@claude-plugins-official": true,
     "remember@claude-plugins-official": true,
     "hookify@claude-plugins-official": false,
-    "code-review@claude-plugins-official": false,
-    "kotlin-lsp@claude-plugins-official": false,
     "context-mode@context-mode": true,
     "warp@claude-code-warp": true,
     "claude-code-wakatime@wakatime": true,
     "ksrc@respawn-tools": true,
     "maven-mcp@krozov-ai-tools": true,
     "quickai@alexgladkov": true,
-    "code-simplifier@claude-plugins-official": true,
     "pr-review-toolkit@claude-plugins-official": true,
     "github@claude-plugins-official": true,
     "claude-md-management@claude-plugins-official": true
